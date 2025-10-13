@@ -2,6 +2,10 @@
 import pandas as pd
 import argparse
 from pathlib import Path
+import config
+config.validate()  #validate config values
+from unknown_discovery import discover_unknown_placeholders
+
 
 #now have user enter in data rather than hardcoded filepath
 def load_table(path: Path) -> pd.DataFrame:
@@ -37,38 +41,6 @@ def load_table(path: Path) -> pd.DataFrame:
         f"Unsupported file type: {path.suffix or full_ext}. "
         "Use .xlsx/.xlsm/.xls or .csv/.csv.gz/.tsv/.txt."
     )
-
-UNKNOWN_STRINGS = {
-    "no data",
-    "missing value",
-    "null value",
-    "missing",
-    "na", "n/a", "n.a.",
-    "none",
-    "null",
-    "nan",
-    "unknown",
-    "unspecified",
-    "not specified",
-    "not applicable",
-    "tbd", "tba", "to be determined",
-    "-", "--",
-    "(blank)", "blank",
-    "(null)",
-    "?", 
-    "prefer not to say",
-    "refused",
-    # adding some specific to dataset 1
-    "unknown census area",  #census area
-    "unknown house district",       #house/election district
-    "unknown election district",    #house/election district
-    "unknown station",                #maintenance station
-    "unknown category",           #maintenance category
-    "unknown maintenance responsibility",       #maintenance responsibility
-    "missing functional class",               #functional class
-    "unspecified area",                   # urban/rural
-    #end of dataset 1 specific additions
-}
 
 def percent_unknowns_per_column(df, unknown_strings):
     tokens = {s.strip().lower() for s in unknown_strings} #tokenize and lowercase column inputs
@@ -119,6 +91,34 @@ def yes_no(df, unknown_strings):
 
     return out
 
+UNKNOWN_STRINGS = {
+    "no data",
+    "missing value",
+    "null value",
+    "missing",
+    "na", "n/a", "n.a.",
+    "none",
+    "null",
+    "nan",
+    "unknown",
+    "unspecified",
+    "not specified",
+    "not applicable",
+    "tbd", "tba", "to be determined",
+    "-", "--",
+    "(blank)", "blank",
+    "(null)",
+    "?", 
+    "prefer not to say",
+    "refused"
+}
+
+#get our unknown and yes/no thresholds from config file
+unknown_thresh = float(config.UNKNOWN_THRESHOLD)
+yes_no_thresh = float(config.YES_NO_THRESHOLD)
+
+
+
 parser = argparse.ArgumentParser(description="Clean a dataset by identifying unknown/missing values.")
 parser.add_argument("-f", "--file", required=False, help="Path to the input .xlsx or .csv file.")
 args = parser.parse_args()
@@ -141,8 +141,14 @@ df1 = load_table(input_file)
 print(f"Loaded {input_file} with {df1.shape[0]} rows and {df1.shape[1]} columns.")
 
 
-res = percent_unknowns_per_column(df1, UNKNOWN_STRINGS)
-yn = yes_no(df1, UNKNOWN_STRINGS)
+aug_unknowns = discover_unknown_placeholders(df1, UNKNOWN_STRINGS) #get new unknown values
+print(f"Discovered {len(aug_unknowns) - len(UNKNOWN_STRINGS)} new unknown tokens.")
+for val in aug_unknowns:
+    print(f"{val}\n")
+
+
+res = percent_unknowns_per_column(df1, aug_unknowns)
+yn = yes_no(df1, aug_unknowns)
 
 #just print for now until we decide functionality
 res.sort(key=lambda x: x[1], reverse=True)

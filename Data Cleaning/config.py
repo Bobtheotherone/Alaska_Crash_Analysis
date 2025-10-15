@@ -1,7 +1,7 @@
 #config for global variables across project
 
 UNKNOWN_THRESHOLD = 10.0  #percentage threshold for unknowns in a column
-YES_NO_THRESHOLD = 90.0  #percentage threshold for yes/no in a column
+YES_NO_THRESHOLD = 1.0  #percentage threshold for yes/no in a column
 
 
 #verify they are valid percentages

@@ -143,19 +143,49 @@ print(f"Loaded {input_file} with {df1.shape[0]} rows and {df1.shape[1]} columns.
 
 aug_unknowns = discover_unknown_placeholders(df1, UNKNOWN_STRINGS) #get new unknown values
 print(f"Discovered {len(aug_unknowns) - len(UNKNOWN_STRINGS)} new unknown tokens.")
-for val in aug_unknowns:
-    print(f"{val}\n")
+#for val in aug_unknowns:
+#    print(f"{val}\n")
 
 
-res = percent_unknowns_per_column(df1, aug_unknowns)
+#get our percentages
+uk = percent_unknowns_per_column(df1, aug_unknowns)
+uk_pcts = dict(uk)  #dictionary for quicker lookup
 yn = yes_no(df1, aug_unknowns)
+yn_coverage_min = 50.0 #to cover mistaken yes/no
+
+to_drop = set()     #set of columns to drop
+n_rows = len(df1)   #get total # of rows
+
+#drop columns above the unknown threshold
+for col, pct in uk_pcts.items():
+    if pct > unknown_thresh:
+        to_drop.add(col)
+
+#drop columns with extreme yes/no imbalance
+for col, (y_pct, n_pct, y_cnt, n_cnt, total_yesno) in yn.items():
+    coverage_pct = (total_yesno / n_rows * 100.0) if n_rows else 0.0
+    if coverage_pct >= yn_coverage_min: #to cover cases where a few values are falsely flagged as yes/no
+        if y_pct < yes_no_thresh or n_pct < yes_no_thresh:
+            to_drop.add(col)
+
+#make a new df to write to csv
+clean_df = df1.drop(columns=sorted(to_drop), errors="ignore")
+
+#write to new csv file with _cleaned appended
+out_csv = input_file.with_name(f"{input_file.stem}_cleaned.csv")
+clean_df.to_csv(out_csv, index=False)
+
+#print out confirmation message
+print(f"Dropped {len(to_drop)} columns. New shape: {clean_df.shape[0]} rows x {clean_df.shape[1]} cols")
+print(f"Saved: {out_csv}")
+
 
 #just print for now until we decide functionality
-res.sort(key=lambda x: x[1], reverse=True)
-print("\n% Unknown by column (NaN + known placeholders):")
-for col, pct in res:
-    extra = ""
-    if col in yn:
-        y_pct, n_pct, y_cnt, n_cnt, total = yn[col]
-        extra = f"   (Yes/No: {y_pct:.2f}%/{n_pct:.2f}% of {total} known)"
-    print(f"{pct:6.2f}%  -  {col}{extra}")
+#uk.sort(key=lambda x: x[1], reverse=True)
+#print("\n% Unknown by column (NaN + known placeholders):")
+#for col, pct in uk:
+#    extra = ""
+#    if col in yn:
+#        y_pct, n_pct, y_cnt, n_cnt, total = yn[col]
+#        extra = f"   (Yes/No: {y_pct:.2f}%/{n_pct:.2f}% of {total} known)"
+#    print(f"{pct:6.2f}%  -  {col}{extra}")

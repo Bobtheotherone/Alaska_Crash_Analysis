@@ -15,6 +15,11 @@ from sklearn.tree import DecisionTreeClassifier
 
 import argparse
 
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+#Put root directory into sys so we can get DataCleaning scripts
+from DataCleaning.unknown_discovery import discover_unknown_placeholders
+from DataCleaning.config import UNKNOWN_STRINGS
 
 severity_mapping = {
     'No Apparent Injury': 0,
@@ -24,6 +29,15 @@ severity_mapping = {
     'Fatal Injury (Killed)': 2
 }
 
+def group_severity(Crash_Severity):
+    if Crash_Severity in ["No Apparent Injury", "Suspected Minor Injury"]:
+        return "Low Severity"
+    elif Crash_Severity in ["Possible Injury", "Suspected Serious Injury"]:
+        return "Moderate Severity"
+    elif Crash_Severity == "Fatal Injury (Killed)":
+        return "High Severity"
+    else:
+        return None  # Handle other categories if needed
 
 if __name__ == "__main__":
     #get user file (temp for now for testing)
@@ -61,4 +75,32 @@ if __name__ == "__main__":
     #reset column names
     column_names = df.columns.tolist()
 
+    #discover unknowns dynamically and set them to pandas NaN
+    unknown_values = discover_unknown_placeholders(df, UNKNOWN_STRINGS)
+    df = df.replace(list(unknown_values), np.nan)
+
+    #FIX make this severity column dynamic based on reading values in columns
+    severity_col = "Crash Severity"
+
+    #apply severity grouping
+    df['grouped_severity'] = df['Crash Severity'].apply(group_severity)
+
+
+    #define our target using our severity mapping
+    y = df[severity_col].map(severity_mapping)
+
+    #keep rows where it mapped properly
+    mask = y.notna()
+    X = df.loc[mask].drop(columns=[severity_col], errors="ignore")
+    y = y.loc[mask].astype(int)
+
+    print("y distribution:", y.value_counts().sort_index().to_dict())
+    print("X shape:", X.shape)
+
+    #find numeric and categorical columns
+    numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = [c for c in X.columns if c not in numeric_cols]
+    
+    print(f"Numeric cols: {len(numeric_cols)}")
+    print(f"Categorical cols: {len(categorical_cols)}")
 

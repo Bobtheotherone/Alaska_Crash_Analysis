@@ -1,8 +1,27 @@
 #config for global variables across project
+from typing import Set
 
 UNKNOWN_THRESHOLD = 10.0  #percentage threshold for unknowns in a column
 YES_NO_THRESHOLD = 1.0  #percentage threshold for yes/no in a column
 
+UNKNOWN_STRINGS: set[str] = {
+    "unknown",
+    "missing",
+    "unspecified",
+    "not specified",
+    "not applicable",
+    "n/a",
+    "na",
+    "null",
+    "blank",
+    "tbd",
+    "tba",
+    "to be determined",
+    "refused",
+    "prefer not to say",
+    "no data",
+    "no value",
+}
 
 #verify they are valid percentages
 def validate():

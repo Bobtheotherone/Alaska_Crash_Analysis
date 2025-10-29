@@ -181,11 +181,11 @@ print(f"Saved: {out_csv}")
 
 
 #just print for now until we decide functionality
-#uk.sort(key=lambda x: x[1], reverse=True)
-#print("\n% Unknown by column (NaN + known placeholders):")
-#for col, pct in uk:
-#    extra = ""
-#    if col in yn:
-#        y_pct, n_pct, y_cnt, n_cnt, total = yn[col]
-#        extra = f"   (Yes/No: {y_pct:.2f}%/{n_pct:.2f}% of {total} known)"
-#    print(f"{pct:6.2f}%  -  {col}{extra}")
+uk.sort(key=lambda x: x[1], reverse=True)
+print("\n% Unknown by column (NaN + known placeholders):")
+for col, pct in uk:
+    extra = ""
+    if col in yn:
+        y_pct, n_pct, y_cnt, n_cnt, total = yn[col]
+        extra = f"   (Yes/No: {y_pct:.2f}%/{n_pct:.2f}% of {total} known)"
+    print(f"{pct:6.2f}%  -  {col}{extra}")

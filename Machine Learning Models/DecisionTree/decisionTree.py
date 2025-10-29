@@ -115,6 +115,7 @@ if __name__ == "__main__":
     "Number of Serious Injuries",
     "Number of Minor Injuries",
     "Number of Serious Injuries with Fatalities",
+    "Form Type",    #temp fix
     }
     X = X.drop(columns=[c for c in leak_cols if c in X.columns], errors="ignore")
 
@@ -124,6 +125,10 @@ if __name__ == "__main__":
     #find numeric and categorical columns
     numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = [c for c in X.columns if c not in numeric_cols]
+
+    #fixme blocklist
+    blocklist = {"Intersecting Street", "Reporting Agency", "City"}
+    categorical_cols = [c for c in categorical_cols if c not in blocklist]    
     
     print(f"Numeric cols: {len(numeric_cols)}")
     print(f"Categorical cols: {len(categorical_cols)}")
@@ -179,7 +184,7 @@ if __name__ == "__main__":
     )
 
     #model will pay more attention to serious crashes (reduce false negatives)
-    class_weights = {0: 1.0, 1: 1.5, 2: 3.0}
+    class_weights = "balanced"    #temp fix
 
     #create another sklearn pipeline to preprocess and create decision tree
     model = Pipeline(steps=[
@@ -205,12 +210,14 @@ if __name__ == "__main__":
     conf_matrix = confusion_matrix(y_test, y_pred)
     class_report = classification_report(y_test, y_pred)
 
+    print()
     print("Test Metrics (Decision Tree)")
     print(f"Accuracy:  {acc:.4f}")
     print(f"F1-macro:  {f1:.4f}")
+    print()
     print('\nConfusion Matrix:\n', conf_matrix)
     print('\nClassification Report:\n', class_report)
-
+    print()
     #extract feature importances
     #get feature names after preprocessing
     ct = model.named_steps["preprocess"]

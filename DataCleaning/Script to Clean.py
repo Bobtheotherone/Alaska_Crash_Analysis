@@ -201,7 +201,7 @@ for col, unique in uniq.items():
 clean_df = df1.drop(columns=sorted(to_drop), errors="ignore")
 
 #write to new csv file with _cleaned appended
-out_csv = input_file.with_name(f"{input_file.stem}_cleaned_test.csv")
+out_csv = input_file.with_name(f"{input_file.stem}_cleaned.csv")
 clean_df.to_csv(out_csv, index=False)
 
 #print out confirmation message

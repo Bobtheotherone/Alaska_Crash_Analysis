@@ -77,14 +77,6 @@ if __name__ == "__main__":
     print(f"\nDetected {len(column_names)} columns: ")
     print(column_names)
 
-    #in datasets, column 0 is usually a unique ID, so just drop column 0
-    if df.shape[1] >= 1:
-        first_col_label = df.columns[0]
-        df = df.drop(columns=[first_col_label])
-
-    #reset column names
-    column_names = df.columns.tolist()
-
     #discover unknowns dynamically and set them to pandas NaN
     unknown_values = discover_unknown_placeholders(df, UNKNOWN_STRINGS)
     df = df.replace(list(unknown_values), np.nan)
@@ -128,8 +120,8 @@ if __name__ == "__main__":
 
     #fixme blocklist
     blocklist = {"Intersecting Street", "Reporting Agency", "City"}
-    categorical_cols = [c for c in categorical_cols if c not in blocklist]    
-    
+    categorical_cols = [c for c in categorical_cols if c not in blocklist]
+
     print(f"Numeric cols: {len(numeric_cols)}")
     print(f"Categorical cols: {len(categorical_cols)}")
 

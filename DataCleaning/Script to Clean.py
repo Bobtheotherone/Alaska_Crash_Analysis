@@ -43,6 +43,7 @@ def load_table(path: Path) -> pd.DataFrame:
     )
 
 def percent_unknowns_per_column(df, unknown_strings):
+    #scans each column for percentage of unknown/missing values
     tokens = {s.strip().lower() for s in unknown_strings} #tokenize and lowercase column inputs
     results = []
     for col in df.columns:
@@ -90,6 +91,28 @@ def yes_no(df, unknown_strings):
             out[col] = (yes_pct, no_pct, yes_count, no_count, total_count)
 
     return out
+
+def unique_non_unknown_counts(df, unknown_strings):
+    #get unique value counts per column excluding unknowns
+    tokens = {s.strip().lower() for s in unknown_strings} #tokenize and lowercase column inputs
+    out = {}
+
+    for col in df.columns:
+        series = df[col]
+        mask_not_null = (~series.isna()) #filter out pandas nulls
+
+        if not mask_not_null.any(): #catch all unknown columns for error prevention
+            out[col] = 0
+            continue
+
+        series_norm = series[mask_not_null].astype(str).str.strip().str.lower() #while not pandas null, convert to string, strip string, lowercase string
+        series_norm = series_norm[~series_norm.isin(tokens)] #filter out known unknowns
+
+        out[col] = int(series_norm.nunique(dropna=True)) #count unique non-unknown values
+
+    return out
+
+
 
 UNKNOWN_STRINGS = {
     "no data",
@@ -152,6 +175,7 @@ uk = percent_unknowns_per_column(df1, aug_unknowns)
 uk_pcts = dict(uk)  #dictionary for quicker lookup
 yn = yes_no(df1, aug_unknowns)
 yn_coverage_min = 50.0 #to cover mistaken yes/no
+uniq = unique_non_unknown_counts(df1, aug_unknowns)
 
 to_drop = set()     #set of columns to drop
 n_rows = len(df1)   #get total # of rows
@@ -168,11 +192,16 @@ for col, (y_pct, n_pct, y_cnt, n_cnt, total_yesno) in yn.items():
         if y_pct < yes_no_thresh or n_pct < yes_no_thresh:
             to_drop.add(col)
 
+#drop columns with only 1 unique non-unknown value or equal to # of rows
+for col, unique in uniq.items():
+    if unique <= 1 or unique >= n_rows:
+        to_drop.add(col)
+
 #make a new df to write to csv
 clean_df = df1.drop(columns=sorted(to_drop), errors="ignore")
 
 #write to new csv file with _cleaned appended
-out_csv = input_file.with_name(f"{input_file.stem}_cleaned.csv")
+out_csv = input_file.with_name(f"{input_file.stem}_cleaned_test.csv")
 clean_df.to_csv(out_csv, index=False)
 
 #print out confirmation message

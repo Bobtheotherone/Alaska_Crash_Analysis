@@ -48,6 +48,19 @@ def group_severity(Crash_Severity):
     else:
         return None  # Handle other categories if needed
 """
+def find_high_cardinality(df, categorical_cols, threshold_ratio=0.1, absolute_cap=100):
+    #find high cardinality categorical columns
+    n_rows = len(df)
+    hcc = []
+    for c in categorical_cols:
+        k = df[c].nunique(dropna=True)
+        print(f"Column: {c}, Unique Values: {k}")
+        print()
+        ratio = k / n_rows
+        if k > absolute_cap or ratio > threshold_ratio:
+            hcc.append(c)
+    return hcc
+
 
 if __name__ == "__main__":
     #get user file (temp for now for testing)
@@ -108,6 +121,7 @@ if __name__ == "__main__":
     "Number of Minor Injuries",
     "Number of Serious Injuries with Fatalities",
     "Form Type",    #temp fix
+    "Reporting Agency"  #temp fix
     }
     X = X.drop(columns=[c for c in leak_cols if c in X.columns], errors="ignore")
 
@@ -118,9 +132,9 @@ if __name__ == "__main__":
     numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = [c for c in X.columns if c not in numeric_cols]
 
-    #fixme blocklist
-    blocklist = {"Intersecting Street", "Reporting Agency", "City"}
-    categorical_cols = [c for c in categorical_cols if c not in blocklist]
+    high_cardinality_cols = find_high_cardinality(X, categorical_cols)
+    print(f"High cardinality categorical columns (to be removed): {high_cardinality_cols}")
+    categorical_cols = [c for c in categorical_cols if c not in high_cardinality_cols]
 
     print(f"Numeric cols: {len(numeric_cols)}")
     print(f"Categorical cols: {len(categorical_cols)}")

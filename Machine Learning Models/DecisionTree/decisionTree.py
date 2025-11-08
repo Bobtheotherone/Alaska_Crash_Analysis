@@ -16,7 +16,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import FunctionTransformer
 
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix
 
 
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     )
 
     #model will pay more attention to serious crashes (reduce false negatives)
-    class_weights = "balanced"    #temp fix
+    class_weights = "balanced"
 
     #create another sklearn pipeline to preprocess and create decision tree
     model = Pipeline(steps=[
@@ -204,9 +204,37 @@ if __name__ == "__main__":
             class_weight=class_weights
         ))
     ])
-    #hyperparameters might be able to be dynamic like their lines 119-135
-    
-    model.fit(X_train, y_train)
+    #dynamic hyperparameter tuning can be toggled
+    #dynamic hyperparameters increases runtime significantly due to multiple fits
+    #but can also massively increase model performance
+    use_hyperparam_search = True
+
+    if use_hyperparam_search:
+        param_dist = {
+            "model__max_depth": [5, 10, 15, 20, None],
+            "model__min_samples_split": [2, 5, 10, 20],
+            "model__min_samples_leaf": [1, 2, 4, 8],
+            "model__criterion": ["gini", "entropy", "log_loss"]
+        }
+
+        #randomly searches using hyperparameters and cross-validation through f1 score
+        search = RandomizedSearchCV(
+            model,
+            param_distributions=param_dist,
+            n_iter=40,             # number of random combinations to try
+            scoring="f1_macro",    # scoring
+            cv=3,                  # 3-fold cross-validation on the training set
+            n_jobs=-1,             # use all cores if available
+            random_state=42,
+            verbose=1,
+        )
+        search.fit(X_train, y_train)
+        print("\nBest hyperparameters found:")
+        print(search.best_params_)
+        model = search.best_estimator_
+
+    else:
+        model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
 

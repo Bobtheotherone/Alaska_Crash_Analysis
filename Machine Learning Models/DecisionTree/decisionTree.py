@@ -28,6 +28,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from DataCleaning.unknown_discovery import discover_unknown_placeholders
 from DataCleaning.config import UNKNOWN_STRINGS
 
+#fix severity mapping needs to be dynamic
 severity_mapping = {
     'No Apparent Injury': 0,
     'Possible Injury': 1,
@@ -54,8 +55,6 @@ def find_high_cardinality(df, categorical_cols, threshold_ratio=0.1, absolute_ca
     hcc = []
     for c in categorical_cols:
         k = df[c].nunique(dropna=True)
-        print(f"Column: {c}, Unique Values: {k}")
-        print()
         ratio = k / n_rows
         if k > absolute_cap or ratio > threshold_ratio:
             hcc.append(c)
@@ -94,12 +93,29 @@ if __name__ == "__main__":
     unknown_values = discover_unknown_placeholders(df, UNKNOWN_STRINGS)
     df = df.replace(list(unknown_values), np.nan)
 
-    #FIX make this severity column dynamic based on reading values in columns
-    #also make the severity mapping dynamic somehow?
-    severity_col = "Crash Severity"
-
-    #apply severity grouping
-    #df['grouped_severity'] = df['Crash Severity'].apply(group_severity)
+    #find severity column by prompting user 
+    severity_col_found = False
+    for col in column_names:
+        if "severity" in col.lower() or "severe" in col.lower():
+            severity_col = col
+            print(f"\nIs'{severity_col}' the severity column? (y/n): ", end="")
+            user_input = input().strip().lower()
+            if user_input == 'y':
+                print(f"Using '{severity_col}' as severity column.")
+                severity_col_found = True
+                break
+            else:
+                continue
+    
+    if not severity_col_found:
+        print("\nCould not automatically determine severity column, please enter the column name: ")
+    while not severity_col_found:
+        severity_col = input().strip()
+        if severity_col not in column_names:
+            print(f"Error: '{severity_col}' is not a valid column name. Please try again.")
+        else:
+            print(f"Using '{severity_col}' as severity column.")
+            severity_col_found = True
 
 
     #define our target using our severity mapping

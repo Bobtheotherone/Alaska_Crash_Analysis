@@ -87,7 +87,6 @@ if __name__ == "__main__":
     #dynamically get column names
     column_names = df.columns.tolist()
     print(f"\nDetected {len(column_names)} columns: ")
-    print(column_names)
 
     #discover unknowns dynamically and set them to pandas NaN
     unknown_values = discover_unknown_placeholders(df, UNKNOWN_STRINGS)

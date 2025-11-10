@@ -89,7 +89,6 @@ if __name__ == "__main__":
     #dynamically get column names
     column_names = df.columns.tolist()
     print(f"\nDetected {len(column_names)} columns: ")
-    print(column_names)
 
     #discover unknowns dynamically and set them to pandas NaN
     unknown_values = discover_unknown_placeholders(df, UNKNOWN_STRINGS)
@@ -208,8 +207,8 @@ if __name__ == "__main__":
     )
 
     base_ebm = ExplainableBoostingClassifier(
-        interactions=0,      # you can try >0 later for pairwise interactions
-        max_rounds=5000,     # number of boosting rounds (like n_estimators)
+        interactions=0,     
+        max_rounds=5000,     
         learning_rate=0.01,
         max_bins=256,
         max_leaves=3,
@@ -256,10 +255,10 @@ if __name__ == "__main__":
         search = RandomizedSearchCV(
             model,
             param_distributions=param_dist,
-            n_iter=10,             # number of random combinations to try
-            scoring="f1_macro",    # scoring
-            cv=3,                  # 3-fold cross-validation on the training set
-            n_jobs=-1,             # use all cores if available
+            n_iter=10,             
+            scoring="f1_macro",    
+            cv=3,                  
+            n_jobs=-1,             
             random_state=42,
             verbose=1,
         )

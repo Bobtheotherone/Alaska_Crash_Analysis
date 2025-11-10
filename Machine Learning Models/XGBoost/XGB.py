@@ -264,7 +264,7 @@ if __name__ == "__main__":
         search = RandomizedSearchCV(
             model,
             param_distributions=param_dist,
-            n_iter=30,             # number of random combinations to try
+            n_iter=20,             # number of random combinations to try
             scoring="f1_macro",    # scoring
             cv=3,                  # 3-fold cross-validation on the training set
             n_jobs=-1,             # use all cores if available

@@ -24,18 +24,12 @@ import argparse
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 #Put root directory into sys so we can get DataCleaning scripts
+#and severity mapping utils
 
 from DataCleaning.unknown_discovery import discover_unknown_placeholders
 from DataCleaning.config import UNKNOWN_STRINGS
 
-#fix severity mapping needs to be dynamic
-severity_mapping = {
-    'No Apparent Injury': 0,
-    'Possible Injury': 1,
-    'Suspected Minor Injury': 1,
-    'Suspected Serious Injury': 2,
-    'Fatal Injury (Killed)': 2
-}
+from severity_mapping_utils import find_severity_mapping
 
 """
 #previous group implementation
@@ -59,7 +53,6 @@ def find_high_cardinality(df, categorical_cols, threshold_ratio=0.1, absolute_ca
         if k > absolute_cap or ratio > threshold_ratio:
             hcc.append(c)
     return hcc
-
 
 if __name__ == "__main__":
     #get user file (temp for now for testing)
@@ -116,6 +109,8 @@ if __name__ == "__main__":
             print(f"Using '{severity_col}' as severity column.")
             severity_col_found = True
 
+    #dynamically find severity mapping\
+    severity_mapping = find_severity_mapping(df, severity_col)
 
     #define our target using our severity mapping
     y = df[severity_col].map(severity_mapping)

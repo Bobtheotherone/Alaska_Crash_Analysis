@@ -1,3 +1,4 @@
+import pandas as pd
 def find_severity_mapping(df, severity_col):
     """
     Will dynamically find the severity mapping by first scanning

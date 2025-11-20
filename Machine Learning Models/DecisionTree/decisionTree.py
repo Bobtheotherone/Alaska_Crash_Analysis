@@ -25,11 +25,13 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 #Put root directory into sys so we can get DataCleaning scripts
 #and severity mapping utils
+#and leakage column utils
 
 from DataCleaning.unknown_discovery import discover_unknown_placeholders
 from DataCleaning.config import UNKNOWN_STRINGS
 
 from severity_mapping_utils import find_severity_mapping
+from leakage_column_utils import find_leakage_columns, warn_suspicious_importances
 
 """
 #previous group implementation
@@ -124,16 +126,12 @@ if __name__ == "__main__":
     Data leakage columns are columns that give away the answer
     to the model, such as number of fatalities or injuries
     """
-    #FIX make leakage columns dynamic based on dataset
-    leak_cols = {
-    "Number of Fatalities",
-    "Number of Serious Injuries",
-    "Number of Minor Injuries",
-    "Number of Serious Injuries with Fatalities",
-    "Form Type",    #temp fix
-    "Reporting Agency"  #temp fix
-    }
-    X = X.drop(columns=[c for c in leak_cols if c in X.columns], errors="ignore")
+    leak_cols = find_leakage_columns(X,y)
+    if leak_cols:
+        print("\nDropping potential leakage columns: ", leak_cols)
+        X=X.drop(columns=list(leak_cols),errors="ignore")
+    else:
+        print("\nNo leakage columns selected for removal.")
 
     print("y distribution:", y.value_counts().sort_index().to_dict())
     print("X shape:", X.shape)
@@ -288,3 +286,5 @@ if __name__ == "__main__":
 
     print("\nTop 15 features by importance:")
     print(importance_df.head(15).to_string(index=False))
+
+    warn_suspicious_importances(feat_names, importances)

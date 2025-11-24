@@ -1,0 +1,60 @@
+# MMUCC / KABCO-aligned schema configuration for the ingestion gateway.
+#
+# Non-developers can edit this file to add/remove columns and tweak ranges
+# without touching Python code. Changes take effect after the Django server
+# is restarted.
+
+schema_version: "mmucc-alaska-v1"
+
+columns:
+  crash_id:
+    label: "Crash ID"
+    required: true
+    type: string
+
+  crash_date:
+    label: "Crash Date"
+    required: true
+    type: date
+
+  severity:
+    label: "Injury Severity (KABCO)"
+    required: true
+    type: category
+
+  kabco:
+    label: "KABCO Code (optional)"
+    required: false
+    type: category
+
+  latitude:
+    required: true
+    type: float
+    min: 51.0
+    max: 72.0
+
+  longitude:
+    required: true
+    type: float
+    min: -170.0
+    max: -129.0
+
+  posted_speed_limit:
+    required: false
+    type: int
+    min: 0
+    max: 85
+
+  driver_age:
+    required: false
+    type: int
+    min: 14
+    max: 110
+
+geo_bounds:
+  latitude:
+    min: 51.0
+    max: 72.0
+  longitude:
+    min: -170.0
+    max: -129.0

@@ -1,0 +1,82 @@
+/* 
+  Design Tokens (CSS Variables)
+  Derived from Design Presentation.pdf (Mockups on Page 12) and standard practices, 
+  as explicit tokens were not provided in the artifacts.
+*/
+
+:root {
+  /* 
+    Colors 
+    Primary color chosen as a professional, accessible blue suitable for analysis tools.
+  */
+  --color-primary: #00529b; 
+  --color-primary-dark: #003366;
+  --color-secondary: #f0a800; /* Complementary/Accent */
+
+  /* Neutrals & Surfaces */
+  --color-background: #f5f7fa; /* Light gray background for contrast */
+  --color-surface-1: #ffffff; /* Primary surface (cards, header) */
+  --color-surface-2: #f0f2f5; /* Secondary surface (e.g., status indicators, input backgrounds) */
+  --color-border: #e0e0e0;
+  --color-disabled: #b0bec5;
+
+  /* Typography Colors */
+  --color-text-primary: #212121;
+  --color-text-secondary: #616161;
+  --color-text-on-primary: #ffffff; /* Text on primary colored backgrounds */
+
+  /* Feedback/Status colors (Derived from Mockup colors for Error/Valid) */
+  --color-success: #388e3c; /* Green */
+  --color-error: #d32f2f;   /* Red */
+  --color-warning: #f57c00; /* Orange */
+  --color-info: #0288d1;    /* Blue */
+
+  /* 
+    Typography Scale 
+  */
+  --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+    sans-serif;
+  --font-family-mono: 'Roboto Mono', monospace;
+
+  /* Base 16px scale */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-md: 1.125rem; /* 18px */
+  --font-size-lg: 1.25rem; /* 20px */
+  --font-size-xl: 1.5rem; /* 24px */
+  --font-size-xxl: 2rem; /* 32px */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  --line-height-base: 1.5;
+  --line-height-tight: 1.25; /* For headings */
+
+  /* 
+    Spacing (8px grid system)
+  */
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.5rem; /* 24px */
+  --spacing-6: 2rem; /* 32px */
+  --spacing-7: 3rem; /* 48px */
+  --spacing-8: 4rem; /* 64px */
+
+  /* 
+    Borders and Radii
+  */
+  --border-radius-sm: 4px;  /* Buttons, Inputs */
+  --border-radius-md: 8px;  /* Cards, Modals */
+  --border-radius-lg: 16px;
+
+  /* 
+    Elevation (Shadows)
+  */
+  --elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24); /* Subtle shadow for header/cards */
+  --elevation-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  --elevation-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); /* Modals/Dialogs */
+}

@@ -1,0 +1,28 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import { resolve } from "path";
+
+export default defineConfig({
+  plugins: [react()],
+  root: ".",
+  build: {
+    outDir: "../frontend/static/frontend",
+    emptyOutDir: false,
+    rollupOptions: {
+      input: resolve(__dirname, "index.html"),
+      output: {
+        // JS entry for the app
+        entryFileNames: "assets/index.js",
+        // Any JS chunks (if code-splitting happens)
+        chunkFileNames: "assets/[name].js",
+        // CSS and other assets – no hashes, stable names
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
+  },
+
+  server: {
+    port: 5173,
+    strictPort: true
+  }
+});

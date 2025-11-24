@@ -1,0 +1,104 @@
+/* Import design tokens as CSS variables */
+@import './design/tokens.css';
+
+/* Global Resets and Base Styles */
+body {
+  font-family: var(--font-family-base);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0;
+  line-height: var(--line-height-base);
+  font-size: var(--font-size-base);
+}
+
+h1, h2, h3 {
+  margin-top: 0;
+  line-height: var(--line-height-tight);
+}
+
+/* Application Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  background-color: var(--color-surface-1);
+  padding: var(--spacing-4);
+  box-shadow: var(--elevation-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-dark);
+  margin: 0;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: var(--spacing-6);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Components */
+
+/* Card/Section Containers */
+.analysis-controls, .results-container {
+  background-color: var(--color-surface-1);
+  padding: var(--spacing-5);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--elevation-1);
+  margin-bottom: var(--spacing-6);
+  text-align: left;
+}
+
+.analysis-controls h2, .results-container h2 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-4);
+  color: var(--color-text-primary);
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-primary:disabled {
+  background-color: var(--color-disabled);
+  cursor: not-allowed;
+}
+
+/* Status Indicator */
+.status-indicator {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--color-surface-2);
+  border-radius: var(--border-radius-sm);
+  border-left: 4px solid var(--color-info); /* Default color for queued/running */
+}
+
+.status-indicator.success {
+  border-color: var(--color-success);
+}
+
+.status-indicator.error {
+  border-color: var(--color-error);
+}

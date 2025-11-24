@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: alaska_crash_analysis
+      POSTGRES_USER: alaska
+      POSTGRES_PASSWORD: alaska
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  clamav:
+    image: clamav/clamav:latest
+    ports:
+      - "3310:3310"
+
+  web:
+    build: .
+    command: gunicorn alaska_project.wsgi:application --bind 0.0.0.0:8000
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: alaska_crash_analysis
+      POSTGRES_USER: alaska
+      POSTGRES_PASSWORD: alaska
+      POSTGRES_HOST: db
+      DJANGO_DEBUG: "false"
+      CLAMAV_TCP_HOST: clamav
+      CLAMAV_TCP_PORT: 3310
+    depends_on:
+      - db
+      - clamav
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - media_data:/app/media
+
+volumes:
+  postgres_data:
+  media_data:

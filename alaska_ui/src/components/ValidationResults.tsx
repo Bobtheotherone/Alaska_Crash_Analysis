@@ -6,7 +6,10 @@ import IngestionLogAccordion from './IngestionLogAccordion';
 
 interface ValidationResultsDisplayProps {
   results: ValidationResults;
-  autoExpandColumnDetails?: boolean;
+  openDataSection?: 'validationChecks' | 'columnPlan' | 'columnDetails' | null;
+  setOpenDataSection?: (
+    section: 'validationChecks' | 'columnPlan' | 'columnDetails' | null
+  ) => void;
 }
 
 type SortKey = keyof ColumnStat | 'yesNoCoverage';
@@ -27,19 +30,37 @@ const getSortValue = (col: ColumnStat, key: SortKey): number | string => {
 
 const ValidationResultsDisplay: React.FC<ValidationResultsDisplayProps> = ({
   results,
-  autoExpandColumnDetails,
+  openDataSection,
+  setOpenDataSection,
 }) => {
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
     key: 'column',
     direction: 'asc',
   });
-  const [detailsOpen, setDetailsOpen] = useState(true);
 
+  // Which dropdowns are open
+  const [validationOpen, setValidationOpen] = useState<boolean>(true);
+  const [columnDetailsOpen, setColumnDetailsOpen] = useState<boolean>(false);
+
+  // React to hints from App.tsx about which section should be emphasized
   useEffect(() => {
-    if (autoExpandColumnDetails) {
-      setDetailsOpen(true);
+    if (!openDataSection) {
+      return;
     }
-  }, [autoExpandColumnDetails]);
+
+    if (openDataSection === 'validationChecks') {
+      // After step 1: show validation/ingestion, hide column-by-column table
+      setValidationOpen(true);
+      setColumnDetailsOpen(false);
+    } else if (openDataSection === 'columnDetails') {
+      // After step 2: focus on column-by-column details, collapse validation section
+      setValidationOpen(false);
+      setColumnDetailsOpen(true);
+    }
+
+    // Consume the one-shot hint so it doesn't keep firing
+    setOpenDataSection?.(null);
+  }, [openDataSection, setOpenDataSection]);
 
   const sortedColumnStats = useMemo(() => {
     const sorted = [...results.columnStats];
@@ -99,18 +120,75 @@ const ValidationResultsDisplay: React.FC<ValidationResultsDisplayProps> = ({
     );
   };
 
-  return (
-    <div className="bg-white rounded-b-lg">
-      <div className="p-4 space-y-4">
-        <UploadSafetySummary results={results} />
-        <ColumnPlanSummary results={results} />
-        <IngestionLogAccordion results={results} />
+  const ingestionRejected =
+    String(results.ingestionOverallStatus || '').toLowerCase() === 'rejected';
+  const hasError = !!results.error || ingestionRejected;
 
+  return (
+    <div className="bg-white rounded-lg border border-neutral-medium">
+      <div className="p-4 space-y-4">
+        {/* Always-visible column plan at the very top */}
+        <ColumnPlanSummary results={results} />
+
+        {/* Dropdown 1: Validation Results (ingestion + safety checks) */}
         <section className="border border-neutral-light rounded-md bg-white">
           <button
             type="button"
             className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
-            onClick={() => setDetailsOpen((open) => !open)}
+            onClick={() => setValidationOpen((open) => !open)}
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-darker">
+                Validation Results
+              </h3>
+              <p className="text-xs text-gray-500">
+                Column-by-column summary of unknown values, Yes/No balance, and ingestion gateway
+                checks.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
+                  hasError
+                    ? 'bg-red-50 text-red-700 border-red-200'
+                    : 'bg-green-50 text-green-700 border-green-200'
+                }`}
+              >
+                {hasError ? 'Needs attention' : 'Ready'}
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-4 w-4 text-gray-500 transform transition-transform duration-200 ${
+                  validationOpen ? '-rotate-180' : ''
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </button>
+
+          {validationOpen && (
+            <div className="border-t border-neutral-light p-3 space-y-3">
+              <UploadSafetySummary results={results} />
+              <IngestionLogAccordion results={results} />
+            </div>
+          )}
+        </section>
+
+        {/* Dropdown 2: Column-by-column details */}
+        <section className="border border-neutral-light rounded-md bg-white">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+            onClick={() => setColumnDetailsOpen((open) => !open)}
           >
             <div>
               <h3 className="text-sm font-semibold text-neutral-darker">
@@ -123,17 +201,22 @@ const ValidationResultsDisplay: React.FC<ValidationResultsDisplayProps> = ({
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className={`h-4 w-4 text-gray-500 transform transition-transform duration-200 ${
-                detailsOpen ? '-rotate-180' : ''
+                columnDetailsOpen ? '-rotate-180' : ''
               }`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
 
-          {detailsOpen && (
+          {columnDetailsOpen && (
             <div className="border-t border-neutral-light overflow-x-auto">
               <table className="min-w-full divide-y divide-neutral-light text-xs">
                 <thead className="bg-gray-50">

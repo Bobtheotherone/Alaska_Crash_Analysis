@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { ValidationResults, AnalysisResults, ValidationStage } from './App';
 import ValidationResultsDisplay from './ValidationResults';
 import ReportCharts from './ReportCharts';
@@ -10,9 +10,9 @@ interface MainContentProps {
   isValidating: boolean;
   validationStage: ValidationStage;
   validationResults: ValidationResults | null;
-  openDataSection?: "validationChecks" | "columnPlan" | "columnDetails" | null;
+  openDataSection?: 'validationChecks' | 'columnPlan' | 'columnDetails' | null;
   setOpenDataSection?: (
-    section: "validationChecks" | "columnPlan" | "columnDetails" | null
+    section: 'validationChecks' | 'columnPlan' | 'columnDetails' | null
   ) => void;
   isAnalyzing: boolean;
   analysisResults: AnalysisResults | null;
@@ -29,9 +29,9 @@ const TabContent: React.FC<{
   validationResults: ValidationResults | null;
   isAnalyzing: boolean;
   analysisResults: AnalysisResults | null;
-  openDataSection?: "validationChecks" | "columnPlan" | "columnDetails" | null;
+  openDataSection?: 'validationChecks' | 'columnPlan' | 'columnDetails' | null;
   setOpenDataSection?: (
-    section: "validationChecks" | "columnPlan" | "columnDetails" | null
+    section: 'validationChecks' | 'columnPlan' | 'columnDetails' | null
   ) => void;
   onExportValidationCsv?: () => void;
   canExportValidationCsv?: boolean;
@@ -47,45 +47,6 @@ const TabContent: React.FC<{
   onExportValidationCsv,
   canExportValidationCsv,
 }) => {
-  const [isValidationPanelOpen, setIsValidationPanelOpen] = useState(false);
-  const [autoExpandColumnDetails, setAutoExpandColumnDetails] = useState(false);
-
-  // When validation finishes, automatically open the Validation Results dropdown.
-  useEffect(() => {
-    const hasPayload = !!validationResults;
-    const finishedStage =
-      validationStage === 'complete' ||
-      (validationResults != null && !isValidating);
-
-    if (activeTab !== 'Data Tables' || !hasPayload || !finishedStage) return;
-
-    setIsValidationPanelOpen(true);
-
-    const shouldExpandDetails = openDataSection === 'columnDetails';
-    setAutoExpandColumnDetails(shouldExpandDetails);
-
-    // Consume the one-shot "openDataSection" hint so it doesn't keep re-triggering UX.
-    if (shouldExpandDetails && setOpenDataSection) {
-      setOpenDataSection(null);
-    }
-  }, [
-    activeTab,
-    validationResults,
-    validationStage,
-    isValidating,
-    openDataSection,
-    setOpenDataSection,
-  ]);
-
-  // When analysis (feature importance) becomes available, keep the Validation Results visible
-  // and ensure the Column-by-column details section is expanded.
-  useEffect(() => {
-    if (analysisResults && !analysisResults.error) {
-      setIsValidationPanelOpen(true);
-      setAutoExpandColumnDetails(true);
-    }
-  }, [analysisResults]);
-
   switch (activeTab) {
     case 'Map':
       return (
@@ -101,6 +62,7 @@ const TabContent: React.FC<{
           ></iframe>
         </div>
       );
+
     case 'Data Tables': {
       const isBusy =
         isValidating &&
@@ -136,21 +98,11 @@ const TabContent: React.FC<{
       }
 
       if (validationResults) {
-        const ingestionRejected =
-          String(validationResults.ingestionOverallStatus || "").toLowerCase() ===
-          "rejected";
-        const hasError = !!validationResults.error || ingestionRejected;
-
         return (
           <div className="flex flex-col h-full">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <div className="text-xs sm:text-sm text-gray-600">
-                <p className="font-semibold">Validation summary</p>
-                <p>
-                  Review the column plan and ingestion checks below. Adjust thresholds in the left
-                  panel and re-run if needed.
-                </p>
-              </div>
+            {/* Top bar: export button only (we intentionally omit the old
+                "Validation summary" heading to match the desired layout). */}
+            <div className="mb-4 flex justify-end">
               {onExportValidationCsv && (
                 <div className="shrink-0">
                   <button
@@ -167,60 +119,11 @@ const TabContent: React.FC<{
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto">
-              <div className="border border-neutral-medium rounded-lg bg-white">
-                <button
-                  type="button"
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-neutral-light/50"
-                  onClick={() => setIsValidationPanelOpen((open) => !open)}
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-darker">
-                      Validation Results
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {hasError
-                        ? 'Review the error message and adjust your dataset if needed.'
-                        : 'High-level safety checks, column plan, and optional deep-dive into kept and dropped columns.'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
-                        hasError
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : 'bg-green-50 text-green-700 border-green-200'
-                      }`}
-                    >
-                      {hasError ? 'Needs attention' : 'Ready'}
-                    </span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-5 w-5 text-gray-500 transform transition-transform duration-200 ${
-                        isValidationPanelOpen ? '-rotate-180' : ''
-                      }`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </button>
-
-                {isValidationPanelOpen && (
-                  <div className="border-t border-neutral-medium">
-                    <ValidationResultsDisplay
-                      results={validationResults}
-                      autoExpandColumnDetails={autoExpandColumnDetails}
-                    />
-                  </div>
-                )}
-              </div>
+              <ValidationResultsDisplay
+                results={validationResults}
+                openDataSection={openDataSection}
+                setOpenDataSection={setOpenDataSection}
+              />
             </div>
           </div>
         );
@@ -233,6 +136,7 @@ const TabContent: React.FC<{
         </div>
       );
     }
+
     case 'Report Charts':
       if (isAnalyzing) {
         return (
@@ -271,6 +175,7 @@ const TabContent: React.FC<{
           <p>Run an analysis on a prepared dataset to see the results here.</p>
         </div>
       );
+
     case 'Classifications':
       if (isAnalyzing) {
         return (
@@ -309,6 +214,7 @@ const TabContent: React.FC<{
           <p>Run an analysis on a prepared dataset to see the classification results here.</p>
         </div>
       );
+
     default:
       return (
         <div className="p-8 text-center text-gray-500">

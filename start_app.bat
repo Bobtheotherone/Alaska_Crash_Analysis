@@ -1,161 +1,131 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 
 REM ============================================
 REM  Move to the folder this .bat lives in
 REM ============================================
 cd /d "%~dp0"
 
-REM ============================================
-REM  Activate conda environment (alaska-gpu)
-REM ============================================
-set "MINICONDA=C:\Users\dimen\miniconda3"
+set "BACKEND_URL=http://127.0.0.1:8000"
+set "FRONTEND_URL=http://127.0.0.1:5173"
+set "FRONTEND_DIR=%CD%\alaska_ui"
+set "DOCKER_COMPOSE_CMD=docker compose"
+set "BACKEND_STARTED=0"
 
-IF EXIST "%MINICONDA%\Scripts\activate.bat" (
-    echo [%date% %time%] Activating conda env alaska-gpu from %MINICONDA%
-    call "%MINICONDA%\Scripts\activate.bat" alaska-gpu
-) ELSE (
-    echo [%date% %time%] [WARN] Miniconda activate.bat not found at %MINICONDA% - using system Python.
+echo.
+echo [%date% %time%] ============================================
+echo [%date% %time%] Starting Alaska Crash Data Analysis - Docker backend + local frontend
+echo [%date% %time%] ============================================
+echo.
+
+REM Optional: force local backend instead of Docker
+IF /I "%USE_LOCAL_BACKEND%"=="1" (
+    echo [%date% %time%] USE_LOCAL_BACKEND=1 detected. Starting local Django runserver; antivirus is likely skipped. Recommended path is the Docker backend.
+    GOTO local_backend
 )
 
 REM ============================================
-REM  DATABASE CREDENTIALS (match settings.py)
+REM  Ensure Docker is available and start backend (db + clamav + web)
 REM ============================================
-set "POSTGRES_DB=alaska_crash_analysis"
-set "POSTGRES_USER=postgres"
-set "POSTGRES_PASSWORD=Bobtheother_101"
-set "POSTGRES_HOST=localhost"
-set "POSTGRES_PORT=5432"
-
-REM Let manage.py decide the settings module
-set "DJANGO_SETTINGS_MODULE="
-set "PYTHONUNBUFFERED=1"
-
-echo.
-echo [%date% %time%] ============================================
-echo [%date% %time%] Starting Alaska Crash Data Analysis
-echo [%date% %time%] Project dir: %CD%
-echo [%date% %time%] Python / Django env:
-python -c "import sys, os; print('  exe:', sys.executable); print('  settings:', os.environ.get('DJANGO_SETTINGS_MODULE')); print('  DB_USER:', os.environ.get('POSTGRES_USER') or os.environ.get('DB_USER')); print('  DB_NAME:', os.environ.get('POSTGRES_DB') or os.environ.get('DB_NAME'))"
-echo [%date% %time%] ============================================
-echo.
-
-REM ============================================
-REM  Minimal OS + GPU info
-REM ============================================
-echo [%date% %time%] ===== OS INFO =====
-ver
-systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
-
-echo.
-echo [%date% %time%] ===== GPU INFO (NVIDIA via nvidia-smi) =====
-where nvidia-smi >nul 2>&1
+where docker >nul 2>&1
 IF ERRORLEVEL 1 (
-    echo [%date% %time%] nvidia-smi not found in PATH. Install NVIDIA drivers or add nvidia-smi to PATH.
-) ELSE (
-    echo [%date% %time%] nvidia-smi found, querying GPU information:
-    nvidia-smi --query-gpu=index,name,memory.total,driver_version --format=csv,noheader,nounits
-    nvidia-smi --query-gpu=index,memory.used,memory.free,utilization.gpu,utilization.memory --format=csv,noheader,nounits
+    echo [%date% %time%] [ERROR] Docker is not available in PATH. Start Docker Desktop or set USE_LOCAL_BACKEND=1 to fall back to a local runserver with no AV.
+    GOTO frontend_only
 )
 
-echo.
-echo [%date% %time%] ===== END OF SYSTEM SUMMARY =====
-echo.
+set "DOCKER_COMPOSE_CMD=docker compose"
+docker compose version >nul 2>&1
+IF ERRORLEVEL 1 (
+    docker-compose --version >nul 2>&1
+    IF ERRORLEVEL 1 (
+        echo [%date% %time%] [ERROR] Neither "docker compose" nor "docker-compose" is available. Install Docker Desktop or set USE_LOCAL_BACKEND=1 for a local backend without AV.
+        GOTO frontend_only
+    )
+    set "DOCKER_COMPOSE_CMD=docker-compose"
+)
+
+echo [%date% %time%] Bringing up Docker services: db, clamav, web ...
+%DOCKER_COMPOSE_CMD% up -d db clamav web
+IF ERRORLEVEL 1 (
+    echo [%date% %time%] [ERROR] Failed to start Docker services. Check Docker Desktop or run "%DOCKER_COMPOSE_CMD% logs web".
+    GOTO frontend_only
+)
+set "BACKEND_STARTED=1"
 
 REM ============================================
-REM  Wait for PostgreSQL to be ready
+REM  Wait briefly for backend HTTP to respond
 REM ============================================
-set "DB_WAIT_MAX_ATTEMPTS=30"
-set /a DB_WAIT_COUNT=0
+set /a WEB_WAIT_MAX=20
+for /l %%I in (1,1,%WEB_WAIT_MAX%) do (
+    powershell -NoProfile -Command "try { Invoke-WebRequest -UseBasicParsing -Uri '%BACKEND_URL%/' -TimeoutSec 2 | Out-Null; exit 0 } catch { exit 1 }" >nul 2>&1
+    IF !errorlevel! EQU 0 (
+        echo [%date% %time%] Backend responded at %BACKEND_URL% - attempt %%I of %WEB_WAIT_MAX%.
+        GOTO backend_ready
+    )
+    echo [%date% %time%] Waiting for backend at %BACKEND_URL% - attempt %%I of %WEB_WAIT_MAX% ...
+    timeout /t 2 /nobreak >nul 2>&1
+)
+echo [%date% %time%] [WARN] Backend did not respond yet. Frontend will still start; check "%DOCKER_COMPOSE_CMD% logs web".
 
-:wait_for_db
-set /a DB_WAIT_COUNT+=1
-echo [%date% %time%] Checking database availability (attempt %DB_WAIT_COUNT%/%DB_WAIT_MAX_ATTEMPTS%)...
-
-python manage.py migrate --check >nul 2>&1
-IF %ERRORLEVEL% EQU 0 GOTO db_ready
-
-echo [%date% %time%] Database not ready yet; waiting 2 seconds...
-IF %DB_WAIT_COUNT% GEQ %DB_WAIT_MAX_ATTEMPTS% GOTO db_timeout
-
-timeout /t 2 /nobreak >nul 2>&1
-GOTO wait_for_db
-
-:db_ready
-echo [%date% %time%] Database appears ready (migrate --check succeeded).
-GOTO after_db_wait
-
-:db_timeout
-echo [%date% %time%] [ERROR] Database did not become ready after %DB_WAIT_MAX_ATTEMPTS% attempts.
-echo [%date% %time%] Proceeding to start Django anyway. You may still see database connection errors if PostgreSQL is not actually up.
-
-:after_db_wait
-
-REM ============================================
-REM  Start Django development server (new window)
-REM  NOTE: we use --noreload to avoid StatReloader / WinError 123 noise
-REM ============================================
-echo [%date% %time%] Starting Django development server on 0.0.0.0:8000 (no autoreload) in new window...
-start "django-dev" cmd /k "cd /d \"%CD%\" & python manage.py runserver --noreload 0.0.0.0:8000"
-
-REM Give Django a few seconds to boot up before we hit it from the browser
-echo [%date% %time%] Giving Django a few seconds to start...
-timeout /t 8 /nobreak >nul 2>&1
+:backend_ready
 
 REM ============================================
 REM  FRONTEND DEV SERVER (Vite in alaska_ui on 5173)
 REM ============================================
-set "FRONTEND_DIR=%CD%\alaska_ui"
-
+:frontend_only
 IF NOT EXIST "%FRONTEND_DIR%\package.json" (
-    echo [%date% %time%] [WARN] No package.json found in "%FRONTEND_DIR%" - skipping frontend dev server on 5173.
-    GOTO after_frontend
+    echo [%date% %time%] [WARN] No package.json found in "%FRONTEND_DIR%". Skipping frontend dev server on port 5173.
+    GOTO done
 )
 
 echo [%date% %time%] Frontend directory: "%FRONTEND_DIR%"
 pushd "%FRONTEND_DIR%"
 
 IF NOT EXIST "node_modules" (
-    echo [%date% %time%] node_modules not found - installing frontend dependencies with npm install
+    echo [%date% %time%] node_modules not found - installing frontend dependencies with npm install ...
     call npm install
 )
 
-echo [%date% %time%] Launching frontend dev server with "npm run dev" on port 5173
-start "frontend-dev" cmd /k "cd /d \"%FRONTEND_DIR%\" & npm run dev"
+REM Point Vite proxy/API to the Docker backend on localhost:8000
+set "VITE_API_BASE_URL=%BACKEND_URL%"
+
+echo [%date% %time%] Launching frontend dev server with "npm run dev" on port 5173, proxying to %BACKEND_URL%.
+REM Env vars set in this script are inherited by the new cmd, so we just need npm run dev here.
+start "frontend-dev" cmd /k "npm run dev"
+
 popd
 
-:after_frontend
-
 REM ============================================
-REM  URLs
+REM  Auto-open frontend in default browser
 REM ============================================
-set "BACKEND_URL=http://127.0.0.1:8000/"
-set "FRONTEND_URL=http://127.0.0.1:5173/"
-
-REM Small wait so Vite is up before opening browser
 echo [%date% %time%] Waiting 6 seconds for frontend dev server to start...
 timeout /t 6 /nobreak >nul 2>&1
 
-echo [%date% %time%] Back-end on %BACKEND_URL%
-echo [%date% %time%] Front-end on %FRONTEND_URL%
+echo [%date% %time%] Front-end URL: %FRONTEND_URL%
+echo [%date% %time%] Back-end URL:  %BACKEND_URL%
 
-REM ============================================
-REM  Auto-open frontend (and optionally backend) in default browser
-REM  Using PowerShell Start-Process to avoid Windows 'filename' quirks.
-REM ============================================
 echo [%date% %time%] Opening frontend in your default browser via PowerShell...
 powershell -Command "Start-Process '%FRONTEND_URL%'"
 
-REM If you ALSO want the Django backend page to open automatically,
-REM uncomment the two lines below:
-REM echo [%date% %time%] Opening backend in your default browser via PowerShell...
-REM powershell -Command "Start-Process '%BACKEND_URL%'"
-
 echo.
-echo [%date% %time%] All dev services started.
-echo [%date% %time%] Django logs:   window titled "django-dev"
 echo [%date% %time%] Frontend logs: window titled "frontend-dev"
-echo [%date% %time%] Close those two windows to stop the dev environment.
+IF "%BACKEND_STARTED%"=="1" (
+    echo [%date% %time%] Close that window to stop the frontend. The Docker backend stays running until you run "%DOCKER_COMPOSE_CMD% down".
+) ELSE (
+    echo [%date% %time%] Close that window to stop the frontend.
+)
+GOTO done
 
+REM ============================================
+REM  Optional fallback: local Django runserver (no Docker, AV likely skipped)
+REM ============================================
+:local_backend
+echo [%date% %time%] Starting local Django runserver on 0.0.0.0:8000 without autoreload. Antivirus scanning may be skipped without clamd.
+start "django-dev" cmd /k "cd /d \"%CD%\" ^& python manage.py runserver --noreload 0.0.0.0:8000"
+echo [%date% %time%] Waiting 6 seconds for local backend to start...
+timeout /t 6 /nobreak >nul 2>&1
+GOTO frontend_only
+
+:done
 endlocal
 exit /b

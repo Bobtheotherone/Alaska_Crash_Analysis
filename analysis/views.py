@@ -6,11 +6,19 @@ import math
 import numbers
 from typing import Any, Dict, List
 
+from django.contrib.auth import authenticate
 import pandas as pd
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, permission_classes, throttle_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+    throttle_classes,
+)
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 
 from ingestion.models import UploadedDataset
 from ingestion.validation import validate_dataframe_from_upload
@@ -194,6 +202,43 @@ def auth_ping(request):
             "is_staff": user.is_staff,
         },
         status=200,
+    )
+
+
+@api_view(["POST"])
+@authentication_classes([])  # Explicitly avoid BasicAuth challenges here
+@permission_classes([AllowAny])
+def auth_login(request):
+    """Username/password login endpoint for the React app.
+
+    Returns 200 on success and 400 on invalid credentials without
+    emitting ``WWW-Authenticate`` headers that trigger browser popups.
+    """
+    payload = request.data or {}
+    username = payload.get("username")
+    password = payload.get("password")
+
+    if not username or not password:
+        return Response(
+            {"detail": "Username and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = authenticate(request, username=username, password=password)
+    if user is None:
+        return Response(
+            {"detail": "Invalid credentials."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return Response(
+        {
+            "detail": "ok",
+            "username": user.get_username(),
+            "is_superuser": user.is_superuser,
+            "is_staff": user.is_staff,
+        },
+        status=status.HTTP_200_OK,
     )
 
 

@@ -219,6 +219,9 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({
       ? "Validating…"
       : "Run Validator";
 
+  const availableColumns =
+    validationResults?.columnStats.map((cs) => cs.column) ?? [];
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
       <h2 className="text-xl font-semibold text-neutral-darker border-b border-neutral-medium pb-4">
@@ -470,6 +473,106 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({
                   </label>
                 </div>
               </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Speed limit and road surface settings are used for map/filter
+                preferences; they do not change model training yet.
+              </p>
+            </div>
+            {availableColumns.length > 0 && (
+              <div>
+                <label
+                  htmlFor="severity-column"
+                  className="block font-medium text-gray-700 mb-1"
+                >
+                  Severity / outcome column
+                </label>
+                <select
+                  id="severity-column"
+                  className="w-full bg-white border border-neutral-medium rounded px-2 py-1 text-sm"
+                  value={dataPrepState.severityColumn ?? ""}
+                  onChange={(e) =>
+                    onDataPrepChange({
+                      severityColumn: e.target.value || null,
+                    })
+                  }
+                >
+                  <option value="">
+                    Auto-detect (prefer column named &quot;severity&quot;)
+                  </option>
+                  {availableColumns.map((col) => (
+                    <option key={col} value={col}>
+                      {col}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Leave blank to let the backend guess a severity column by
+                  name.
+                </p>
+              </div>
+            )}
+            <div>
+              <label
+                htmlFor="manual-drop-columns"
+                className="block font-medium text-gray-700"
+              >
+                Additional columns to drop
+              </label>
+              <p className="text-xs text-gray-500 mb-1">
+                Comma-separated list of columns to always drop before modeling.
+              </p>
+              <input
+                id="manual-drop-columns"
+                type="text"
+                className="w-full border border-neutral-medium rounded px-2 py-1 text-sm"
+                placeholder="Example: VIN, CrashReportId"
+                value={dataPrepState.columnsToDrop.join(", ")}
+                onChange={(e) =>
+                  onDataPrepChange({
+                    columnsToDrop: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="extra-unknowns"
+                className="block font-medium text-gray-700"
+              >
+                Additional values to treat as &quot;unknown&quot;
+              </label>
+              <p className="text-xs text-gray-500 mb-1">
+                Comma-separated; e.g. &quot;UNK, 99, 9999&quot;.
+              </p>
+              <input
+                id="extra-unknowns"
+                type="text"
+                className="w-full border border-neutral-medium rounded px-2 py-1 text-sm"
+                value={dataPrepState.additionalUnknownTokens.join(", ")}
+                onChange={(e) =>
+                  onDataPrepChange({
+                    additionalUnknownTokens: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+              />
+            </div>
+            <div className="text-xs text-gray-600">
+              {dataPrepState.leakageColumnsToDrop.length > 0 ? (
+                <>
+                  <span className="font-medium">Leakage columns:</span>{" "}
+                  {dataPrepState.leakageColumnsToDrop.join(", ")}
+                </>
+              ) : (
+                <p className="text-gray-500">
+                  No leakage columns selected yet. Mark them during validation.
+                </p>
+              )}
             </div>
           </fieldset>
           <button

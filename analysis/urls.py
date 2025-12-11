@@ -8,6 +8,8 @@ urlpatterns = [
 
     # Lightweight authenticated health-check used by the login form.
     path("auth/ping/", views.auth_ping, name="auth-ping"),
+    # Username/password login for the React client (no BasicAuth challenge).
+    path("auth/login/", views.auth_login, name="auth-login"),
 
     # Static/example payload for frontend smoke tests; falls back to a
     # synthetic dataframe if the example CSV is not present.

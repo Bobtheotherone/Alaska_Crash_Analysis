@@ -9,16 +9,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # On Windows, Django does NOT read the GDAL_LIBRARY_PATH / GEOS_LIBRARY_PATH
 # environment variables by default. It expects these settings to point
-# directly to the DLLs, so we wire them to your OSGeo4W install.
-GDAL_LIBRARY_PATH = os.environ.get(
-    "GDAL_LIBRARY_PATH",
-    r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\gdal312.dll",
-)
+# directly to the DLLs, so we wire them to your OSGeo4W install. In Linux
+# (including Docker), let Django auto-detect unless the env provides an
+# explicit path.
+if os.name == "nt":
+    GDAL_LIBRARY_PATH = os.environ.get(
+        "GDAL_LIBRARY_PATH",
+        r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\gdal312.dll",
+    )
 
-GEOS_LIBRARY_PATH = os.environ.get(
-    "GEOS_LIBRARY_PATH",
-    r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\geos_c.dll",
-)
+    GEOS_LIBRARY_PATH = os.environ.get(
+        "GEOS_LIBRARY_PATH",
+        r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\geos_c.dll",
+    )
+else:
+    GDAL_LIBRARY_PATH = os.environ.get("GDAL_LIBRARY_PATH")
+    GEOS_LIBRARY_PATH = os.environ.get("GEOS_LIBRARY_PATH")
 
 # ---------------------------------------------------------------------------
 # Core Django settings
@@ -229,6 +235,14 @@ INGESTION_ALLOWED_EXTENSIONS = [
 INGESTION_REQUIRE_AV = os.environ.get(
     "INGESTION_REQUIRE_AV", "false"
 ).lower() == "true"
+
+# ClamAV connection settings
+CLAMAV_UNIX_SOCKET = os.environ.get("CLAMAV_UNIX_SOCKET") or None
+CLAMAV_TCP_HOST = os.environ.get("CLAMAV_TCP_HOST") or None
+try:
+    CLAMAV_TCP_PORT = int(os.environ.get("CLAMAV_TCP_PORT", "3310"))
+except ValueError:
+    CLAMAV_TCP_PORT = 3310
 
 # Path to the externalized MMUCC/KABCO schema configuration that non-devs can
 # edit without touching Python code.

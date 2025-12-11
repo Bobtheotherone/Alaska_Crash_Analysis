@@ -16,12 +16,20 @@ const GENERIC_UNKNOWN_SUBSTRINGS: Set<string> = new Set([
 const YES_SET: Set<string> = new Set(["yes", "y", "true", "t"]);
 const NO_SET: Set<string> = new Set(["no", "n", "false", "f"]);
 
-const discoverUnknownPlaceholders = (data: Record<string, string>[]): Set<string> => {
+const discoverUnknownPlaceholders = (
+    data: Record<string, string>[],
+    extraUnknowns: string[] = [],
+): Set<string> => {
     const discovered: Map<string, number> = new Map();
     const patterns = Array.from(GENERIC_UNKNOWN_SUBSTRINGS).map(part =>
         new RegExp(`\\b${part.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i')
     );
     const columns = data.length > 0 ? Object.keys(data[0]) : [];
+    const normalizedExtras = extraUnknowns.map(s => s.trim().toLowerCase()).filter(s => !!s);
+    const seedUnknowns = new Set<string>([
+        ...BASE_UNKNOWN_STRINGS,
+        ...normalizedExtras,
+    ]);
 
     for (const col of columns) {
         for (const row of data) {
@@ -29,7 +37,7 @@ const discoverUnknownPlaceholders = (data: Record<string, string>[]): Set<string
             if (value === null || value === undefined) continue;
 
             const v = String(value).trim().toLowerCase();
-            if (!v || v.length > 80 || BASE_UNKNOWN_STRINGS.has(v)) continue;
+            if (!v || v.length > 80 || seedUnknowns.has(v)) continue;
 
             if (patterns.some(p => p.test(v))) {
                 discovered.set(v, (discovered.get(v) || 0) + 1);
@@ -44,7 +52,7 @@ const discoverUnknownPlaceholders = (data: Record<string, string>[]): Set<string
         }
     }
 
-    return new Set([...BASE_UNKNOWN_STRINGS, ...frequentNewUnknowns]);
+    return new Set([...seedUnknowns, ...frequentNewUnknowns]);
 };
 
 export const runValidationLogic = (data: Record<string, string>[], config: DataPrepState): ValidationResults => {
@@ -53,7 +61,10 @@ export const runValidationLogic = (data: Record<string, string>[], config: DataP
 
     const columns = Object.keys(data[0]);
     const columnCount = columns.length;
-    const augmentedUnknowns = discoverUnknownPlaceholders(data);
+    const augmentedUnknowns = discoverUnknownPlaceholders(
+        data,
+        config.additionalUnknownTokens || [],
+    );
 
     const columnStats: ColumnStat[] = columns.map(col => {
         let unknownCount = 0;

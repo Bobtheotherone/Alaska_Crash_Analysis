@@ -25,6 +25,15 @@ export interface DataPrepState {
    * used to mark columns as Drop in the UI.
    */
   leakageColumnsToDrop: string[];
+
+  // Manual non-leakage drops to align UI + backend cleaning.
+  columnsToDrop: string[];
+
+  // User override for which column is treated as severity/outcome.
+  severityColumn: string | null;
+
+  // Extra tokens to treat as "unknown" beyond the built-in list.
+  additionalUnknownTokens: string[];
 }
 
 export interface ColumnStat {
@@ -167,8 +176,8 @@ const normalizeIngestionOverallStatus = (
     return "pending";
   }
 
-  // Fall back to the raw, normalized string.
-  return s;
+  // Unknown / unmapped status from backend
+  return "unknown";
 };
 
 const normalizeIngestionStepStatus = (
@@ -204,7 +213,7 @@ const normalizeIngestionSeverity = (
  * Best-effort extraction of ingestion-gateway summary fields from the backend upload response.
  * The backend's JSON keys have changed a few times, so this function supports multiple aliases.
  */
-const extractIngestionSummary = (
+export const extractIngestionSummary = (
   backendSummary: any
 ): Pick<
   ValidationResults,
@@ -219,6 +228,8 @@ const extractIngestionSummary = (
   const ingestionOverallStatus = normalizeIngestionOverallStatus(
     summary.ingestion_overall_status ??
       summary.ingestionOverallStatus ??
+      summary.overall_status ??
+      summary.overallStatus ??
       summary.ingestion_status ??
       summary.ingestionStatus ??
       summary.gateway_status ??
@@ -305,17 +316,19 @@ const extractIngestionSummary = (
           if (!step) return null;
 
           const message = String(
-            s.message ?? s.detail ?? s.details ?? s.info ?? s.reason ?? ""
+            s.details ?? s.message ?? s.detail ?? s.info ?? s.reason ?? ""
           ).trim();
 
           const status = normalizeIngestionStepStatus(
             s.status ?? s.result ?? s.outcome
           );
-          const severity = normalizeIngestionSeverity(
-            s.severity ?? s.level ?? s.kind
-          );
+          const severity =
+            normalizeIngestionSeverity(s.severity ?? s.level ?? s.kind) ??
+            (status === "passed" ? "info" : undefined);
           const code = s.code ?? s.error_code ?? s.errorCode;
-          const is_hard_fail = s.is_hard_fail ?? s.hard_fail ?? s.isHardFail;
+          const is_hard_fail = Boolean(
+            s.is_hard_fail ?? s.hard_fail ?? s.isHardFail ?? false
+          );
 
           return {
             step,
@@ -323,9 +336,7 @@ const extractIngestionSummary = (
             status,
             ...(severity ? { severity } : {}),
             ...(code ? { code: String(code) } : {}),
-            ...(is_hard_fail !== undefined
-              ? { is_hard_fail: Boolean(is_hard_fail) }
-              : {}),
+            is_hard_fail,
           };
         })
         .filter(Boolean) as NonNullable<ValidationResults["ingestionSteps"]>)
@@ -398,14 +409,25 @@ const NO_TOKENS = new Set(["no", "n", "false", "f"]);
 // Toggle this to true when you want the App version logger
 const APP_VERSION_LOG_ENABLED = false;
 
-function discoverUnknownTokens(rows: Record<string, unknown>[]): Set<string> {
+function discoverUnknownTokens(
+  rows: Record<string, unknown>[],
+  extraUnknowns: string[] = []
+): Set<string> {
   const counts = new Map<string, number>();
   const patterns = Array.from(UNKNOWN_SUBSTRINGS).map(
     (tok) =>
       new RegExp(`\\b${tok.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`, "i")
   );
 
-  if (!rows.length) return BASE_UNKNOWN_TOKENS;
+  const normalizedExtras = extraUnknowns
+    .map((tok) => tok.trim().toLowerCase())
+    .filter((tok) => !!tok);
+  const seedUnknowns = new Set<string>([
+    ...BASE_UNKNOWN_TOKENS,
+    ...normalizedExtras,
+  ]);
+
+  if (!rows.length) return seedUnknowns;
 
   const columns = Object.keys(rows[0]);
 
@@ -417,7 +439,7 @@ function discoverUnknownTokens(rows: Record<string, unknown>[]): Set<string> {
       const norm = String(raw).trim().toLowerCase();
       if (!norm || norm.length > 80) continue;
 
-      if (BASE_UNKNOWN_TOKENS.has(norm)) {
+      if (seedUnknowns.has(norm)) {
         counts.set(norm, (counts.get(norm) || 0) + 1);
         continue;
       }
@@ -433,7 +455,7 @@ function discoverUnknownTokens(rows: Record<string, unknown>[]): Set<string> {
     if (count >= 2) discovered.add(tok);
   }
 
-  return new Set([...BASE_UNKNOWN_TOKENS, ...discovered]);
+  return new Set([...seedUnknowns, ...discovered]);
 }
 
 // ---------------------------------------------------------------------------
@@ -475,26 +497,46 @@ function suggestLeakageColumnsByName(columns: string[]): string[] {
  * those columns as Drop with a clear explanation. Mirrors Peyton's
  * behaviour of always removing user-marked leakage columns.
  */
-function applyLeakageOverrides(
+function applyColumnOverrides(
   results: ValidationResults,
-  leakageColumns: string[] | undefined
+  opts: {
+    leakageColumns?: string[];
+    manualDropColumns?: string[];
+  }
 ): ValidationResults {
-  if (!leakageColumns || leakageColumns.length === 0) {
+  const leakSet = new Set(opts.leakageColumns || []);
+  const manualSet = new Set(opts.manualDropColumns || []);
+
+  if (leakSet.size === 0 && manualSet.size === 0) {
     return results;
   }
 
-  const leakSet = new Set(leakageColumns);
-
   const columnStats = results.columnStats.map((stat) => {
-    if (!leakSet.has(stat.column)) return stat;
+    const reasons: string[] = [];
+    let shouldDrop = stat.status === "Drop";
 
-    const extraReason =
-      "Flagged as a data-leakage column (for example it may contain final injury/fatality counts or another severity code).";
+    if (leakSet.has(stat.column)) {
+      shouldDrop = true;
+      reasons.push(
+        "Flagged as a data-leakage column (for example it may contain final injury/fatality counts or another severity code)."
+      );
+    }
+
+    if (manualSet.has(stat.column)) {
+      shouldDrop = true;
+      reasons.push("User-marked as low-value (manual drop).");
+    }
+
+    if (!shouldDrop) {
+      return stat;
+    }
+
+    const combinedReason = [stat.reason, reasons.join(" ")].filter(Boolean).join(" ");
 
     return {
       ...stat,
       status: "Drop" as const,
-      reason: stat.reason ? stat.reason + " " + extraReason : extraReason,
+      reason: combinedReason || null,
     };
   });
 
@@ -525,7 +567,10 @@ function runClientValidation(
 
   const columns = Object.keys(rows[0]);
   const colCount = columns.length;
-  const unknownTokens = discoverUnknownTokens(rows);
+  const unknownTokens = discoverUnknownTokens(
+    rows,
+    config.additionalUnknownTokens || []
+  );
 
   const stats: ColumnStat[] = columns.map((col) => {
     let unknownCount = 0;
@@ -705,6 +750,9 @@ const App: React.FC = () => {
       iceSnow: true,
     },
     leakageColumnsToDrop: [],
+    columnsToDrop: [],
+    severityColumn: null,
+    additionalUnknownTokens: [],
   });
 
   const [selectedModelName, setSelectedModelName] = useState<string>(
@@ -754,9 +802,13 @@ const App: React.FC = () => {
     }
 
     try {
-      const resp = await fetch("/api/auth/ping/", {
-        method: "GET",
-        headers: { ...buildAuthHeader() },
+      const resp = await fetch("/api/auth/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: auth.username,
+          password: auth.password,
+        }),
       });
 
       if (!resp.ok) {
@@ -803,6 +855,9 @@ const App: React.FC = () => {
     setDataPrep((prev) => ({
       ...prev,
       leakageColumnsToDrop: [],
+      columnsToDrop: [],
+      severityColumn: null,
+      additionalUnknownTokens: [],
     }));
   }, []);
 
@@ -855,14 +910,14 @@ const App: React.FC = () => {
 
   // ========= BACKEND HELPERS =========
 
-  // Upload raw file to /api/upload/ (analysis.upload_and_analyze)
+  // Upload raw file to the ingestion gateway (/api/ingest/upload/)
   const uploadFileToBackend = useCallback(
     async (fileToUpload: File) => {
-      console.log("[UI] Uploading file to /api/upload/…");
+      console.log("[UI] Uploading file to /api/ingest/upload/…");
       const formData = new FormData();
       formData.append("file", fileToUpload);
 
-      const resp = await fetch("/api/upload/", {
+      const resp = await fetch("/api/ingest/upload/", {
         method: "POST",
         headers: {
           ...buildAuthHeader(),
@@ -870,7 +925,7 @@ const App: React.FC = () => {
         body: formData,
       });
 
-      console.log("[UI] /api/upload/ status:", resp.status);
+      console.log("[UI] /api/ingest/upload/ status:", resp.status);
 
       if (!resp.ok) {
         let message = `Upload failed (${resp.status})`;
@@ -890,7 +945,7 @@ const App: React.FC = () => {
         data = await resp.json();
       } catch (parseErr) {
         console.error(
-          "[UI] Failed to parse JSON from /api/upload/:",
+          "[UI] Failed to parse JSON from /api/ingest/upload/:",
           parseErr
         );
         throw new Error(
@@ -910,15 +965,38 @@ const App: React.FC = () => {
   const startModelJob = useCallback(
     async (datasetId: string) => {
       console.log("[UI] Starting model job for dataset:", datasetId);
+
+      // Build cleaning payload expected by analysis.ml_core.models._ensure_cleaning_params
+      const cleaning: Record<string, unknown> = {
+        leakage_columns: dataPrep.leakageColumnsToDrop,
+        unknown_threshold: dataPrep.unknownThreshold,
+        yes_no_threshold: dataPrep.yesNoThreshold,
+      };
+
+      if (dataPrep.columnsToDrop.length > 0) {
+        cleaning.columns_to_drop = dataPrep.columnsToDrop;
+      }
+
+      if (dataPrep.severityColumn) {
+        cleaning.severity_col = dataPrep.severityColumn;
+      }
+
+      if (dataPrep.additionalUnknownTokens.length > 0) {
+        const baseUnknowns = new Set<string>(BASE_UNKNOWN_TOKENS);
+        dataPrep.additionalUnknownTokens.forEach((tok) => {
+          const norm = tok.trim().toLowerCase();
+          if (norm) {
+            baseUnknowns.add(norm);
+          }
+        });
+        cleaning.base_unknowns = Array.from(baseUnknowns);
+      }
+
       const body = {
         dataset_id: datasetId,
         model_name: selectedModelName,
         parameters: {
-          cleaning: {
-            // Peyton-style manual leakage list; backend ignores this key
-            // safely if it does not understand it.
-            leakage_columns: dataPrep.leakageColumnsToDrop,
-          },
+          cleaning,
           model_params: {},
         },
       };
@@ -951,7 +1029,17 @@ const App: React.FC = () => {
       if (data.job_id) setJobId(String(data.job_id));
       return data as { job_id: string; results_url?: string; status: string };
     },
-    [auth.username, auth.password, selectedModelName, dataPrep.leakageColumnsToDrop]
+    [
+      auth.username,
+      auth.password,
+      selectedModelName,
+      dataPrep.leakageColumnsToDrop,
+      dataPrep.unknownThreshold,
+      dataPrep.yesNoThreshold,
+      dataPrep.columnsToDrop,
+      dataPrep.severityColumn,
+      dataPrep.additionalUnknownTokens,
+    ]
   );
 
   // Fetch job results
@@ -1124,20 +1212,20 @@ const App: React.FC = () => {
         setValidationStage("local_validation");
 
         let localResults = runValidationLogic(stringData, dataPrep);
-        localResults = applyLeakageOverrides(
-          localResults,
-          leakageColumnsToDrop
-        );
+        localResults = applyColumnOverrides(localResults, {
+          leakageColumns: leakageColumnsToDrop,
+          manualDropColumns: dataPrep.columnsToDrop,
+        });
         setValidationResults(localResults);
 
         console.log(
           "[UI] Running client-side profiling based on Peyton’s rules…"
         );
         let richerResults = runClientValidation(stringData, dataPrep);
-        richerResults = applyLeakageOverrides(
-          richerResults,
-          leakageColumnsToDrop
-        );
+        richerResults = applyColumnOverrides(richerResults, {
+          leakageColumns: leakageColumnsToDrop,
+          manualDropColumns: dataPrep.columnsToDrop,
+        });
         setValidationResults(richerResults);
         setOpenDataSection("validationChecks");
 
@@ -1213,10 +1301,10 @@ const App: React.FC = () => {
 
         // Apply the same leakage columns the user selected during validation.
         const leakageColumns = dataPrep.leakageColumnsToDrop || [];
-        const resultsWithLeakage = applyLeakageOverrides(
-          baseResults,
-          leakageColumns
-        );
+        const resultsWithLeakage = applyColumnOverrides(baseResults, {
+          leakageColumns,
+          manualDropColumns: dataPrep.columnsToDrop,
+        });
         setValidationResults((prev) => ({
           ...resultsWithLeakage,
           // Preserve ingestion-gateway info captured during upload so it stays visible

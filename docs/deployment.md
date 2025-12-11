@@ -93,6 +93,23 @@ only, set `INGESTION_ALLOWED_EXTENSIONS=".csv"`).
 
 A minimal `docker-compose.yml` is provided with three services:
 
-- `db` – Postgres + PostGIS
-- `clamav` – ClamAV daemon for antivirus scanning
-- `web` – Django
+- `db` - Postgres + PostGIS
+- `clamav` - ClamAV daemon for antivirus scanning
+- `web` - Django
+
+Bring up the stack with:
+
+```bash
+docker compose up --build
+```
+
+This starts PostGIS (`db`), a ClamAV daemon on TCP 3310 (`clamav`, reachable from Django as `clamav:3310`), and the Django backend (`web`). In this containerized setup, clean uploads should report `AV_SCAN` with `status="passed"` and `severity="info"` because ClamAV is available by default.
+
+`.env` is optional for this stack; `docker compose up --build` works without it, but you can supply one to override environment variables if needed.
+
+### Antivirus in non-Docker environments
+
+- Install ClamAV/`clamd` on Linux or WSL (e.g., `apt install clamav clamav-daemon`) and start the daemon.
+- Configure either `CLAMAV_UNIX_SOCKET` **or** `CLAMAV_TCP_HOST` / `CLAMAV_TCP_PORT` before running `python manage.py runserver`.
+- If ClamAV is not installed and `INGESTION_REQUIRE_AV=false` (default), uploads are allowed but the `AV_SCAN` step is recorded as `skipped` with `severity="warning"`.
+- If `INGESTION_REQUIRE_AV=true` and ClamAV is unavailable, uploads are rejected with `error_code="AV_UNAVAILABLE_REQUIRED"`.

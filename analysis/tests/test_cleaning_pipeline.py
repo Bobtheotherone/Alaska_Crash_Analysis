@@ -12,6 +12,30 @@ from analysis.ml_core.cleaning import (
     map_numeric_severity,
     map_text_severity,
 )
+from analysis.ml_core.models import _ensure_cleaning_params
+
+
+class EnsureCleaningParamsTests(SimpleTestCase):
+    def test_passthrough_of_known_keys(self):
+        raw = {
+            "severity_col": "Severity",
+            "base_unknowns": ["unk"],
+            "unknown_threshold": 12.5,
+            "yes_no_threshold": 7.5,
+            "columns_to_drop": ["foo", "bar"],
+            "leakage_columns": ["baz"],
+            "unexpected": "ignore",
+        }
+
+        resolved = _ensure_cleaning_params(raw)
+
+        self.assertEqual(resolved["severity_col"], "Severity")
+        self.assertEqual(resolved["base_unknowns"], ["unk"])
+        self.assertEqual(resolved["unknown_threshold"], 12.5)
+        self.assertEqual(resolved["yes_no_threshold"], 7.5)
+        self.assertEqual(resolved["columns_to_drop"], ["foo", "bar"])
+        self.assertEqual(resolved["leakage_columns"], ["baz"])
+        self.assertNotIn("unexpected", resolved)
 
 
 class CleaningConfigTests(SimpleTestCase):
@@ -99,6 +123,40 @@ class BuildMLReadyDatasetTests(SimpleTestCase):
             "no value",
         }
         self.assertEqual(core, set(DEFAULT_UNKNOWN_STRINGS))
+
+    def test_build_ml_ready_dataset_respects_cleaning_knobs(self):
+        df = pd.DataFrame(
+            {
+                "severity": ["a", "b", "b", "a", "a"],
+                "drop_me": ["mystery", "mystery", "ok", "ok", "ok"],
+                "leaker": [1, 2, 3, 4, 5],
+                "keep_me": [10, 11, 12, 13, 14],
+            }
+        )
+
+        X, y, meta = build_ml_ready_dataset(
+            df,
+            severity_col="severity",
+            base_unknowns={"mystery"},
+            unknown_threshold=40.0,
+            yes_no_threshold=5.0,
+            columns_to_drop=["drop_me"],
+            leakage_columns=["leaker"],
+        )
+
+        self.assertEqual(len(X), len(y))
+        self.assertNotIn("drop_me", X.columns)
+        self.assertNotIn("leaker", X.columns)
+        self.assertIn("keep_me", X.columns)
+        self.assertIn("mystery", meta["cleaning_meta"]["unknown_values"])
+        self.assertEqual(
+            meta["cleaning_meta"]["cleaning_config"]["unknown_threshold"], 40.0
+        )
+        self.assertEqual(
+            meta["cleaning_meta"]["cleaning_config"]["yes_no_threshold"], 5.0
+        )
+        self.assertIn("drop_me", meta["cleaning_meta"]["user_specified_drops"])
+        self.assertIn("leaker", meta["leakage_columns"])
 
 
 class SeverityMappingTests(SimpleTestCase):

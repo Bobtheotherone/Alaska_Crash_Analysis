@@ -334,7 +334,9 @@ def train_mrf(
     Train a (monotonic) Random Forest classifier.
 
     The original ML repo refers to this family as "MRF".  Here we
-    implement it using Peyton's MultiLevelRandomForestClassifier.
+    implement it using Peyton's MultiLevelRandomForestClassifier.  When
+    ``backend`` is set to ``"auto"`` or ``"gpu"``, training will attempt
+    a GPU-backed RF first and fall back to CPU if unavailable.
     """
     cleaning_kwargs = _ensure_cleaning_params(cleaning_params)
     X, y, cleaning_meta = build_ml_ready_dataset(df, **cleaning_kwargs)
@@ -344,18 +346,53 @@ def train_mrf(
     default_model_params: Dict[str, Any] = dict(
         partner_model_configs.MRF_BASE_PARAMS
     )
-    final_model_params = {**default_model_params, **(model_params or {})}
+    base_model_params: Dict[str, Any] = {
+        **default_model_params,
+        **(model_params or {}),
+    }
 
-    model = MultiLevelRandomForestClassifier(**final_model_params)
+    backend_choice = str(base_model_params.get("backend", "cpu") or "cpu").lower()
 
     X_train, X_test, y_train, y_test = _train_test_split_if_possible(X, y)
-    model.fit(X_train, y_train)
+
+    model: MultiLevelRandomForestClassifier
+    resolved_model_params: Dict[str, Any]
+
+    if backend_choice == "cpu":
+        cpu_params: Dict[str, Any] = dict(base_model_params)
+        cpu_params["backend"] = "cpu"
+        model = MultiLevelRandomForestClassifier(**cpu_params)
+        model.fit(X_train, y_train)
+        resolved_model_params = cpu_params
+    else:
+        gpu_params: Dict[str, Any] = dict(base_model_params)
+        gpu_params["backend"] = "gpu"
+
+        try:
+            model = MultiLevelRandomForestClassifier(**gpu_params)
+            model.fit(X_train, y_train)
+            resolved_model_params = gpu_params
+            logger.info("Trained MRF with GPU backend.")
+        except Exception as exc:
+            if backend_choice == "gpu":
+                raise
+
+            logger.warning(
+                "MRF GPU backend unavailable (%r); falling back to CPU configuration.",
+                exc,
+            )
+            cpu_params = dict(base_model_params)
+            cpu_params["backend"] = "cpu"
+
+            model = MultiLevelRandomForestClassifier(**cpu_params)
+            model.fit(X_train, y_train)
+            resolved_model_params = cpu_params
 
     return _base_result(
         model=model,
         feature_names=list(X.columns),
         cleaning_meta=cleaning_meta,
-        model_params=final_model_params,
+        model_params=resolved_model_params,
         X_train=X_train,
         y_train=y_train,
         X_test=X_test if not X_test.empty else None,

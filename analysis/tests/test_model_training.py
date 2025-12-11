@@ -3,6 +3,7 @@
 from django.test import SimpleTestCase
 import numpy as np
 import pandas as pd
+from unittest import mock
 
 from analysis.ml_core import models as ml_models
 from analysis.ml_core.models import MODEL_REGISTRY
@@ -56,3 +57,24 @@ class ModelTrainingTests(SimpleTestCase):
                 self.assertIn("train_accuracy", metrics)
                 self.assertGreaterEqual(metrics["train_accuracy"], 0.0)
                 self.assertLessEqual(metrics["train_accuracy"], 1.0)
+
+    def test_mrf_auto_backend_falls_back_to_cpu(self):
+        df = self._make_toy_df(n=60)
+
+        original_fit = ml_models.MultiLevelRandomForestClassifier.fit
+
+        def fit_with_gpu_failure(self, X, y):
+            if getattr(self, "backend", None) == "gpu":
+                raise ImportError("GPU backend unavailable")
+            return original_fit(self, X, y)
+
+        with mock.patch.object(
+            ml_models.MultiLevelRandomForestClassifier, "fit", new=fit_with_gpu_failure
+        ):
+            result = ml_models.train_mrf(
+                df,
+                cleaning_params={"severity_col": "Severity"},
+                model_params={"backend": "auto"},
+            )
+
+        self.assertEqual(result["model"].backend, "cpu")

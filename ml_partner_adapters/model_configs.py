@@ -71,6 +71,8 @@ MRF_BASE_PARAMS: Dict[str, Any] = {
     "n_jobs": -1,
     "random_state": 42,
     "thresholds": [0.5, 0.2],
+    # Prefer GPU when available; training code will fall back to CPU safely.
+    "backend": "auto",
 }
 
 __all__ = [

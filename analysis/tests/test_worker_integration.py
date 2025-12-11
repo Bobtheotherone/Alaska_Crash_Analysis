@@ -61,7 +61,14 @@ class WorkerIntegrationTests(TestCase):
             model_name="crash_severity_risk_v1",
             status=ModelJob.Status.QUEUED,
             parameters={
-                "cleaning": {"severity_col": "Severity"},
+                "cleaning": {
+                    "severity_col": "Severity",
+                    "unknown_threshold": 5.0,
+                    "yes_no_threshold": 2.0,
+                    "columns_to_drop": ["AADT"],
+                    "leakage_columns": ["Num_Vehicles"],
+                    "base_unknowns": ["mystery_token"],
+                },
                 "model_params": {},
             },
         )
@@ -78,3 +85,12 @@ class WorkerIntegrationTests(TestCase):
         self.assertIn("feature_importances", meta)
         self.assertIn("leakage_warnings", meta)
         self.assertIn("cleaning_meta", meta)
+
+        cleaning_meta = meta["cleaning_meta"]
+        cleaning_config = cleaning_meta.get("cleaning_meta", {}).get(
+            "cleaning_config", {}
+        )
+        self.assertEqual(cleaning_config.get("unknown_threshold"), 5.0)
+        self.assertEqual(cleaning_config.get("yes_no_threshold"), 2.0)
+        self.assertIn("AADT", cleaning_meta.get("cleaning_meta", {}).get("user_specified_drops", []))
+        self.assertIn("Num_Vehicles", cleaning_meta.get("leakage_columns", []))

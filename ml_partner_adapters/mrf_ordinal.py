@@ -15,6 +15,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import NotFittedError
 
+
 class MultiLevelRandomForestClassifier(BaseEstimator, ClassifierMixin):
     """
     Multi-level Random Forest for ordered classes.
@@ -26,6 +27,10 @@ class MultiLevelRandomForestClassifier(BaseEstimator, ClassifierMixin):
     the model predicts 0 and assign that class; if all thresholds are 1,
     we assign the highest class.
     Essentially ordinal random forest classification via multiple binary classifiers.
+
+    The ``backend`` parameter selects the inner RandomForest implementation:
+    ``"cpu"`` uses sklearn (default), while ``"gpu"``/``"auto"`` use the
+    GPU wrapper when available.
     """
 
     def __init__(
@@ -39,7 +44,9 @@ class MultiLevelRandomForestClassifier(BaseEstimator, ClassifierMixin):
         n_jobs=-1,
         random_state=42,
         thresholds=None,  # None => use 0.5 for all levels
-
+        backend: str = "cpu",
+        _rf_cls=None,
+        **backend_kwargs,
     ):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
@@ -50,7 +57,50 @@ class MultiLevelRandomForestClassifier(BaseEstimator, ClassifierMixin):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.thresholds = thresholds  # scalar or list
+        self.backend = backend
+        self._rf_cls = _rf_cls
+        self.backend_kwargs = backend_kwargs
 
+    def _create_rf(self, random_state_offset: int):
+        """
+        Internal helper to instantiate a single binary RF model according
+        to the configured backend.
+        """
+        rf_cls = self._rf_cls
+
+        backend = (self.backend or "cpu").lower()
+
+        if rf_cls is None:
+            if backend in ("gpu", "auto"):
+                from ml_partner_adapters.gpu_rf_backend import (
+                    GpuRandomForestClassifier,
+                )
+
+                rf_cls = GpuRandomForestClassifier
+            else:
+                rf_cls = RandomForestClassifier
+
+        use_cpu_defaults = backend == "cpu" and rf_cls is RandomForestClassifier
+
+        params = {
+            "n_estimators": self.n_estimators,
+            "max_depth": self.max_depth,
+            "min_samples_split": self.min_samples_split,
+            "min_samples_leaf": self.min_samples_leaf,
+            "max_features": self.max_features,
+            "class_weight": self.class_weight,
+            "n_jobs": self.n_jobs if backend == "cpu" else None,
+            # different seed per level so trees differ slightly
+            "random_state": None
+            if self.random_state is None
+            else self.random_state + random_state_offset,
+        }
+
+        if not use_cpu_defaults:
+            params.update(self.backend_kwargs)
+
+        filtered_params = {k: v for k, v in params.items() if v is not None}
+        return rf_cls(**filtered_params)
 
     def fit(self, X, y):
         y = np.asarray(y)
@@ -69,17 +119,7 @@ class MultiLevelRandomForestClassifier(BaseEstimator, ClassifierMixin):
         for j, c_j in enumerate(classes[:-1]):
             y_bin = (y > c_j).astype(int)
 
-            rf = RandomForestClassifier(
-                n_estimators=self.n_estimators,
-                max_depth=self.max_depth,
-                min_samples_split=self.min_samples_split,
-                min_samples_leaf=self.min_samples_leaf,
-                max_features=self.max_features,
-                class_weight=self.class_weight,
-                n_jobs=self.n_jobs,
-                #different seed per level so trees differ slightly
-                random_state=None if self.random_state is None else self.random_state + j,
-            )
+            rf = self._create_rf(random_state_offset=j)
             rf.fit(X, y_bin)
             self.rf_list_.append(rf)
 

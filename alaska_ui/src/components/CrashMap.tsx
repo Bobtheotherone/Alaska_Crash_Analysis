@@ -7,13 +7,21 @@ import {
   TileLayer,
   useMapEvents,
 } from "react-leaflet";
-import type { LatLngBounds, LatLngBoundsExpression } from "leaflet";
+import type { LatLngBounds, LatLngBoundsExpression, Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 type IngestionRowChecks = {
   total_rows: number;
   invalid_row_count: number;
   invalid_geo_row_count: number;
+};
+
+type DatasetStats = {
+  upload_id: string;
+  crashrecord_count: number;
+  mappable_count: number;
+  min_crash_datetime: string | null;
+  max_crash_datetime: string | null;
 };
 
 interface CrashMapProps {
@@ -146,9 +154,17 @@ const CrashMap: React.FC<CrashMapProps> = ({
   const [limitNotice, setLimitNotice] = useState(false);
   const [limitValue, setLimitValue] = useState<number | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
+  const [datasetStats, setDatasetStats] = useState<DatasetStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   const pointAbortRef = useRef<AbortController | null>(null);
   const heatAbortRef = useRef<AbortController | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   const gridSize = useMemo(() => gridSizeForZoom(zoom), [zoom]);
 
@@ -190,6 +206,53 @@ const CrashMap: React.FC<CrashMapProps> = ({
       }
     }
   }, [startDate, endDate]);
+
+  useEffect(() => {
+    if (!uploadId) {
+      setDatasetStats(null);
+      setStatsError(null);
+      setStatsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setStatsLoading(true);
+    setStatsError(null);
+
+    (async () => {
+      try {
+        const resp = await fetch(`/api/crashdata/datasets/${uploadId}/stats/`, {
+          method: "GET",
+          headers: { Accept: "application/json", ...authHeader() },
+          signal: controller.signal,
+        });
+        if (!resp.ok) {
+          let message = `Stats request failed (${resp.status})`;
+          try {
+            const data = await resp.json();
+            if (data?.detail) message = String(data.detail);
+          } catch {
+            // ignore
+          }
+          throw new Error(message);
+        }
+        const data = (await resp.json()) as DatasetStats;
+        setDatasetStats(data);
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+        console.error("[CrashMap] Stats fetch failed:", err);
+        setStatsError(
+          err instanceof Error
+            ? err.message
+            : "Could not load dataset stats for the map."
+        );
+      } finally {
+        setStatsLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [uploadId, authHeader, refreshNonce]);
 
   useEffect(() => {
     if (!uploadId || !bbox || !showPoints) {
@@ -289,6 +352,7 @@ const CrashMap: React.FC<CrashMapProps> = ({
     showPoints,
     authHeader,
     dateError,
+    refreshNonce,
   ]);
 
   useEffect(() => {
@@ -381,14 +445,19 @@ const CrashMap: React.FC<CrashMapProps> = ({
     gridSize,
     authHeader,
     dateError,
+    refreshNonce,
   ]);
 
   useEffect(() => {
     setExportError(null);
-  }, [uploadId, severity, municipality, startDate, endDate]);
+  }, [uploadId, severity, municipality, startDate, endDate, dateError]);
 
   const handleExport = async () => {
     if (!uploadId) return;
+    if (dateError) {
+      setExportError(dateError);
+      return;
+    }
     setExportError(null);
 
     const params = new URLSearchParams({ upload_id: uploadId });
@@ -442,6 +511,42 @@ const CrashMap: React.FC<CrashMapProps> = ({
     }
   };
 
+  const handleImportCrashRecords = async () => {
+    if (!uploadId) return;
+    setImportError(null);
+    setImportLoading(true);
+    try {
+      const resp = await fetch(
+        `/api/crashdata/datasets/${uploadId}/import-crash-records/`,
+        {
+          method: "POST",
+          headers: { Accept: "application/json", ...authHeader() },
+        }
+      );
+      if (!resp.ok) {
+        let message = `Import failed (${resp.status})`;
+        try {
+          const data = await resp.json();
+          if (data?.detail) message = String(data.detail);
+        } catch {
+          // ignore
+        }
+        throw new Error(message);
+      }
+      await resp.json();
+      setRefreshNonce((n) => n + 1);
+    } catch (err) {
+      console.error("[CrashMap] Import crash records failed:", err);
+      setImportError(
+        err instanceof Error
+          ? err.message
+          : "Could not import crash records for this upload."
+      );
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
   const ingestionSummary = useMemo(() => {
     if (!ingestionRowChecks) return null;
     const { total_rows, invalid_row_count, invalid_geo_row_count } =
@@ -455,6 +560,8 @@ const CrashMap: React.FC<CrashMapProps> = ({
     };
   }, [ingestionRowChecks]);
 
+  const hasMappableCrashes = (datasetStats?.mappable_count || 0) > 0;
+
   const maxHeatCount = useMemo(
     () => heatCells.reduce((max, cell) => Math.max(max, cell.count), 0),
     [heatCells]
@@ -467,6 +574,23 @@ const CrashMap: React.FC<CrashMapProps> = ({
       );
     }
   }, [ingestionRowChecks]);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || !mapRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    });
+    ro.observe(mapContainerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.invalidateSize();
+    }
+  }, [statsError, datasetStats, ingestionSummary, pointError, heatError]);
 
   if (!uploadId) {
     return (
@@ -521,6 +645,50 @@ const CrashMap: React.FC<CrashMapProps> = ({
         {exportError && (
           <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
             {exportError}
+          </div>
+        )}
+        <div className="text-xs text-neutral-darker flex flex-wrap gap-3 items-center">
+          {statsLoading ? (
+            <span className="font-semibold text-brand-primary">Loading dataset stats…</span>
+          ) : datasetStats ? (
+            <>
+              <span>
+                Crash records: {datasetStats.crashrecord_count} ({datasetStats.mappable_count} with
+                valid coordinates)
+              </span>
+              {datasetStats.min_crash_datetime && datasetStats.max_crash_datetime && (
+                <span>
+                  Date range: {datasetStats.min_crash_datetime} → {datasetStats.max_crash_datetime}
+                </span>
+              )}
+            </>
+          ) : (
+            <span>Dataset stats not loaded.</span>
+          )}
+          {statsError && (
+            <span className="text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
+              {statsError}
+            </span>
+          )}
+        </div>
+        {datasetStats && datasetStats.mappable_count === 0 && (
+          <div className="flex flex-wrap items-center gap-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+            <span className="font-semibold">
+              No crash records have been imported for mapping for this upload yet.
+            </span>
+            <button
+              type="button"
+              onClick={handleImportCrashRecords}
+              disabled={importLoading}
+              className="inline-flex items-center rounded-md border border-neutral-medium bg-white px-3 py-1 text-xs font-semibold text-neutral-darker hover:bg-neutral-light disabled:opacity-60"
+            >
+              {importLoading ? "Importing…" : "Import crash records for map"}
+            </button>
+            {importError && (
+              <span className="text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
+                {importError}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -634,8 +802,16 @@ const CrashMap: React.FC<CrashMapProps> = ({
           {dateError}
         </div>
       )}
+      {datasetStats && datasetStats.mappable_count === 0 && (
+        <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          No mappable crash records yet for this upload. Import to enable map layers.
+        </div>
+      )}
 
-      <div className="flex-1 min-h-[420px] rounded-lg overflow-hidden border border-neutral-medium bg-white shadow-sm">
+      <div
+        className="flex-1 min-h-[420px] rounded-lg overflow-hidden border border-neutral-medium bg-white shadow-sm"
+        ref={mapContainerRef}
+      >
         <MapContainer
           bounds={ALASKA_BOUNDS}
           center={DEFAULT_CENTER}
@@ -644,6 +820,7 @@ const CrashMap: React.FC<CrashMapProps> = ({
           style={{ height: "100%", width: "100%" }}
           scrollWheelZoom
           whenCreated={(mapInstance) => {
+            mapRef.current = mapInstance;
             const initialBounds = mapInstance.getBounds();
             setBbox(boundsToBbox(initialBounds));
             setZoom(mapInstance.getZoom());
@@ -759,7 +936,11 @@ const CrashMap: React.FC<CrashMapProps> = ({
         )}
         {!pointLoading && !pointError && features.length === 0 && (
           <span className="text-neutral-darker bg-neutral-light border border-neutral-medium rounded px-2 py-1">
-            No crashes in this view for the current filters.
+            {datasetStats
+              ? hasMappableCrashes
+                ? "No crashes in this view for the current filters."
+                : "No crash records imported yet for this upload."
+              : "No crashes in this view for the current filters."}
           </span>
         )}
         {showHeatmap && !heatLoading && !heatError && heatCells.length === 0 && (

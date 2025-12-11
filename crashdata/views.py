@@ -10,9 +10,11 @@ from django.utils.dateparse import parse_date, parse_datetime
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Count, Min, Max, Q
 
 from ingestion.models import UploadedDataset
 
+from .importer import ImportError, import_crash_records_for_dataset
 from . import queries
 from .models import CrashRecord
 
@@ -422,6 +424,49 @@ def export_crashes_csv(request):
         f"attachment; filename=crashes_{dataset.id}.csv"
     )
     return response
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dataset_stats_view(request, upload_id: str):
+    """Return basic stats for a dataset to inform the map UI."""
+    dataset = _get_dataset_for_user(upload_id, request.user)
+    qs = CrashRecord.objects.filter(dataset=dataset)
+    agg = qs.aggregate(
+        crashrecord_count=Count("id"),
+        mappable_count=Count("id", filter=Q(location__isnull=False)),
+        min_dt=Min("crash_datetime"),
+        max_dt=Max("crash_datetime"),
+    )
+    return JsonResponse(
+        {
+            "upload_id": str(dataset.id),
+            "crashrecord_count": agg["crashrecord_count"] or 0,
+            "mappable_count": agg["mappable_count"] or 0,
+            "min_crash_datetime": agg["min_dt"].isoformat() if agg["min_dt"] else None,
+            "max_crash_datetime": agg["max_dt"].isoformat() if agg["max_dt"] else None,
+        }
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def import_crash_records_view(request, upload_id: str):
+    """Run the crash record import for a dataset so the map has data."""
+    dataset = _get_dataset_for_user(upload_id, request.user)
+    try:
+        imported, mappable = import_crash_records_for_dataset(dataset)
+    except ImportError as exc:
+        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return JsonResponse(
+        {
+            "status": "completed",
+            "upload_id": str(dataset.id),
+            "imported": imported,
+            "mappable": mappable,
+        }
+    )
 
 
 # Throttle scope for exports

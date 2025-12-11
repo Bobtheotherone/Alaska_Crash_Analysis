@@ -1,0 +1,5 @@
+# keep raw data files out of version control
+*.xlsx
+*.csv
+*.parquet
+data/

@@ -1,0 +1,354 @@
+#make a script to clean the dataset
+import pandas as pd
+import argparse
+from pathlib import Path
+import config
+config.validate()  #validate config values
+from unknown_discovery import discover_unknown_placeholders
+import time #temp for runtime measurement
+
+
+#now have user enter in data rather than hardcoded filepath
+def load_table(path: Path) -> pd.DataFrame:
+    """
+    Load an Excel or delimited text file into a DataFrame.
+    """
+    full_ext = ''.join(path.suffixes).lower()
+
+    # Excel
+    if any(full_ext.endswith(ext) for ext in ['.xlsx', '.xlsm', '.xls']):
+        return pd.read_excel(path)
+
+    # Comma-separated (plain or gzipped)
+    if any(full_ext.endswith(ext) for ext in ('.csv', '.csv.gz')):
+        try:
+            return pd.read_csv(path, low_memory=False)  # C engine, fast
+        except UnicodeDecodeError:
+            return pd.read_csv(path, low_memory=False, encoding='latin-1')
+
+    # Tab-separated
+    if any(full_ext.endswith(ext) for ext in ('.tsv', '.txt')):
+        try:
+            return pd.read_csv(path, sep='\t', low_memory=False)
+        except UnicodeDecodeError:
+            return pd.read_csv(path, sep='\t', low_memory=False, encoding='latin-1')
+
+    # Fallback: one attempt at sniffing
+    try:
+        return pd.read_csv(path, low_memory=False)
+    except Exception:
+        raise SystemExit(
+            f"Unsupported or unreadable file type: {path.suffix or full_ext}. "
+            "Use .xlsx/.xlsm/.xls or .csv/.csv.gz/.tsv/.txt."
+        )
+
+"""
+def percent_unknowns_per_column(df, unknown_strings):
+    #scans each column for percentage of unknown/missing values
+    tokens = {s.strip().lower() for s in unknown_strings} #tokenize and lowercase column inputs
+    results = []
+    for col in df.columns:
+        series = df[col]            #each row in the column
+        total_count = len(series)   #total rows in the column
+        if total_count == 0:
+            percent_unknown = 0.0
+        else:
+            mask_null = series.isna() #to avoid pandas 'nan' string issue
+            series_norm = series[~mask_null].astype(str).str.strip().str.lower() #while not pandas null, convert to string, strip string, lowercase string
+            mask_token = series_norm.isin(tokens)   #check if in our unknown tokens
+            unknown_count = int(mask_null.sum()) + int(mask_token.sum()) #sum pandas nans and our known unknowns
+            percent_unknown = (unknown_count / total_count) * 100
+        results.append((col, percent_unknown))
+
+    return results
+
+def yes_no(df, unknown_strings):
+    #scans each column for percentage of yes/no values
+    tokens = {s.strip().lower() for s in unknown_strings} #tokenize and lowercase column inputs
+    YES = {"yes", "y", "true", "t"}
+    NO = {"no", "n", "false", "f"}
+
+    out = {}
+    for col in df.columns:
+        series = df[col]            #each row in the column
+
+        mask_not_null = (~series.isna()) #filter out pandas nulls
+        if not mask_not_null.any():
+            continue
+
+        series_norm = series[mask_not_null].astype(str).str.strip().str.lower() #while not pandas null, convert to string, strip string, lowercase string
+        series_norm = series_norm[~series_norm.isin(tokens)] #filter out known unknowns
+
+        is_yes = series_norm.isin(YES)
+        is_no = series_norm.isin(NO)
+
+        yes_count = int(is_yes.sum())
+        no_count = int(is_no.sum())
+        total_count = yes_count + no_count      #total count of yes/no for percentage calc
+
+        if total_count > 0:
+            yes_pct = round(100.0 * yes_count / total_count, 2)
+            no_pct  = round(100.0 * no_count  / total_count, 2)
+            out[col] = (yes_pct, no_pct, yes_count, no_count, total_count)
+
+    return out
+
+def unique_non_unknown_counts(df, unknown_strings):
+    #get unique value counts per column excluding unknowns
+    tokens = {s.strip().lower() for s in unknown_strings} #tokenize and lowercase column inputs
+    out = {}
+
+    for col in df.columns:
+        series = df[col]
+        mask_not_null = (~series.isna()) #filter out pandas nulls
+
+        if not mask_not_null.any(): #catch all unknown columns for error prevention
+            out[col] = 0
+            continue
+
+        series_norm = series[mask_not_null].astype(str).str.strip().str.lower() #while not pandas null, convert to string, strip string, lowercase string
+        series_norm = series_norm[~series_norm.isin(tokens)] #filter out known unknowns
+
+        out[col] = int(series_norm.nunique(dropna=True)) #count unique non-unknown values
+
+    return out
+
+def near_constant_columns(df, unknown_strings, dominant_pct_threshold=99.5, minority_count_min=25):
+    
+    #Return dict {col: {"dominant_pct": float, "dominant_value": str, "total": int}}
+    #for columns where the most common non-unknown value occupies >= dominant_pct_threshold
+    #percent of known values, and the minority count >= minority_count_min.
+    
+    tokens = {s.strip().lower() for s in unknown_strings} #tokenize and lowercase column inputs
+    out = {}
+
+    for col in df.columns:
+        series = df[col]
+        mask_not_null = (~series.isna()) #filter out pandas nulls
+        if not mask_not_null.any():
+            continue
+
+        series_norm = series[mask_not_null].astype(str).str.strip().str.lower() #while not pandas null, convert to string, strip string, lowercase string
+        series_norm = series_norm[~series_norm.isin(tokens)] #filter out known unknown
+        if series_norm.empty:
+            continue
+
+        value_counts = series_norm.value_counts(dropna=False)
+        dominant_value = value_counts.index[0]
+        dominant_count = int(value_counts.iloc[0])
+        total_count = int(value_counts.sum())
+        minority_count = total_count - dominant_count
+        dominant_pct = 100.0 * dominant_count / total_count
+
+        if dominant_pct >= dominant_pct_threshold and minority_count >= minority_count_min:
+            out[col] = {"dominant_pct": round(dominant_pct, 2), "dominant_value": str(dominant_value), "total": total_count}
+
+    return out
+"""
+
+"""
+The above functions are the individual components used in the data cleaning.
+If you want a simpler view of what they do, review the commented out implementations.
+The below function combines all of them into a single pass for a massive runtime boost, but is a bit harder to read.
+"""
+
+def profile_columns(df, unknown_strings):
+    """
+    Returns: stats dict keyed by column:
+      stats[col] = {
+        "total": int,                    # rows in column
+        "known": int,                    # non-null & not unknown-token
+        "unknown_pct": float,            # % of total
+        "nunique": int,                  # unique count among known
+        "dominant_pct": float,           # % of dominant value among known
+        "yes_cnt": int, "no_cnt": int,   # counts among known
+        "yes_pct": float, "no_pct": float,
+        "yesno_total": int               # yes_cnt + no_cnt
+      }
+    """
+
+    tokens = {str(s).strip().lower() for s in unknown_strings}
+    YES = {"yes","y","true","t"}
+    NO  = {"no","n","false","f"}
+
+    out = {}
+    n_rows = len(df)
+
+    for col in df.columns:
+        series = df[col]
+        total = int(len(series))
+
+        # fast exit for empty columns
+        if total == 0:
+            out[col] = {
+                "total": 0, "known": 0, "unknown_pct": 0.0,
+                "nunique": 0, "dominant_pct": 0.0,
+                "yes_cnt": 0, "no_cnt": 0, "yes_pct": 0.0, "no_pct": 0.0, "yesno_total": 0
+            }
+            continue
+        
+        #fast exit for all-null columns
+        mask_not_null = ~series.isna()
+        if not mask_not_null.any():
+            out[col] = {
+                "total": total, "known": 0, "unknown_pct": 100.0,
+                "nunique": 0, "dominant_pct": 0.0,
+                "yes_cnt": 0, "no_cnt": 0, "yes_pct": 0.0, "no_pct": 0.0, "yesno_total": 0
+            }
+            continue
+
+        # normalize once rather than multiple times (runtime save)
+        series_norm = series[mask_not_null].astype(str).str.strip().str.lower()
+        # exclude known-unknown tokens
+        series_clean = series_norm[~series_norm.isin(tokens)]
+
+        #unknown percentage calculation
+        known = int(series_clean.size)
+        unknown_pct = 100.0 * (total - known) / total if total else 0.0
+        if known == 0:
+            out[col] = {
+                "total": total, "known": 0, "unknown_pct": unknown_pct,
+                "nunique": 0, "dominant_pct": 0.0,
+                "yes_cnt": 0, "no_cnt": 0, "yes_pct": 0.0, "no_pct": 0.0, "yesno_total": 0
+            }
+            continue
+
+        #dominant value and unique count calculation combined
+        value_counts = series_clean.value_counts(dropna=False)
+        nunique = int(value_counts.size)
+        dominant_count = int(value_counts.iloc[0])
+        dominant_pct = 100.0 * dominant_count / known
+
+        # yes/no stats calculation from the same value counts (runtime save)
+        yes_cnt = sum(int(value_counts.get(y, 0)) for y in YES)
+        no_cnt  = sum(int(value_counts.get(n, 0)) for n in NO)
+        yesno_total = yes_cnt + no_cnt
+        if yesno_total > 0:
+            yes_pct = 100.0 * yes_cnt / yesno_total
+            no_pct  = 100.0 * no_cnt  / yesno_total
+        else:
+            yes_pct = no_pct = 0.0
+
+        #initialize whole column stats
+        out[col] = {
+            "total": total, "known": known, "unknown_pct": round(unknown_pct, 2),
+            "nunique": nunique, "dominant_pct": round(dominant_pct, 2), "dominant_count": dominant_count,
+            "yes_cnt": yes_cnt, "no_cnt": no_cnt,
+            "yes_pct": round(yes_pct, 2), "no_pct": round(no_pct, 2),
+            "yesno_total": yesno_total
+        }
+    return out
+
+UNKNOWN_STRINGS = {
+    "no data",
+    "missing value",
+    "null value",
+    "missing",
+    "na", "n/a", "n.a.",
+    "none",
+    "null",
+    "nan",
+    "unknown",
+    "unspecified",
+    "not specified",
+    "not applicable",
+    "tbd", "tba", "to be determined",
+    "-", "--",
+    "(blank)", "blank",
+    "(null)",
+    "?", 
+    "prefer not to say",
+    "refused"
+}
+
+#get our unknown and yes/no thresholds from config file
+unknown_thresh = float(config.UNKNOWN_THRESHOLD)
+yes_no_thresh = float(config.YES_NO_THRESHOLD)
+
+
+parser = argparse.ArgumentParser(description="Clean a dataset by identifying unknown/missing values.")
+parser.add_argument("-f", "--file", required=False, help="Path to the input .xlsx or .csv file.")
+args = parser.parse_args()
+
+if args.file:
+    input_file = Path(args.file)
+else:
+    #prompt user for file path if not provided
+    raw = input("Enter the path to the input file: ").strip().strip('"') #use raw for input cleaning
+    raw = raw.replace("'", "").replace('"', '') #remove single quotes or double quotes if user added them
+    input_file = Path(raw)
+
+if not input_file.exists():
+    raise SystemExit(f"Error: The file {input_file} does not exist.") #failsafe if file not found
+if input_file.is_dir(): #directory, not file entered
+    raise SystemExit(f"Error: The path {input_file} is a directory, not a file.")
+
+df1 = load_table(input_file)
+print(f"Loaded {input_file} with {df1.shape[0]} rows and {df1.shape[1]} columns.")
+
+
+aug_unknowns = discover_unknown_placeholders(df1, UNKNOWN_STRINGS) #get new unknown values
+print(f"Discovered {len(aug_unknowns) - len(UNKNOWN_STRINGS)} new unknown tokens.")
+#for val in aug_unknowns:
+#    print(f"{val}\n")
+
+start = time.time()   # ⏱️ Start timer
+#temp for runtime measuremen
+
+#get our percentages
+column_stats = profile_columns(df1, aug_unknowns)
+
+to_drop = set()     #set of columns to drop
+n_rows = len(df1)   #get total # of rows
+yn_coverage_min = 50.0 #to avoid small-sample yes/no skewing
+
+for col, stat in column_stats.items():
+    #1) unknown% threshold
+    if stat["unknown_pct"] >= unknown_thresh:
+        to_drop.add(col)
+        continue
+    
+    #2) yes/no imbalance
+    if stat["yesno_total"] >= yn_coverage_min/100.0 * n_rows:
+        if stat["yes_pct"] < yes_no_thresh or stat["no_pct"] < yes_no_thresh:
+            to_drop.add(col)
+            continue
+    
+    #3) unique value extremes
+    if stat["nunique"] <= 1 or stat["nunique"] >= n_rows:
+        to_drop.add(col)
+        continue
+    
+    #4) nearly constant columns with threshold of 99.5% dominant value and at least 25 minority counts
+    if stat["yesno_total"] == 0: #avoid already flagged yes/no columns
+        if stat["dominant_pct"] >= 99.5 and (stat["known"] - stat["dominant_count"]) >= 25:
+            to_drop.add(col)
+            continue
+
+#make a new df to write to csv
+clean_df = df1.drop(columns=sorted(to_drop), errors="ignore")
+
+#write to new csv file with _cleaned appended
+out_csv = input_file.with_name(f"{input_file.stem}_cleaned.csv")
+clean_df.to_csv(out_csv, index=False)
+
+#print out confirmation message
+print(f"Dropped {len(to_drop)} columns. New shape: {clean_df.shape[0]} rows x {clean_df.shape[1]} cols")
+print(f"Saved: {out_csv}")
+
+end = time.time()     # ⏱️ End timer
+elapsed = end - start
+#temp for runtime measurement
+print(f"\nRuntime: {elapsed:.2f} seconds")
+
+"""
+#just print for now until we decide functionality
+uk.sort(key=lambda x: x[1], reverse=True)
+print("\n% Unknown by column (NaN + known placeholders):")
+for col, pct in uk:
+    extra = ""
+    if col in yn:
+        y_pct, n_pct, y_cnt, n_cnt, total = yn[col]
+        extra = f"   (Yes/No: {y_pct:.2f}%/{n_pct:.2f}% of {total} known)"
+    print(f"{pct:6.2f}%  -  {col}{extra}")
+"""

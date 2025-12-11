@@ -1,4 +1,3 @@
-
 """
 ModelJob worker process utilities.
 
@@ -30,6 +29,7 @@ from typing import Any, Dict, Optional
 from uuid import UUID
 
 import pandas as pd
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Core job runner
+# Core helpers
 # ---------------------------------------------------------------------------
 
 
@@ -98,31 +98,32 @@ def _build_result_metadata(
 
     duration_seconds: Optional[float] = None
     try:
-        duration_seconds = (finished_at - started_at).total_seconds()
-    except Exception:  # pragma: no cover - extremely defensive
+        duration_seconds = float((finished_at - started_at).total_seconds())
+    except Exception:
+        # Defensive: if timestamps are weird, don't crash the worker.
         duration_seconds = None
 
-    metadata: Dict[str, Any] = {
+    return {
+        "job_id": str(job.id),
         "model_name": job.model_name,
-        "model_label": spec.description,
-        "model_params": model_params,
+        "spec_name": spec.name,
+        "started_at": started_at.isoformat(),
+        "finished_at": finished_at.isoformat(),
+        "duration_seconds": duration_seconds,
         "metrics": metrics,
-        "cleaning_meta": cleaning_meta,
         "feature_importances": {
+            "all": feature_importances,
             "top_n": top_n,
-            # We also keep the full mapping for offline analysis, but this
-            # can be removed if storage becomes an issue.
-            "all": {k: float(v) for k, v in feature_importances.items()},
         },
+        "cleaning_meta": cleaning_meta,
+        "model_params": model_params,
         "leakage_warnings": leakage_warnings,
-        "worker": {
-            "started_at": started_at.isoformat(),
-            "finished_at": finished_at.isoformat(),
-            "duration_seconds": duration_seconds,
-        },
     }
 
-    return metadata
+
+# ---------------------------------------------------------------------------
+# Core job runner
+# ---------------------------------------------------------------------------
 
 
 def run_model_job(job_id: str | UUID) -> None:
@@ -136,6 +137,7 @@ def run_model_job(job_id: str | UUID) -> None:
     job_id_str = str(job_id)
     logger.info("Starting ModelJob worker for job_id=%s", job_id_str)
 
+    # Take a row-level lock and mark the job as running.
     with transaction.atomic():
         try:
             job = (
@@ -159,12 +161,15 @@ def run_model_job(job_id: str | UUID) -> None:
         job.updated_at = timezone.now()
         job.save(update_fields=["status", "updated_at"])
 
-    # From this point onwards, we operate outside the transaction and
-    # update the job record as we go.
+    # Outside the transaction from here on.
     started_at = timezone.now()
 
     try:
-        df = _load_dataframe_for_job(job.upload)
+        # Reload job with its upload relation in case anything changed.
+        job = ModelJob.objects.select_related("upload").get(pk=job_id)
+        upload = job.upload
+
+        df = _load_dataframe_for_job(upload)
 
         try:
             spec = MODEL_REGISTRY[job.model_name]
@@ -178,6 +183,7 @@ def run_model_job(job_id: str | UUID) -> None:
         parameters = job.parameters or {}
         cleaning_params = parameters.get("cleaning") or {}
         model_params = parameters.get("model_params") or parameters.get("model") or {}
+
         # Merge user-supplied params over the registry defaults.
         merged_model_params = {
             **spec.default_model_params,
@@ -211,8 +217,6 @@ def run_model_job(job_id: str | UUID) -> None:
         job.result_metadata = metadata
         job.updated_at = finished_at
         job.save(update_fields=["status", "result_metadata", "updated_at"])
-
-        logger.info("ModelJob %s completed successfully.", job_id_str)
 
     except Exception as exc:  # pragma: no cover - error path
         finished_at = timezone.now()
@@ -267,16 +271,21 @@ def enqueue_model_job(job_id: str | UUID) -> None:
     """
     Lightweight "enqueue" helper used by the /api/models/run/ view.
 
-    In a production deployment this function can be swapped out to call
-    a real background task system (e.g. Celery or RQ).  For now we
-    implement it as a simple daemon thread to avoid blocking the HTTP
-    request while still honouring the API contract that model training
-    happens asynchronously.
+    In development (DEBUG=True) we execute the job synchronously in the
+    current process so that the dev server and front-end polling do not
+    get out of sync.  In non-debug environments, this function preserves
+    the original asynchronous behaviour by spawning a daemon thread.
     """
+    if getattr(settings, "DEBUG", False):
+        logger.info(
+            "DEBUG mode: running ModelJob %s synchronously in-process.", job_id
+        )
+        run_model_job(job_id)
+        return
 
-    def _target():
+    def _target() -> None:
         # Small delay so that the HTTP response has a chance to be sent
-        # before heavy work begins (helpful for local dev).
+        # before heavy work begins (helpful for local dev and proxies).
         time.sleep(0.1)
         run_model_job(job_id)
 

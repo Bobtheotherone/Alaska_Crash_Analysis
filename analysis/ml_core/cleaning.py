@@ -1,276 +1,260 @@
 from __future__ import annotations
 
 import logging
-import re
-from typing import Any, Dict, Iterable, Mapping, Sequence, Set, Tuple
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Set, Tuple
 
 import numpy as np
 import pandas as pd
 
+from ml_partner_adapters.config_bridge import (
+    UNKNOWN_THRESHOLD,
+    YES_NO_THRESHOLD,
+    UNKNOWN_STRINGS as PEYTON_UNKNOWN_STRINGS,
+)
+from ml_partner_adapters.unknown_bridge import discover_unknown_placeholders_web
+from ml_partner_adapters.severity_mapping_bridge import (
+    find_severity_mapping_noninteractive,
+)
+from ml_partner_adapters.leakage_bridge import (
+    find_leakage_columns_noninteractive,
+    warn_suspicious_importances as adapter_warn_suspicious_importances,
+)
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Configuration values (adapted from the ML team's DataCleaning/config.py)
+# Configuration values (adapted from Peyton's DataCleaning/config.py)
 # ---------------------------------------------------------------------------
 
-UNKNOWN_THRESHOLD: float = 10.0  # percentage threshold for unknowns in a column
-YES_NO_THRESHOLD: float = 1.0    # percentage threshold for yes/no balance in a column
+# Canonical "unknown" tokens come directly from the partner repository via the
+# config bridge.  We always work with a *lower-cased* version when matching.
+DEFAULT_UNKNOWN_STRINGS: Set[str] = {str(s).strip().lower() for s in PEYTON_UNKNOWN_STRINGS}
 
-# Base set of tokens that should always be treated as "unknown"
-DEFAULT_UNKNOWN_STRINGS: Set[str] = {
-    "unknown",
-    "missing",
-    "unspecified",
-    "not specified",
-    "not applicable",
-    "n/a",
-    "na",
-    "null",
-    "blank",
-    "tbd",
-    "tba",
-    "to be determined",
-    "refused",
-    "prefer not to say",
-    "no data",
-    "no value",
-}
 
-# Generic substrings we treat as "unknown-like" when scanning free-text values.
-GENERIC_UNKNOWN_SUBSTRINGS: Set[str] = {
-    "unknown",
-    "missing",
-    "not specified",
-    "not applicable",
-    "n/a",
-    "none",
-    "unspecified",
-    "tbd",
-    "tba",
-    "no data",
-    "no value",
-    "refused",
-    "prefer not to say",
-}
+def _normalize_str(val: Any) -> str:
+    """Convert arbitrary value to a normalised, lower-cased string."""
+    if val is None:
+        return ""
+    return str(val).strip().lower()
+
+
+# ---------------------------------------------------------------------------
+# Validation helpers for config values
+# ---------------------------------------------------------------------------
 
 
 def validate_config_values(
     unknown_threshold: float = UNKNOWN_THRESHOLD,
     yes_no_threshold: float = YES_NO_THRESHOLD,
 ) -> None:
-    """Validate percentage thresholds are in the expected 0–100 range."""
+    """
+    Validate that thresholds coming from config are within [0, 100].
+
+    Peyton's original configuration expresses UNKNOWN_THRESHOLD and
+    YES_NO_THRESHOLD as *percentages*, so we keep that convention here.
+    """
 
     def _ok(x: float) -> bool:
-        return isinstance(x, (int, float)) and 0.0 <= float(x) <= 100.0
+        try:
+            xf = float(x)
+        except Exception:
+            return False
+        return 0.0 <= xf <= 100.0
 
     if not _ok(unknown_threshold):
-        raise ValueError(
-            f"UNKNOWN_THRESHOLD must be 0–100, got {unknown_threshold}"
-        )
+        raise ValueError(f"UNKNOWN_THRESHOLD must be 0–100, got {unknown_threshold!r}")
     if not _ok(yes_no_threshold):
-        raise ValueError(
-            f"YES_NO_THRESHOLD must be 0–100, got {yes_no_threshold}"
-        )
+        raise ValueError(f"YES_NO_THRESHOLD must be 0–100, got {yes_no_threshold!r}")
 
 
 # ---------------------------------------------------------------------------
-# Unknown discovery (adapted from DataCleaning/unknown_discovery.py)
+# Unknown placeholder discovery (delegating to ml_partner_adapters)
 # ---------------------------------------------------------------------------
 
 
 def discover_unknown_placeholders(
     df: pd.DataFrame,
     base_unknowns: Iterable[str] | None = None,
-    generic_substrings: Iterable[str] | None = None,
+    *,
     min_count: int = 2,
     max_token_length: int = 80,
 ) -> Set[str]:
-    """Scan a DataFrame and automatically augment the set of 'unknown' tokens.
-
-    The original ML script used simple heuristics:
-    - focus on string / object columns,
-    - look for values that contain generic unknown-like substrings,
-    - only keep tokens that appear at least ``min_count`` times.
     """
+    Thin wrapper around the ML partner's unknown placeholder discovery.
 
+    Parameters
+    ----------
+    df:
+        Input dataframe.
+    base_unknowns:
+        Known "unknown" tokens.  If omitted, Peyton's canonical
+        UNKNOWN_STRINGS are used.
+    min_count:
+        Minimum frequency required for a token to be considered an
+        additional "unknown".
+    max_token_length:
+        Safety cap on token length to ignore pathological values.
+
+    Returns
+    -------
+    Set[str]
+        Augmented set of unknown tokens, lower-cased.
+    """
     if base_unknowns is None:
         base_unknowns = DEFAULT_UNKNOWN_STRINGS
-    if generic_substrings is None:
-        generic_substrings = GENERIC_UNKNOWN_SUBSTRINGS
+    else:
+        base_unknowns = {str(s).strip().lower() for s in base_unknowns}
 
-    known_unknowns: Set[str] = {
-        str(v).strip().lower() for v in base_unknowns if isinstance(v, str)
-    }
-    counts: Dict[str, int] = {}
+    try:
+        discovered = discover_unknown_placeholders_web(
+            df,
+            base_unknowns,
+            min_freq=min_count,
+            max_token_length=max_token_length,
+        )
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(
+            "discover_unknown_placeholders_web failed (%r); falling back to base_unknowns only.",
+            exc,
+        )
+        discovered = set()
 
-    for col in df.columns:
-        series = df[col]
-        if not (
-            pd.api.types.is_object_dtype(series)
-            or pd.api.types.is_string_dtype(series)
-        ):
-            continue
-
-        for raw in series.dropna().unique():
-            text = str(raw).strip()
-            if not text:
-                continue
-
-            lower = text.lower()
-            if lower in known_unknowns:
-                continue
-            if len(lower) > max_token_length:
-                continue
-
-            if any(sub in lower for sub in generic_substrings):
-                counts[lower] = counts.get(lower, 0) + 1
-
-    new_unknowns = {tok for tok, c in counts.items() if c >= min_count}
-    augmented: Set[str] = set(known_unknowns)
-    augmented.update(new_unknowns)
+    augmented: Set[str] = set(base_unknowns)
+    augmented.update({str(v).strip().lower() for v in discovered})
     return augmented
 
 
 # ---------------------------------------------------------------------------
-# Column profiling (adapted from DataCleaning/Script to Clean.py)
+# Column profiling – adapted from Peyton's Script to Clean.py
 # ---------------------------------------------------------------------------
 
 
-def percent_unknowns_per_column(
-    df: pd.DataFrame,
-    unknown_strings: Iterable[str],
-) -> Dict[str, float]:
-    """Return {column -> percent of cells that are 'unknown'}."""
-    unknown_set = {str(u).lower() for u in unknown_strings}
-    result: Dict[str, float] = {}
-
-    for col in df.columns:
-        series = df[col]
-        total = len(series)
-        if total == 0:
-            result[col] = 0.0
-            continue
-
-        if (
-            pd.api.types.is_object_dtype(series)
-            or pd.api.types.is_string_dtype(series)
-        ):
-            lower = series.astype(str).str.lower()
-            mask_unknown = lower.isin(unknown_set)
-        else:
-            mask_unknown = pd.Series([False] * total, index=series.index)
-
-        pct = 100.0 * mask_unknown.sum() / float(total)
-        result[col] = float(pct)
-
-    return result
-
-
-def yes_no(df: pd.DataFrame, unknown_strings: Iterable[str]) -> Dict[str, Dict[str, float]]:
-    """Find columns that behave like Yes/No flags and compute coverage stats.
-
-    Returns a dict of the form::
-
-        {
-            "col_name": {
-                "yes_pct": float,
-                "no_pct": float,
-                "yesno_total": int,   # number of non-unknown yes/no values
-            },
-            ...
-        }
-    """
-    unknown_set = {str(u).lower() for u in unknown_strings}
-    stats: Dict[str, Dict[str, float]] = {}
-
-    yes_like = {"yes", "y", "true", "t", "1"}
-    no_like = {"no", "n", "false", "f", "0"}
-
-    for col in df.columns:
-        series = df[col]
-        if not (
-            pd.api.types.is_object_dtype(series)
-            or pd.api.types.is_string_dtype(series)
-        ):
-            continue
-
-        lower = series.astype(str).str.lower()
-        mask_unknown = lower.isin(unknown_set)
-        known = lower[~mask_unknown]
-
-        if known.empty:
-            continue
-
-        yes_mask = known.isin(yes_like)
-        no_mask = known.isin(no_like)
-
-        yes_count = int(yes_mask.sum())
-        no_count = int(no_mask.sum())
-
-        total_yesno = yes_count + no_count
-        total_known = len(known)
-
-        if total_yesno == 0:
-            continue
-
-        yes_pct = 100.0 * yes_count / float(total_known)
-        no_pct = 100.0 * no_count / float(total_known)
-
-        stats[col] = {
-            "yes_pct": float(yes_pct),
-            "no_pct": float(no_pct),
-            "yesno_total": float(total_yesno),
-        }
-
-    return stats
+YES_TOKENS: Set[str] = {"yes", "y", "true", "t"}
+NO_TOKENS: Set[str] = {"no", "n", "false", "f"}
 
 
 def profile_columns(
     df: pd.DataFrame,
     unknown_strings: Iterable[str],
 ) -> Dict[str, Dict[str, Any]]:
-    """Return a rich per-column profile used to decide which features to drop.
-
-    This mirrors the ML group's Script-to-Clean logic in a non-interactive form.
     """
-    unknown_percent = percent_unknowns_per_column(df, unknown_strings)
-    yes_no_stats = yes_no(df, unknown_strings)
+    Profile each column to compute the statistics used by Peyton's cleaning
+    script, but in a non-interactive, reusable way.
 
+    For every column this returns:
+
+        {
+          "total": int,
+          "known": int,
+          "unknown_pct": float,
+          "nunique": int,
+          "dominant_pct": float,
+          "dominant_count": int,
+          "yes_cnt": int,
+          "no_cnt": int,
+          "yes_pct": float,
+          "no_pct": float,
+          "yesno_total": int,
+        }
+    """
+    tokens = {str(s).strip().lower() for s in unknown_strings}
     stats: Dict[str, Dict[str, Any]] = {}
+
     n_rows = len(df)
 
     for col in df.columns:
         series = df[col]
-        col_stats: Dict[str, Any] = {}
-        col_stats["unknown_pct"] = float(unknown_percent.get(col, 0.0))
-        col_stats["total"] = int(n_rows)
-        col_stats["nunique"] = int(series.nunique(dropna=True))
+        total = int(len(series))
 
-        non_null = series.dropna()
-        col_stats["known"] = int(len(non_null))
+        # Fast path for completely empty columns
+        if total == 0:
+            stats[col] = {
+                "total": 0,
+                "known": 0,
+                "unknown_pct": 0.0,
+                "nunique": 0,
+                "dominant_pct": 0.0,
+                "dominant_count": 0,
+                "yes_cnt": 0,
+                "no_cnt": 0,
+                "yes_pct": 0.0,
+                "no_pct": 0.0,
+                "yesno_total": 0,
+            }
+            continue
 
-        # dominant value ratio (excluding NaNs)
-        if not non_null.empty:
-            value_counts = non_null.value_counts()
-            dominant_count = int(value_counts.iloc[0])
-            col_stats["dominant_count"] = dominant_count
-            col_stats["dominant_pct"] = 100.0 * dominant_count / float(len(non_null))
+        mask_not_null = ~series.isna()
+        if not mask_not_null.any():
+            # All values are NaN
+            stats[col] = {
+                "total": total,
+                "known": 0,
+                "unknown_pct": 100.0,
+                "nunique": 0,
+                "dominant_pct": 0.0,
+                "dominant_count": 0,
+                "yes_cnt": 0,
+                "no_cnt": 0,
+                "yes_pct": 0.0,
+                "no_pct": 0.0,
+                "yesno_total": 0,
+            }
+            continue
+
+        # Normalise text to lower-case strings
+        series_norm = series[mask_not_null].astype(str).str.strip().str.lower()
+
+        # Exclude known-unknown tokens
+        series_clean = series_norm[~series_norm.isin(tokens)]
+        known = int(series_clean.size)
+        unknown_pct = 100.0 * (total - known) / float(total) if total else 0.0
+
+        if known == 0:
+            stats[col] = {
+                "total": total,
+                "known": 0,
+                "unknown_pct": round(unknown_pct, 2),
+                "nunique": 0,
+                "dominant_pct": 0.0,
+                "dominant_count": 0,
+                "yes_cnt": 0,
+                "no_cnt": 0,
+                "yes_pct": 0.0,
+                "no_pct": 0.0,
+                "yesno_total": 0,
+            }
+            continue
+
+        # Dominant value and unique count
+        value_counts = series_clean.value_counts(dropna=False)
+        nunique = int(value_counts.size)
+        dominant_count = int(value_counts.iloc[0])
+        dominant_pct = 100.0 * dominant_count / float(known)
+
+        # Yes/no statistics
+        yes_cnt = sum(int(value_counts.get(y, 0)) for y in YES_TOKENS)
+        no_cnt = sum(int(value_counts.get(n, 0)) for n in NO_TOKENS)
+        yesno_total = yes_cnt + no_cnt
+        if yesno_total > 0:
+            yes_pct = 100.0 * yes_cnt / float(yesno_total)
+            no_pct = 100.0 * no_cnt / float(yesno_total)
         else:
-            col_stats["dominant_count"] = 0
-            col_stats["dominant_pct"] = 0.0
+            yes_pct = 0.0
+            no_pct = 0.0
 
-        # yes/no stats if available
-        yn = yes_no_stats.get(col, None)
-        if yn is not None:
-            col_stats["yes_pct"] = float(yn["yes_pct"])
-            col_stats["no_pct"] = float(yn["no_pct"])
-            col_stats["yesno_total"] = float(yn["yesno_total"])
-        else:
-            col_stats["yes_pct"] = 0.0
-            col_stats["no_pct"] = 0.0
-            col_stats["yesno_total"] = 0.0
-
-        stats[col] = col_stats
+        stats[col] = {
+            "total": total,
+            "known": known,
+            "unknown_pct": round(unknown_pct, 2),
+            "nunique": nunique,
+            "dominant_pct": round(dominant_pct, 2),
+            "dominant_count": dominant_count,
+            "yes_cnt": yes_cnt,
+            "no_cnt": no_cnt,
+            "yes_pct": round(yes_pct, 2),
+            "no_pct": round(no_pct, 2),
+            "yesno_total": yesno_total,
+        }
 
     return stats
 
@@ -279,60 +263,86 @@ def suggest_columns_to_drop(
     df: pd.DataFrame,
     column_stats: Mapping[str, Mapping[str, Any]],
     *,
-    unknown_threshold: float | None = None,
-    yes_no_threshold: float | None = None,
+    unknown_threshold: Optional[float] = None,
+    yes_no_threshold: Optional[float] = None,
     yesno_coverage_min: float = 50.0,
     protected_columns: Iterable[str] | None = None,
 ) -> Set[str]:
-    """Heuristic feature-pruning logic using the profiling stats.
+    """
+    Non-interactive replica of the Script to Clean column-drop rules.
 
-    This is a direct, non-interactive refactor of the Script-to-Clean rules.
+    Parameters
+    ----------
+    df:
+        Original dataframe (used only for row count).
+    column_stats:
+        Output of :func:`profile_columns`.
+    unknown_threshold:
+        Percentage threshold (0–100).  Columns whose unknown_pct is
+        greater than or equal to this value are dropped.
+    yes_no_threshold:
+        Percentage threshold (0–100).  For columns that are dominated
+        by yes/no-like values, if either yes_pct or no_pct falls below
+        this threshold the column is dropped.
+    yesno_coverage_min:
+        Minimum percentage (0–100) of rows that must be covered by
+        yes/no tokens before we consider dropping on yes/no imbalance.
+    protected_columns:
+        Columns that should never be dropped automatically (typically
+        includes the severity column).
+
+    Returns
+    -------
+    Set[str]
+        Column names to drop.
     """
     if unknown_threshold is None:
-        unknown_threshold = UNKNOWN_THRESHOLD
+        unknown_threshold = float(UNKNOWN_THRESHOLD)
     if yes_no_threshold is None:
-        yes_no_threshold = YES_NO_THRESHOLD
+        yes_no_threshold = float(YES_NO_THRESHOLD)
 
     validate_config_values(unknown_threshold, yes_no_threshold)
 
-    protected = {c for c in (protected_columns or [])}
-    n_rows = len(df)
-    to_drop: Set[str] = set()
+    protected: Set[str] = {c for c in (protected_columns or [])}
 
-    for col, st in column_stats.items():
+    to_drop: Set[str] = set()
+    n_rows = float(len(df))
+    yn_coverage_min = float(yesno_coverage_min)
+
+    for col, stat in column_stats.items():
         if col in protected:
             continue
 
-        unknown_pct = float(st.get("unknown_pct", 0.0))
-        nunique = int(st.get("nunique", 0))
-        yes_pct = float(st.get("yes_pct", 0.0))
-        no_pct = float(st.get("no_pct", 0.0))
-        yesno_total = float(st.get("yesno_total", 0.0))
-        dominant_pct = float(st.get("dominant_pct", 0.0))
-        dominant_count = int(st.get("dominant_count", 0))
+        unknown_pct = float(stat.get("unknown_pct", 0.0))
+        nunique = int(stat.get("nunique", 0))
+        dominant_pct = float(stat.get("dominant_pct", 0.0))
+        dominant_count = int(stat.get("dominant_count", 0))
+        known = int(stat.get("known", 0))
+        yes_pct = float(stat.get("yes_pct", 0.0))
+        no_pct = float(stat.get("no_pct", 0.0))
+        yesno_total = float(stat.get("yesno_total", 0.0))
 
-        # 1) Too many unknowns
+        # 1) High proportion of unknowns
         if unknown_pct >= unknown_threshold:
             to_drop.add(col)
             continue
 
-        # 2) Yes/No columns that are massively imbalanced
-        if yesno_total >= yesno_coverage_min:
-            if yes_pct < yes_no_threshold or no_pct < yes_no_threshold:
-                to_drop.add(col)
-                continue
+        # 2) Imbalanced yes/no columns, provided they cover enough rows
+        if yesno_total > 0 and n_rows > 0:
+            if yesno_total >= (yn_coverage_min / 100.0) * n_rows:
+                if yes_pct < yes_no_threshold or no_pct < yes_no_threshold:
+                    to_drop.add(col)
+                    continue
 
-        # 3) Columns with too few or too many unique values
+        # 3) Extreme uniqueness (constant or almost row-unique)
         if nunique <= 1 or nunique >= n_rows:
             to_drop.add(col)
             continue
 
-        # 4) Almost-constant columns (non yes/no) with enough minority support
-        if yesno_total == 0.0 and dominant_pct >= 99.5:
-            # require at least 25 non-dominant values so we do not drop
-            # columns that are genuinely tiny.
-            minority = max(int(st.get("known", 0)) - dominant_count, 0)
-            if minority >= 25:
+        # 4) Near-constant columns (dominant >= 99.5% and at least 25 minority rows)
+        if yesno_total == 0:  # avoid double-handling yes/no columns
+            minority_count = known - dominant_count
+            if dominant_pct >= 99.5 and minority_count >= 25:
                 to_drop.add(col)
                 continue
 
@@ -340,318 +350,8 @@ def suggest_columns_to_drop(
 
 
 # ---------------------------------------------------------------------------
-# Severity mapping (adapted from severity_mapping_utils.py)
+# Core cleaning pipeline
 # ---------------------------------------------------------------------------
-
-
-def map_numeric_severity(unique_values: Sequence[Any]) -> Dict[Any, int]:
-    """Map numeric severities into {0, 1, 2} buckets.
-
-    0 = lowest severity, 2 = highest severity.
-    """
-    cleaned = []
-    for v in unique_values:
-        try:
-            cleaned.append(float(v))
-        except Exception:
-            return {}
-
-    if not cleaned:
-        return {}
-
-    lo = min(cleaned)
-    hi = max(cleaned)
-    mid = (lo + hi) / 2.0
-
-    mapping: Dict[Any, int] = {}
-    for raw, num in zip(unique_values, cleaned):
-        if num <= mid and num != hi:
-            mapping[raw] = 0
-        elif num >= mid and num != lo:
-            mapping[raw] = 2
-        else:
-            mapping[raw] = 1
-
-    return mapping
-
-
-def map_text_severity(unique_values: Sequence[Any]) -> Dict[Any, int]:
-    """Map textual severities into {0, 1, 2} buckets using keywords."""
-    severity_mapping: Dict[Any, int] = {}
-
-    low_keywords = [
-        "no injury",
-        "property damage only",
-        "pdo",
-        "no apparent injury",
-        "possible injury",
-        "minor injury",
-        "non-incapacitating",
-    ]
-
-    mid_keywords = [
-        "suspected minor injury",
-        "possible injury",
-        "moderate injury",
-        "non-serious injury",
-    ]
-
-    high_keywords = [
-        "fatal",
-        "death",
-        "killed",
-        "serious injury",
-        "severe injury",
-        "incapacitating injury",
-        "hospitalized",
-        "life threatening",
-        "critical",
-    ]
-
-    for raw in unique_values:
-        text = str(raw).strip().lower()
-
-        score = None
-        if any(k in text for k in high_keywords):
-            score = 2
-        elif any(k in text for k in mid_keywords):
-            score = 1
-        elif any(k in text for k in low_keywords):
-            score = 0
-
-        if score is not None:
-            severity_mapping[raw] = score
-
-    return severity_mapping
-
-
-def guess_severity_column(
-    df: pd.DataFrame,
-    candidate_names: Sequence[str] | None = None,
-) -> str | None:
-    """Best-effort guess of the severity column name in a crash DataFrame."""
-    if candidate_names is None:
-        candidate_names = [
-            "severity",
-            "crash_severity",
-            "Crash Severity",
-            "Crash_Severity",
-        ]
-
-    for name in candidate_names:
-        if name in df.columns:
-            return name
-
-    # fallback: any column containing the word severity
-    for col in df.columns:
-        if "severity" in col.lower():
-            return col
-
-    return None
-
-
-def find_severity_mapping(df: pd.DataFrame, severity_col: str) -> Dict[Any, int]:
-    """Non-interactive version of the ML team's find_severity_mapping.
-
-    For MMUCC-style KABCO codes (K/A/B/C/O) we map to 3 buckets:
-
-        K or A -> 2 (high)
-        B or C -> 1 (medium)
-        O      -> 0 (low)
-
-    For other datasets we fall back to numeric or keyword-based mappings.
-    """
-    if severity_col not in df.columns:
-        raise KeyError(f"Severity column {severity_col!r} not found in DataFrame.")
-
-    series = df[severity_col].dropna()
-    unique_vals = list(series.unique())
-
-    if not unique_vals:
-        raise ValueError("Severity column has no non-null values.")
-
-    # Special-case KABCO-style single-letter codes
-    normalized = [str(v).strip().upper() for v in unique_vals]
-    kabco_set = {"K", "A", "B", "C", "O"}
-    if set(normalized).issubset(kabco_set):
-        mapping: Dict[Any, int] = {}
-        for raw, norm in zip(unique_vals, normalized):
-            if norm in {"K", "A"}:
-                mapping[raw] = 2
-            elif norm in {"B", "C"}:
-                mapping[raw] = 1
-            elif norm == "O" or norm == "0" or norm == "NO" or norm == "NONE":
-                mapping[raw] = 0
-        if mapping:
-            return mapping
-
-    # Try numeric mapping
-    numeric = pd.to_numeric(series, errors="coerce")
-    frac_numeric = float(numeric.notna().mean())
-    if frac_numeric >= 0.9:
-        mapping = map_numeric_severity(unique_vals)
-        if mapping:
-            return mapping
-
-    # Try keyword-based text mapping
-    text_mapping = map_text_severity(unique_vals)
-    if text_mapping:
-        return text_mapping
-
-    raise ValueError(
-        "Could not automatically determine a severity mapping for column "
-        f"{severity_col!r}. Provide a cleaner severity column if needed."
-    )
-
-
-# ---------------------------------------------------------------------------
-# Leakage detection (adapted from leakage_column_utils.py)
-# ---------------------------------------------------------------------------
-
-
-def suggest_leakage_by_name(columns: Sequence[str]) -> Set[str]:
-    """Suggest leakage columns via simple keyword matches on column names."""
-    keywords = [
-        "fatal",
-        "fatalities",
-        "death",
-        "dead",
-        "killed",
-        "injury",
-        "injuries",
-        "injured",
-        "severity",
-        "severe",
-        "serious",
-        "k_count",
-        "killed_cnt",
-        "inj_cnt",
-    ]
-
-    suggestions: Set[str] = set()
-    for col in columns:
-        lower = col.lower()
-        if any(kw in lower for kw in keywords):
-            suggestions.add(col)
-    return suggestions
-
-
-def find_near_perfect_predictors(
-    X: pd.DataFrame,
-    y: pd.Series,
-    min_accuracy: float = 0.98,
-    max_unique: int = 50,
-) -> Sequence[Tuple[str, float]]:
-    """Return columns that almost perfectly predict y on their own."""
-    suspicious: list[Tuple[str, float]] = []
-
-    for col in X.columns:
-        series = X[col]
-
-        if series.nunique(dropna=True) > max_unique:
-            continue
-
-        df_col = pd.DataFrame({"feature": series, "target": y})
-        df_col = df_col.dropna(subset=["feature", "target"])
-        if df_col.empty:
-            continue
-
-        mapping = (
-            df_col.groupby("feature")["target"]
-            .agg(lambda s: s.value_counts().idxmax())
-        )
-
-        y_hat = df_col["feature"].map(mapping)
-        acc = float((y_hat == df_col["target"]).mean())
-        if acc >= min_accuracy:
-            suspicious.append((col, acc))
-
-    return suspicious
-
-
-def find_leakage_columns(
-    X: pd.DataFrame,
-    y: pd.Series,
-    use_near_perfect_check: bool = True,
-    min_accuracy: float = 0.9,
-    max_unique: int = 50,
-) -> Set[str]:
-    """Non-interactive leakage detection.
-
-    Combines:
-      1) name-based suggestions; and
-      2) near-perfect single-column predictors.
-    """
-    name_suggestions = suggest_leakage_by_name(list(X.columns))
-
-    near_perfect: Sequence[Tuple[str, float]] = []
-    if use_near_perfect_check:
-        near_perfect = find_near_perfect_predictors(
-            X,
-            y,
-            min_accuracy=min_accuracy,
-            max_unique=max_unique,
-        )
-
-    leak_cols: Set[str] = set(name_suggestions)
-    leak_cols.update(col for col, _ in near_perfect)
-
-    if leak_cols:
-        logger.info(
-            "Detected potential leakage columns: %s",
-            ", ".join(sorted(leak_cols)),
-        )
-
-    return leak_cols
-
-
-def warn_suspicious_importances(
-    feature_names: Sequence[str],
-    importances: Sequence[float],
-    importance_threshold: float = 0.2,
-    dominance_ratio: float = 2.0,
-) -> Sequence[str]:
-    """Post-training helper that warns about unusually dominant features."""
-    if not feature_names or len(feature_names) != len(importances):
-        logger.warning(
-            "warn_suspicious_importances: feature_names and importances size mismatch."
-        )
-        return []
-
-    pairs = sorted(
-        zip(feature_names, importances),
-        key=lambda x: x[1],
-        reverse=True,
-    )
-    if not pairs:
-        return []
-
-    max_name, max_imp = pairs[0]
-    second_imp = pairs[1][1] if len(pairs) > 1 else 0.0
-
-    suspicious: list[str] = []
-
-    if second_imp == 0:
-        dominance = float("inf") if max_imp > 0 else 0.0
-    else:
-        dominance = float(max_imp) / float(second_imp)
-
-    if (max_imp >= importance_threshold) or (dominance >= dominance_ratio):
-        suspicious.append(max_name)
-
-    if suspicious:
-        logger.warning(
-            "Potential leakage features due to high importance: %s",
-            ", ".join(suspicious),
-        )
-
-    return suspicious
-
-
-# ---------------------------------------------------------------------------
-# High-level helpers for ETL and model building
-# ---------------------------------------------------------------------------
-
 
 
 def clean_crash_dataframe_for_import(
@@ -663,85 +363,71 @@ def clean_crash_dataframe_for_import(
     yes_no_threshold: float | None = None,
     columns_to_drop: Iterable[str] | None = None,
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
-    """End-to-end cleaning step used by the import_crash_records command.
+    """
+    End-to-end cleaning step used by both the import_crash_records management
+    command and the model-training pipeline.
 
-    This keeps the DataFrame row-aligned with the original dataset while:
-      * normalising unknown tokens to NaN,
-      * dropping obviously bad or redundant columns, and
-      * optionally honouring per-job cleaning configuration.
+    This function is the library equivalent of Peyton's "Script to Clean":
+    it discovers unknown placeholders, profiles columns, decides which
+    columns to drop, and normalises unknown tokens to NaN.
 
-    The *threshold* arguments are expressed as percentages in the 0–100 range.
-    If omitted they fall back to the module-level UNKNOWN_THRESHOLD /
-    YES_NO_THRESHOLD defaults so existing callers continue to behave as before.
+    It intentionally does *not* perform feature encoding; that happens
+    later in :func:`build_ml_ready_dataset`.
     """
     if base_unknowns is None:
         base_unknowns = DEFAULT_UNKNOWN_STRINGS
+    else:
+        base_unknowns = {str(s).strip().lower() for s in base_unknowns}
 
-    # Decide effective thresholds, falling back to the module defaults.
     if unknown_threshold is None:
-        unknown_threshold = UNKNOWN_THRESHOLD
+        unknown_threshold = float(UNKNOWN_THRESHOLD)
     if yes_no_threshold is None:
-        yes_no_threshold = YES_NO_THRESHOLD
+        yes_no_threshold = float(YES_NO_THRESHOLD)
 
-    validate_config_values(
-        unknown_threshold=unknown_threshold,
-        yes_no_threshold=yes_no_threshold,
-    )
+    validate_config_values(unknown_threshold, yes_no_threshold)
 
-    # Discover unknown-like placeholders and normalise them to NaN.
-    unknown_values = discover_unknown_placeholders(df, base_unknowns)
-    df_clean = df.replace(list(unknown_values), np.nan)
+    protected: Set[str] = {c for c in (protected_columns or [])}
 
-    # Profile columns once so we can drive all heuristics from the same stats.
-    column_stats = profile_columns(df_clean, unknown_values)
+    # 1) Discover additional unknown placeholders via the partner adapter.
+    augmented_unknowns = discover_unknown_placeholders(df, base_unknowns)
 
-    # Protect core identifiers and geo columns by default; callers can extend.
-    default_protected: Set[str] = {
-        # Core MMUCC schema columns
-        "crash_id",
-        "crash_date",
-        "severity",
-        "kabco",
-        "latitude",
-        "longitude",
-    }
-    if protected_columns is not None:
-        default_protected.update(protected_columns)
+    # 2) Profile columns using the augmented unknown set.
+    column_stats = profile_columns(df, augmented_unknowns)
 
-    # First, use the heuristic suggestions.
-    to_drop = suggest_columns_to_drop(
-        df_clean,
+    # 3) Decide which columns to drop based on the Script-to-Clean rules.
+    auto_drop = suggest_columns_to_drop(
+        df,
         column_stats,
         unknown_threshold=unknown_threshold,
         yes_no_threshold=yes_no_threshold,
-        protected_columns=default_protected,
+        protected_columns=protected,
     )
 
-    # Then, honour any explicit user-specified drops (still respecting protection).
-    user_specified_drops: Set[str] = set()
-    if columns_to_drop is not None:
-        for col in columns_to_drop:
-            if not isinstance(col, str):
-                continue
-            col_name = col
-            if col_name in default_protected:
-                # Never drop protected columns, even if requested.
-                logger.warning(
-                    "Requested to drop protected column %r; ignoring.",
-                    col_name,
-                )
-                continue
-            user_specified_drops.add(col_name)
+    user_specified_drops: Set[str] = set(columns_to_drop or [])
+    user_specified_drops.difference_update(protected)
 
-    if user_specified_drops:
-        to_drop.update(user_specified_drops)
+    drop_cols = auto_drop | user_specified_drops
 
-    cleaned = df_clean.drop(columns=list(to_drop), errors="ignore")
+    # 4) Create a working copy and normalise unknown tokens to NaN
+    cleaned = df.copy()
+
+    unknown_token_set = {str(u).strip().lower() for u in augmented_unknowns}
+
+    for col in cleaned.columns:
+        s = cleaned[col]
+        if s.dtype == "O" or pd.api.types.is_categorical_dtype(s):
+            norm = s.astype(str).map(_normalize_str)
+            mask_unknown = norm.isin(unknown_token_set)
+            if mask_unknown.any():
+                cleaned.loc[mask_unknown, col] = np.nan
+
+    # 5) Drop the selected columns
+    if drop_cols:
+        cleaned = cleaned.drop(columns=list(drop_cols), errors="ignore")
 
     meta: Dict[str, Any] = {
-        "unknown_values": sorted(unknown_values),
-        "dropped_columns": sorted(to_drop),
-        "protected_columns": sorted(default_protected),
+        "unknown_values": sorted(unknown_token_set),
+        "dropped_columns": sorted(drop_cols),
         "column_stats": column_stats,
         "input_shape": (int(df.shape[0]), int(df.shape[1])),
         "output_shape": (int(cleaned.shape[0]), int(cleaned.shape[1])),
@@ -755,6 +441,150 @@ def clean_crash_dataframe_for_import(
     return cleaned, meta
 
 
+# ---------------------------------------------------------------------------
+# Severity mapping and leakage utilities
+# ---------------------------------------------------------------------------
+
+
+# Optional passthrough helpers for severity mapping
+# -------------------------------------------------
+# Some of Peyton-aligned tests import `map_numeric_severity` and
+# `map_text_severity` from this module.  The canonical implementations
+# live in the ml_partner_adapters.severity_mapping_bridge module, but
+# those helpers may or may not be present depending on the adapter
+# version.  We expose thin wrappers here that delegate to the adapter
+# when available and raise a clear error otherwise.
+
+try:  # pragma: no cover - adapter may omit these helpers
+    from ml_partner_adapters.severity_mapping_bridge import (
+        map_numeric_severity as _adapter_map_numeric_severity,
+        map_text_severity as _adapter_map_text_severity,
+    )
+except Exception:  # ImportError, AttributeError, etc.
+    _adapter_map_numeric_severity = None  # type: ignore[assignment]
+    _adapter_map_text_severity = None  # type: ignore[assignment]
+
+
+def map_numeric_severity(values: Sequence[Any]) -> Mapping[Any, int]:
+    """Delegate to the ML partner's numeric severity mapping helper.
+
+    This is primarily provided for compatibility with tests that expect
+    `analysis.ml_core.cleaning` to expose Peyton-style helpers.  If the
+    adapter does not implement the underlying function, a RuntimeError
+    is raised with a clear message.
+    """
+    if _adapter_map_numeric_severity is None:
+        raise RuntimeError(
+            "map_numeric_severity is not available from the severity mapping adapter."
+        )
+    return _adapter_map_numeric_severity(values)
+
+
+def map_text_severity(values: Sequence[Any]) -> Mapping[Any, int]:
+    """Delegate to the ML partner's text severity mapping helper.
+
+    See :func:`map_numeric_severity` for behaviour when the adapter does
+    not implement the helper.
+    """
+    if _adapter_map_text_severity is None:
+        raise RuntimeError(
+            "map_text_severity is not available from the severity mapping adapter."
+        )
+    return _adapter_map_text_severity(values)
+
+
+def guess_severity_column(df: pd.DataFrame) -> str:
+    """
+    Heuristic for choosing the crash-severity column when the caller does
+    not specify one explicitly.
+
+    Preference order:
+      1. A column literally named "severity" (case-insensitive).
+      2. The first column whose name contains the substring "severity".
+    """
+    lower_map = {c.lower(): c for c in df.columns}
+    if "severity" in lower_map:
+        return lower_map["severity"]
+
+    candidates = [c for c in df.columns if "severity" in c.lower()]
+    if not candidates:
+        raise ValueError(
+            "Could not determine the crash severity column. "
+            "Pass `severity_col` explicitly in cleaning parameters."
+        )
+    if len(candidates) > 1:
+        logger.info(
+            "Multiple candidate severity columns found (%s); using %s",
+            ", ".join(candidates),
+            candidates[0],
+        )
+    return candidates[0]
+
+
+def warn_suspicious_importances(
+    feature_names: Sequence[str],
+    importances: Sequence[float],
+    importance_threshold: float = 0.2,
+    dominance_ratio: float = 2.0,
+) -> Sequence[str]:
+    """
+    Convenience wrapper around the ML partner's importance-leakage heuristic.
+
+    We delegate to :func:`adapter_warn_suspicious_importances` and fall back
+    to a simple local heuristic if the adapter raises.
+    """
+    try:
+        suspicious = adapter_warn_suspicious_importances(
+            feature_names,
+            importances,
+            importance_threshold=importance_threshold,
+            dominance_ratio=dominance_ratio,
+        )
+        if suspicious is not None:
+            return list(suspicious)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(
+            "adapter_warn_suspicious_importances failed (%r); falling back to local heuristic.",
+            exc,
+        )
+
+    # Simple local fallback: pick any feature whose importance is both above the
+    # absolute threshold *and* at least `dominance_ratio` times larger than the
+    # second most important feature.
+    if not feature_names or len(feature_names) != len(importances):
+        return []
+
+    arr = np.asarray(importances, dtype="float64")
+    if arr.size == 0:
+        return []
+
+    total = float(arr.sum())
+    if total <= 0.0:
+        return []
+
+    pct = arr / total
+    idx_sorted = np.argsort(pct)[::-1]
+    top_idx = idx_sorted[0]
+    top_score = float(pct[top_idx])
+    top_name = feature_names[top_idx]
+
+    if len(idx_sorted) > 1:
+        second_score = float(pct[idx_sorted[1]])
+    else:
+        second_score = 0.0
+
+    suspicious: list[str] = []
+    if top_score >= importance_threshold and second_score > 0.0:
+        if top_score / second_score >= dominance_ratio:
+            suspicious.append(top_name)
+
+    return suspicious
+
+
+# ---------------------------------------------------------------------------
+# Build ML-ready (X, y, meta) from a raw crash-level dataframe
+# ---------------------------------------------------------------------------
+
 
 def build_ml_ready_dataset(
     df: pd.DataFrame,
@@ -763,30 +593,37 @@ def build_ml_ready_dataset(
     base_unknowns: Iterable[str] | None = None,
     unknown_threshold: float | None = None,
     yes_no_threshold: float | None = None,
+    leakage_columns: Iterable[str] | None = None,
     columns_to_drop: Iterable[str] | None = None,
 ) -> Tuple[pd.DataFrame, pd.Series, Dict[str, Any]]:
-    """Produce (X, y, meta) suitable for model training.
+    """
+    Produce (X, y, meta) suitable for model training.
 
-    This wraps the ML pipeline:
+    This function wires together:
+      * the Script-to-Clean-style column pruning and unknown handling;
+      * Peyton's severity mapping (via the adapter);
+      * Peyton's leakage detection (via the adapter); and
+      * a simple one-hot encoding of any remaining categorical features so
+        that scikit-learn models only see numeric inputs.
 
-      - unknown discovery (via clean_crash_dataframe_for_import),
-      - severity mapping, and
-      - basic leakage detection.
-
-    The same cleaning configuration knobs used by the ETL pipeline are
-    exposed so that model-training jobs can see an identical view of the
-    data (unknown_threshold, yes_no_threshold, columns_to_drop, etc.).
+    The goal is to stay faithful to the intent of the original scripts
+    while providing a clean, non-interactive API for the web service.
     """
     if base_unknowns is None:
         base_unknowns = DEFAULT_UNKNOWN_STRINGS
 
-    # Best-effort guess of the severity column if one is not provided.
+    if unknown_threshold is None:
+        unknown_threshold = float(UNKNOWN_THRESHOLD)
+    if yes_no_threshold is None:
+        yes_no_threshold = float(YES_NO_THRESHOLD)
+
+    validate_config_values(unknown_threshold, yes_no_threshold)
+
+    # Determine severity column if not provided.
     if severity_col is None:
         severity_col = guess_severity_column(df)
-    if severity_col is None:
-        raise ValueError("Could not infer a severity column from the dataset.")
 
-    # Reuse the crash-cleaning pipeline so training matches ETL behaviour.
+    # Run the core cleaning pipeline, protecting the severity column from drop.
     cleaned_df, cleaning_meta = clean_crash_dataframe_for_import(
         df,
         base_unknowns=base_unknowns,
@@ -796,25 +633,71 @@ def build_ml_ready_dataset(
         columns_to_drop=columns_to_drop,
     )
 
-    unknown_values = set(cleaning_meta.get("unknown_values", []))
+    # Ensure the severity column still exists
+    if severity_col not in cleaned_df.columns:
+        raise KeyError(
+            f"Severity column '{severity_col}' is missing after cleaning; "
+            f"check cleaning configuration."
+        )
 
-    sev_mapping = find_severity_mapping(cleaned_df, severity_col)
+    # Map severity labels to ordinal integers using Peyton's adapter.
+    sev_mapping = find_severity_mapping_noninteractive(cleaned_df, severity_col)
     y_raw = cleaned_df[severity_col]
     y = y_raw.map(sev_mapping)
 
     mask = y.notna()
-    X = cleaned_df.loc[mask].drop(columns=[severity_col], errors="ignore")
     y = y.loc[mask].astype(int)
 
-    leak_cols = find_leakage_columns(X, y)
+    # Drop the severity column from features; filter rows to those with valid y.
+    X = cleaned_df.loc[mask].drop(columns=[severity_col], errors="ignore")
 
-    X_final = X.drop(columns=list(leak_cols), errors="ignore")
+    # ------------------------------------------------------------------
+    # Data-leakage handling (Peyton-style)
+    # ------------------------------------------------------------------
+    # Always run the detector so we can surface suggestions/warnings.
+    auto_leak_cols = find_leakage_columns_noninteractive(X, y)
+
+    if leakage_columns is not None:
+        # UI / caller provided an explicit list (interactive flow).
+        leak_cols_set: Set[str] = {c for c in leakage_columns if c in X.columns}
+    else:
+        leak_cols_set = set(auto_leak_cols)
+
+    X_no_leak = X.drop(columns=list(leak_cols_set), errors="ignore")
+
+    # One-hot encode any remaining categorical columns so that scikit-learn
+    # sees a purely numeric feature matrix.
+    numeric_part = X_no_leak.select_dtypes(include=[np.number])
+    non_numeric_part = X_no_leak.select_dtypes(exclude=[np.number])
+
+    if not non_numeric_part.empty:
+        dummies = pd.get_dummies(non_numeric_part, dummy_na=True)
+        X_final = pd.concat([numeric_part, dummies], axis=1)
+    else:
+        X_final = numeric_part.copy()
+
+    # Ensure no NaNs remain in X_final (fill numeric NaNs with column medians).
+    for col in X_final.columns:
+        s = X_final[col]
+        if s.isna().any():
+            if pd.api.types.is_float_dtype(s) or pd.api.types.is_integer_dtype(s):
+                fill_value = float(s.median(skipna=True))
+                X_final[col] = s.fillna(fill_value)
+            else:
+                # Should not happen because get_dummies produces numeric dtypes,
+                # but we guard anyway.
+                X_final[col] = s.fillna(0)
+
+    unknown_values = set(cleaning_meta.get("unknown_values", []))
 
     meta: Dict[str, Any] = {
         "severity_column": severity_col,
         "severity_mapping": sev_mapping,
         "unknown_values": sorted(unknown_values),
-        "leakage_columns": sorted(leak_cols),
+        # Columns actually dropped as leakage
+        "leakage_columns": sorted(leak_cols_set),
+        # What the non-interactive detector suggested automatically
+        "auto_leakage_suggestions": sorted(set(auto_leak_cols)),
         "n_rows_before_target_filter": int(df.shape[0]),
         "n_rows_after_target_filter": int(X_final.shape[0]),
         "n_features_before_leakage": int(X.shape[1]),

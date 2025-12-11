@@ -1,8 +1,9 @@
-# analysis/tests/test_worker_integration.py
+﻿# analysis/tests/test_worker_integration.py
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+import numpy as np
 import pandas as pd
 
 from ingestion.models import UploadedDataset
@@ -12,14 +13,31 @@ from analysis.ml_core.worker import run_model_job
 
 class WorkerIntegrationTests(TestCase):
     def _make_csv_bytes(self) -> bytes:
+        """
+        Generate a small-but-realistic numeric dataset that will survive
+        the cleaning + leakage detection pipeline.
+
+        We avoid tiny, perfectly correlated data so that
+        find_leakage_columns() does not drop all features.
+        """
+        rng = np.random.RandomState(123)
+        n = 60
+
+        severities = np.array(
+            ["Minor injury", "Serious injury", "Fatal crash"]
+        )
+
         df = pd.DataFrame(
             {
-                "Severity": ["Minor injury", "Serious injury", "Fatal crash", "Minor injury"],
-                "Speed_Limit": [25, 35, 45, 55],
-                "Num_Vehicles": [1, 2, 2, 3],
-                "Weather": ["Clear", "Rain", "Snow", "Clear"],
+                "Severity": rng.choice(severities, size=n),
+                # Numeric features with enough noise that no single
+                # column is an almost-perfect predictor of Severity.
+                "Speed_Limit": rng.choice([25, 35, 45, 55], size=n),
+                "Num_Vehicles": rng.randint(1, 5, size=n),
+                "AADT": rng.randint(100, 5000, size=n),
             }
         )
+
         return df.to_csv(index=False).encode("utf-8")
 
     def test_run_model_job_success_path(self):
@@ -48,7 +66,7 @@ class WorkerIntegrationTests(TestCase):
             },
         )
 
-        # Run the worker synchronously (no threads, no Celery)
+        # Run the worker synchronously
         run_model_job(job.id)
 
         job.refresh_from_db()

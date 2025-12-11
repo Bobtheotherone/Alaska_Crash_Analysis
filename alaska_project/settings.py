@@ -4,6 +4,23 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ---------------------------------------------------------------------------
+# GeoDjango / GDAL / GEOS configuration
+# ---------------------------------------------------------------------------
+
+# On Windows, Django does NOT read the GDAL_LIBRARY_PATH / GEOS_LIBRARY_PATH
+# environment variables by default. It expects these settings to point
+# directly to the DLLs, so we wire them to your OSGeo4W install.
+GDAL_LIBRARY_PATH = os.environ.get(
+    "GDAL_LIBRARY_PATH",
+    r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\gdal312.dll",
+)
+
+GEOS_LIBRARY_PATH = os.environ.get(
+    "GEOS_LIBRARY_PATH",
+    r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\geos_c.dll",
+)
+
+# ---------------------------------------------------------------------------
 # Core Django settings
 # ---------------------------------------------------------------------------
 
@@ -48,6 +65,7 @@ INSTALLED_APPS = [
     "ingestion",
     "crashdata",
     "analysis",
+    "frontend",
 ]
 
 MIDDLEWARE = [
@@ -137,7 +155,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ---------------------------------------------------------------------------
@@ -146,10 +163,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
+        # Use HTTP Basic auth for API clients (React frontend, curl, etc.).
+        # SessionAuthentication is deliberately omitted here to avoid CSRF
+        # errors for API calls made without a CSRF token.
         "rest_framework.authentication.BasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
+        # Require authentication by default; individual views can opt out
+        # with ``AllowAny`` when appropriate (for example, public docs or
+        # health-check endpoints).
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -161,6 +183,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         # Upload gateway: fairly low by default to avoid abuse.
         "ingest_upload": "10/hour",
+        # Burst throttling for endpoints that use the "burst" scope.
+        "burst": "60/minute",
         # Export endpoints: lower rate to avoid accidental DoS.
         "exports": "5/hour",
     },
@@ -176,14 +200,16 @@ SPECTACULAR_SETTINGS = {
 # CORS
 # ---------------------------------------------------------------------------
 
-CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "true").lower() == "true"
+CORS_ALLOW_ALL_ORIGINS = os.environ.get(
+    "CORS_ALLOW_ALL_ORIGINS", "true"
+).lower() == "true"
 
 # ---------------------------------------------------------------------------
 # Upload gateway / ingestion configuration
 # ---------------------------------------------------------------------------
 
 INGESTION_MAX_FILE_SIZE_BYTES = int(
-    os.environ.get("INGESTION_MAX_FILE_SIZE_BYTES", str(10 * 1024 * 1024))  # 10 MB
+    os.environ.get("INGESTION_MAX_FILE_SIZE_BYTES", str(200 * 1024 * 1024))  # 10 MB
 )
 
 # Comma-separated list of allowed file extensions for uploads.
@@ -200,7 +226,9 @@ INGESTION_ALLOWED_EXTENSIONS = [
 
 # When True, antivirus scanning is *required* for ingestion. If ClamAV is
 # unavailable and this flag is True, uploads will be rejected.
-INGESTION_REQUIRE_AV = os.environ.get("INGESTION_REQUIRE_AV", "false").lower() == "true"
+INGESTION_REQUIRE_AV = os.environ.get(
+    "INGESTION_REQUIRE_AV", "false"
+).lower() == "true"
 
 # Path to the externalized MMUCC/KABCO schema configuration that non-devs can
 # edit without touching Python code.
@@ -217,11 +245,18 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "false").lower() == "true"
+SECURE_SSL_REDIRECT = os.environ.get(
+    "DJANGO_SECURE_SSL_REDIRECT",
+    "false",
+).lower() == "true"
 
 # You may wish to fine-tune this further for production deployments.
 SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get(
-    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", "false"
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
+    "false",
 ).lower() == "true"
-SECURE_HSTS_PRELOAD = os.environ.get("DJANGO_SECURE_HSTS_PRELOAD", "false").lower() == "true"
+SECURE_HSTS_PRELOAD = os.environ.get(
+    "DJANGO_SECURE_HSTS_PRELOAD",
+    "false",
+).lower() == "true"

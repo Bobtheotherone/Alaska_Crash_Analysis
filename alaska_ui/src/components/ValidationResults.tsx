@@ -1,127 +1,226 @@
-import React, { useState, useMemo } from 'react';
-import { ValidationResults, ColumnStat } from '../App';
-import { ChevronDownIcon } from '../constants';
+import React, { useState, useMemo, useEffect } from 'react';
+import { ValidationResults, ColumnStat } from './App';
+import UploadSafetySummary from './UploadSafetySummary';
+import ColumnPlanSummary from './ColumnPlanSummary';
+import IngestionLogAccordion from './IngestionLogAccordion';
 
 interface ValidationResultsDisplayProps {
   results: ValidationResults;
+  autoExpandColumnDetails?: boolean;
 }
 
 type SortKey = keyof ColumnStat | 'yesNoCoverage';
 type SortDirection = 'asc' | 'desc';
 
-const SortableHeader: React.FC<{
-  title: string;
-  sortKey: SortKey;
-  currentSortKey: SortKey;
-  sortDirection: SortDirection;
-  onSort: (key: SortKey) => void;
-}> = ({ title, sortKey, currentSortKey, sortDirection, onSort }) => (
-  <th
-    scope="col"
-    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-    onClick={() => onSort(sortKey)}
-  >
-    <div className="flex items-center">
-      <span>{title}</span>
-      {currentSortKey === sortKey && (
-        <span className="ml-1">
-          {sortDirection === 'asc' ? '▲' : '▼'}
-        </span>
-      )}
-    </div>
-  </th>
-);
+const getSortValue = (col: ColumnStat, key: SortKey): number | string => {
+  if (key === 'yesNoCoverage') {
+    return col.yesNoStats ? col.yesNoStats.coveragePercent : -1;
+  }
+  if (key === 'unknownPercent') {
+    return col.unknownPercent;
+  }
+  if (key === 'column') {
+    return col.column.toLowerCase();
+  }
+  return (col as any)[key] ?? '';
+};
 
-const ValidationResultsDisplay: React.FC<ValidationResultsDisplayProps> = ({ results }) => {
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({ key: 'column', direction: 'asc' });
+const ValidationResultsDisplay: React.FC<ValidationResultsDisplayProps> = ({
+  results,
+  autoExpandColumnDetails,
+}) => {
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: 'column',
+    direction: 'asc',
+  });
+  const [detailsOpen, setDetailsOpen] = useState(true);
+
+  useEffect(() => {
+    if (autoExpandColumnDetails) {
+      setDetailsOpen(true);
+    }
+  }, [autoExpandColumnDetails]);
 
   const sortedColumnStats = useMemo(() => {
-    let sortableItems = [...results.columnStats];
-    sortableItems.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+    const sorted = [...results.columnStats];
+    sorted.sort((a, b) => {
+      const aVal = getSortValue(a, sortConfig.key);
+      const bVal = getSortValue(b, sortConfig.key);
 
-      if (sortConfig.key === 'yesNoCoverage') {
-        aValue = a.yesNoStats?.coveragePercent ?? -1;
-        bValue = b.yesNoStats?.coveragePercent ?? -1;
-      } else {
-        aValue = a[sortConfig.key as keyof ColumnStat];
-        bValue = b[sortConfig.key as keyof ColumnStat];
-      }
-      
-      if (aValue < bValue) {
+      if (aVal < (bVal as any)) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
-      if (aValue > bValue) {
+      if (aVal > (bVal as any)) {
         return sortConfig.direction === 'asc' ? 1 : -1;
       }
       return 0;
     });
-    return sortableItems;
+    return sorted;
   }, [results.columnStats, sortConfig]);
 
   const handleSort = (key: SortKey) => {
-    let direction: SortDirection = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return {
+          key,
+          direction: prev.direction === 'asc' ? 'desc' : 'asc',
+        };
+      }
+      return { key, direction: 'asc' };
+    });
   };
-  
-  if (results.error) {
+
+  const renderSortIcon = (key: SortKey) => {
+    if (sortConfig.key !== key) {
+      return (
+        <span className="inline-flex flex-col ml-1 text-gray-300">
+          <span className="leading-none">▲</span>
+          <span className="leading-none -mt-1">▼</span>
+        </span>
+      );
+    }
     return (
-      <div className="p-8 text-center text-red-700 bg-red-100 rounded-lg">
-        <h3 className="text-xl font-semibold">Validation Failed</h3>
-        <p>{results.error}</p>
-      </div>
+      <span className="inline-flex flex-col ml-1 text-gray-700">
+        <span
+          className={`leading-none ${
+            sortConfig.direction === 'asc' ? 'text-brand-primary' : ''
+          }`}
+        >
+          ▲
+        </span>
+        <span
+          className={`leading-none -mt-1 ${
+            sortConfig.direction === 'desc' ? 'text-brand-primary' : ''
+          }`}
+        >
+          ▼
+        </span>
+      </span>
     );
-  }
+  };
 
   return (
-    <div className="h-full flex flex-col space-y-4">
-      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-        <div>
-          <p className="text-sm text-gray-600">Rows</p>
-          <p className="text-2xl font-bold text-brand-primary">{results.rowCount.toLocaleString()}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Columns</p>
-          <p className="text-2xl font-bold text-brand-primary">{results.columnCount}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Columns to Drop</p>
-          <p className="text-2xl font-bold text-red-600">{results.droppedColumnCount}</p>
-        </div>
-      </div>
-      <div className="flex-grow overflow-auto border border-neutral-medium rounded-lg">
-        <table className="min-w-full divide-y divide-neutral-medium">
-          <thead className="bg-gray-50 sticky top-0">
-            <tr>
-              <SortableHeader title="Column" sortKey="column" currentSortKey={sortConfig.key} sortDirection={sortConfig.direction} onSort={handleSort} />
-              <SortableHeader title="% Unknown" sortKey="unknownPercent" currentSortKey={sortConfig.key} sortDirection={sortConfig.direction} onSort={handleSort} />
-              <SortableHeader title="Yes/No Coverage" sortKey="yesNoCoverage" currentSortKey={sortConfig.key} sortDirection={sortConfig.direction} onSort={handleSort} />
-              <SortableHeader title="Status" sortKey="status" currentSortKey={sortConfig.key} sortDirection={sortConfig.direction} onSort={handleSort} />
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {sortedColumnStats.map((col) => (
-              <tr key={col.column} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-xs break-words">{col.column}</td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 tabular-nums">{col.unknownPercent.toFixed(2)}%</td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 tabular-nums">
-                  {col.yesNoStats ? `${col.yesNoStats.coveragePercent.toFixed(2)}%` : 'N/A'}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${col.status === 'Keep' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {col.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{col.reason}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="bg-white rounded-b-lg">
+      <div className="p-4 space-y-4">
+        <UploadSafetySummary results={results} />
+        <ColumnPlanSummary results={results} />
+        <IngestionLogAccordion results={results} />
+
+        <section className="border border-neutral-light rounded-md bg-white">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+            onClick={() => setDetailsOpen((open) => !open)}
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-darker">
+                Column-by-column details
+              </h3>
+              <p className="text-xs text-gray-500">
+                Explore unknown-value percentages and Yes/No coverage for each column.
+              </p>
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-4 w-4 text-gray-500 transform transition-transform duration-200 ${
+                detailsOpen ? '-rotate-180' : ''
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {detailsOpen && (
+            <div className="border-t border-neutral-light overflow-x-auto">
+              <table className="min-w-full divide-y divide-neutral-light text-xs">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-3 py-2 text-left font-semibold text-gray-700 cursor-pointer"
+                      onClick={() => handleSort('column')}
+                    >
+                      <span className="inline-flex items-center">
+                        Column
+                        {renderSortIcon('column')}
+                      </span>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-3 py-2 text-right font-semibold text-gray-700 cursor-pointer"
+                      onClick={() => handleSort('unknownPercent')}
+                    >
+                      <span className="inline-flex items-center">
+                        Unknown %
+                        {renderSortIcon('unknownPercent')}
+                      </span>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-3 py-2 text-right font-semibold text-gray-700 cursor-pointer"
+                      onClick={() => handleSort('yesNoCoverage')}
+                    >
+                      <span className="inline-flex items-center">
+                        Yes/No coverage
+                        {renderSortIcon('yesNoCoverage')}
+                      </span>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-3 py-2 text-left font-semibold text-gray-700"
+                    >
+                      Status
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-3 py-2 text-left font-semibold text-gray-700"
+                    >
+                      Reason
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-light">
+                  {sortedColumnStats.map((col) => (
+                    <tr key={col.column} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 whitespace-nowrap text-gray-900">
+                        {col.column}
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-700">
+                        {col.unknownPercent.toFixed(1)}%
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-700">
+                        {col.yesNoStats ? (
+                          <>
+                            {col.yesNoStats.coveragePercent.toFixed(1)}% of rows
+                          </>
+                        ) : (
+                          <span className="italic text-gray-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-left">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                            col.status === 'Keep'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {col.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-left text-gray-700">
+                        {col.reason || <span className="italic text-gray-400">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

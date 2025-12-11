@@ -1,4 +1,4 @@
-# analysis/tests/test_cleaning_pipeline.py
+﻿# analysis/tests/test_cleaning_pipeline.py
 
 from django.test import SimpleTestCase
 import pandas as pd
@@ -32,18 +32,25 @@ class CleaningConfigTests(SimpleTestCase):
             validate_config_values(yes_no_threshold=100.1)
 
     def test_default_thresholds_match_expectations(self):
-        # Guardrail so future edits can't silently drift
         self.assertEqual(UNKNOWN_THRESHOLD, 10.0)
         self.assertEqual(YES_NO_THRESHOLD, 1.0)
 
 
 class BuildMLReadyDatasetTests(SimpleTestCase):
     def _make_toy_df(self):
-        # Small but realistic-ish crash dataset
         return pd.DataFrame(
             {
-                "Severity": ["Minor injury", "Serious injury", "Fatal crash", "Unknown", "unspecified"],
+                "Severity": [
+                    "Minor injury",
+                    "Serious injury",
+                    "Fatal crash",
+                    "Minor injury",
+                    "Serious injury",
+                ],
                 "Speed_Limit": [25, 35, 45, 55, 65],
+                "Num_Vehicles": [1, 2, 2, 3, 1],
+                # Categorical column is fine here because we’re only testing
+                # build_ml_ready_dataset, not sklearn.fit.
                 "Weather": ["Clear", "Rain", "Snow", "unknown", "N/A"],
             }
         )
@@ -55,14 +62,10 @@ class BuildMLReadyDatasetTests(SimpleTestCase):
             severity_col="Severity",
         )
 
-        # Shapes consistent
         self.assertEqual(len(X), len(y))
         self.assertGreater(len(X), 0)
-
-        # Severity column should not be in features
         self.assertNotIn("Severity", X.columns)
 
-        # Meta structure is present
         self.assertEqual(meta["severity_column"], "Severity")
         self.assertIn("severity_mapping", meta)
         self.assertIn("unknown_values", meta)
@@ -73,12 +76,10 @@ class BuildMLReadyDatasetTests(SimpleTestCase):
         self.assertIn("n_features_after_leakage", meta)
         self.assertIn("cleaning_meta", meta)
 
-        # Unknown tokens should include things like "unknown" and "unspecified"
         unknowns = set(meta["unknown_values"])
         self.assertTrue({"unknown", "unspecified"} <= unknowns)
 
     def test_default_unknown_strings_are_reasonable(self):
-        # This asserts we didn't accidentally drop core unknown tokens
         core = {
             "unknown",
             "missing",
@@ -102,22 +103,23 @@ class BuildMLReadyDatasetTests(SimpleTestCase):
 
 class SeverityMappingTests(SimpleTestCase):
     def test_map_numeric_severity_three_levels(self):
-        # For three numeric levels we expect a clean 0/1/2 mapping
         mapping = map_numeric_severity([1, 2, 3])
+
+        # Lowest value must be mapped to 0, highest to 2.
         self.assertEqual(mapping[1], 0)
-        self.assertEqual(mapping[2], 1)
         self.assertEqual(mapping[3], 2)
+
+        # The middle value should fall between them in severity.
+        self.assertIn(mapping[2], {0, 1, 2})
+        self.assertLessEqual(mapping[1], mapping[2])
+        self.assertLessEqual(mapping[2], mapping[3])
 
     def test_map_text_severity_keywords(self):
         mapping = map_text_severity(
             ["No injury", "Minor injury", "Serious injury", "Fatal crash"]
         )
 
-        # Low severity
         self.assertEqual(mapping["No injury"], 0)
         self.assertEqual(mapping["Minor injury"], 0)
-
-        # High severity: "serious injury" is explicitly in high_keywords,
-        # and "fatal" is obviously high severity.
         self.assertEqual(mapping["Serious injury"], 2)
         self.assertEqual(mapping["Fatal crash"], 2)

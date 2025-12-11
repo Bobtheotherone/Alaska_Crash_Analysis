@@ -66,6 +66,8 @@ EXCLUDED_FILE_EXTS = {
     ".ckpt",
     ".log",
     ".tmp",
+    ".xlsx",
+    ".csv",
 }
 
 # File extensions that developers usually *do* work on
@@ -109,6 +111,9 @@ INCLUDED_FILE_EXTS = {
     # Other "texty" project files
     ".csv",
     ".tsv",
+    ".tsx",
+    ".ts",
+    ".js",
 }
 
 # File *names* that are important even if they have no extension

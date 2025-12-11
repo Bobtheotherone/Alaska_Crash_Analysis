@@ -44,6 +44,17 @@ REQUIRED_COLUMNS = sorted(
 )
 KNOWN_COLUMNS = set(COLUMN_SPECS.keys())
 
+# Column aliases to support real-world header names without modifying raw data.
+# These are applied in-memory before schema validation for analysis uploads.
+COLUMN_ALIASES: Dict[str, str] = {
+    # User's dataset headers -> canonical MMUCC names
+    "Crash Number": "crash_id",
+    "DateTime": "crash_date",
+    "Latitude": "latitude",
+    "Longitude": "longitude",
+    "Crash Severity": "severity",
+}
+
 _GEO = _SCHEMA_CONFIG.get("geo_bounds", {})
 ALASKA_LAT_RANGE: Tuple[float, float] = (
     float(_GEO.get("latitude", {}).get("min", 51.0)),
@@ -82,6 +93,7 @@ def sniff_mime_type(
     detected: str | None = None
     details: List[str] = []
 
+    # Try python-magic first
     if magic is not None:
         try:
             detected = magic.from_buffer(file_bytes, mime=True)
@@ -89,6 +101,7 @@ def sniff_mime_type(
         except Exception as exc:  # noqa: BLE001
             details.append(f"python-magic failed to sniff MIME type: {exc!r}.")
 
+    # Fall back to filename / declared type
     if not detected:
         guessed, _ = mimetypes.guess_type(original_name)
         detected = guessed or declared_mime or "application/octet-stream"
@@ -96,30 +109,78 @@ def sniff_mime_type(
             "Falling back to filename-based MIME detection and/or declared Content-Type."
         )
 
+    # Normalise (strip charset etc.)
+    declared_norm = (declared_mime or "").split(";", 1)[0].strip()
+    detected_norm = (detected or "").split(";", 1)[0].strip()
+
+    # Treat common CSV-ish types as equivalent. Browsers and libmagic often
+    # disagree here, but they're all “texty CSV upload” in practice.
+    CSV_LIKE_MIME_TYPES = {
+        "text/csv",
+        "text/plain",
+        "application/vnd.ms-excel",
+        "application/octet-stream",
+    }
+
     status = "passed"
-    if declared_mime and detected and detected != declared_mime:
-        status = "failed"
-        details.append(
-            f"Declared MIME type {declared_mime!r} does not match detected {detected!r}."
-        )
+
+    if declared_norm and detected_norm:
+        if declared_norm in CSV_LIKE_MIME_TYPES and detected_norm in CSV_LIKE_MIME_TYPES:
+            # Soft-accept near-equivalent CSV types
+            details.append(
+                f"Declared MIME type {declared_norm!r} and detected {detected_norm!r} "
+                "are both CSV-like; allowing upload."
+            )
+        elif declared_norm != detected_norm:
+            # Real mismatch (e.g. HTML, binary, etc.) -> fail
+            status = "failed"
+            details.append(
+                f"Declared MIME type {declared_norm!r} does not match detected {detected_norm!r}."
+            )
+        else:
+            details.append(
+                f"Declared MIME type {declared_norm!r} is consistent with detected {detected_norm!r}."
+            )
     else:
         details.append(
-            f"Declared MIME type {declared_mime!r} is consistent with detected {detected!r}."
+            f"Using detected MIME type {detected_norm!r}; no declared Content-Type from client."
         )
 
     return {
         "status": status,
-        "detected_mime_type": detected,
+        "detected_mime_type": detected_norm or detected,
         "details": " ".join(details),
     }
 
 
 def validate_schema(df: pd.DataFrame) -> Dict[str, Any]:
-    """Compare the uploaded columns against the configured MMUCC-aligned schema."""
-    columns = list(df.columns)
+    """
+    Compare the uploaded columns against the configured MMUCC-aligned schema.
+
+    Column aliases from COLUMN_ALIASES are treated as satisfying their
+    canonical counterparts. For example, a CSV with "Crash Number" will be
+    accepted as providing the required "crash_id" field.
+    """
+    # Original headers as provided by the upload
+    columns = [str(c) for c in df.columns]
     actual = set(columns)
-    missing = sorted(list(set(REQUIRED_COLUMNS) - actual))
-    unknown = sorted(list(actual - KNOWN_COLUMNS))
+
+    # Work out which canonical schema columns are effectively present once
+    # we account for aliases and exact canonical names.
+    canonical_present: set[str] = set()
+    for col in columns:
+        stripped = col.strip()
+        if stripped in COLUMN_ALIASES:
+            canonical_present.add(COLUMN_ALIASES[stripped])
+        elif stripped in KNOWN_COLUMNS:
+            canonical_present.add(stripped)
+
+    # Required columns that are missing even after alias mapping
+    missing = sorted(list(set(REQUIRED_COLUMNS) - canonical_present))
+
+    # "Unknown" columns = headers that are neither canonical nor an alias source.
+    known_or_alias_sources = set(KNOWN_COLUMNS) | set(COLUMN_ALIASES.keys())
+    unknown = sorted(list(actual - known_or_alias_sources))
 
     is_valid = len(missing) == 0
     if is_valid:
@@ -267,3 +328,124 @@ def validate_geo_bounds(df: pd.DataFrame) -> Dict[str, Any]:
         "lat_range": ALASKA_LAT_RANGE,
         "lon_range": ALASKA_LON_RANGE,
     }
+
+
+# -----------------------------------------------------------------------
+# Helpers for analysis app: load + validate dataframe from generic upload
+# -----------------------------------------------------------------------
+
+
+def _extract_file_bytes_and_extension(upload: Any) -> Tuple[bytes, str]:
+    """
+    Normalize different upload objects into (bytes, extension).
+
+    Supports:
+    - ingestion.models.UploadedDataset instances (with .raw_file and original_filename)
+    - Django UploadedFile-like objects (request.FILES["file"])
+    """
+    # Case 1: UploadedDataset model instance
+    if hasattr(upload, "raw_file"):
+        file_obj = upload.raw_file
+        original_name = getattr(upload, "original_filename", file_obj.name)
+    # Case 2: plain UploadedFile or file-like object
+    elif hasattr(upload, "read"):
+        file_obj = upload
+        original_name = getattr(upload, "name", "uploaded")
+    else:
+        raise ValueError(
+            "Unsupported upload object; expected UploadedDataset or UploadedFile."
+        )
+
+    # Read bytes
+    file_bytes = file_obj.read()
+    # Reset pointer if possible so the caller can re-read later
+    try:
+        file_obj.seek(0)
+    except Exception:
+        pass
+
+    if not file_bytes:
+        raise ValueError("Uploaded file is empty.")
+
+    # Determine extension
+    ext = Path(str(original_name)).suffix
+    if not ext:
+        # Fallback: try using declared content_type if available
+        mime = getattr(upload, "content_type", None)
+        if mime:
+            guessed_ext = mimetypes.guess_extension(mime)
+            if guessed_ext:
+                ext = guessed_ext
+
+    if not ext:
+        raise ValueError(
+            f"Could not determine file extension for uploaded file {original_name!r}."
+        )
+
+    return file_bytes, ext
+
+
+def _apply_column_aliases(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Rename known alias columns to their canonical MMUCC names.
+
+    This does NOT modify the raw uploaded file; it only adjusts the in-memory
+    DataFrame so downstream schema validation and ML logic see the expected names.
+    """
+    if not COLUMN_ALIASES:
+        return df
+
+    rename_map: Dict[str, str] = {}
+
+    for original in df.columns:
+        stripped = original.strip()
+        # Apply explicit alias if we know this header.
+        if stripped in COLUMN_ALIASES:
+            rename_map[original] = COLUMN_ALIASES[stripped]
+        # Optionally normalize whitespace, keeping the same logical name.
+        elif stripped != original:
+            rename_map[original] = stripped
+
+    if rename_map:
+        df = df.rename(columns=rename_map)
+
+    return df
+
+
+def validate_dataframe_from_upload(upload: Any) -> pd.DataFrame:
+    """
+    Convenience helper used by the analysis app.
+
+    - Accepts either a Django UploadedFile or an UploadedDataset.
+    - Loads the underlying bytes into a pandas DataFrame.
+    - Applies column alias mapping for known non-MMUCC header names
+      (e.g. 'Crash Number' -> 'crash_id').
+    - Runs the same schema checks used in the ingestion pipeline.
+    - Raises ValueError if required MMUCC columns are missing.
+    - Does NOT drop rows for type/range/geo issues; those are only flagged.
+    """
+    file_bytes, ext = _extract_file_bytes_and_extension(upload)
+
+    # Load the dataframe from the bytes using the existing helper.
+    df = load_dataframe_from_bytes(file_bytes, ext)
+
+    # Normalize / alias column headers before schema validation so that
+    # real-world datasets with friendlier names can still pass and be
+    # processed by the cleaning and ML pipeline.
+    df = _apply_column_aliases(df)
+
+    # Schema validation is strict here: missing required columns = hard error.
+    schema_result = validate_schema(df)
+    if not schema_result.get("is_valid", False):
+        missing = schema_result.get("missing_columns", [])
+        details = schema_result.get("details", "")
+        msg = f"Schema validation failed. Missing required columns: {', '.join(missing)}."
+        if details:
+            msg += f" {details}"
+        raise ValueError(msg)
+
+    # Run soft checks for additional info (no exceptions here).
+    _ = validate_value_types_and_ranges(df)
+    _ = validate_geo_bounds(df)
+
+    return df

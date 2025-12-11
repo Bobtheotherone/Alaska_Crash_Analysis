@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models as gis_models
-from django.contrib.gis.db.models import indexes as gis_indexes
+from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 
 from ingestion.models import UploadedDataset
@@ -51,7 +51,7 @@ class CrashRecord(gis_models.Model):
             models.Index(fields=["crash_datetime"]),
             models.Index(fields=["severity"]),
             models.Index(fields=["dataset"]),
-            gis_indexes.GiSTIndex(fields=["location"]),
+            GistIndex(fields=["location"]),
         ]
 
     def __str__(self) -> str:

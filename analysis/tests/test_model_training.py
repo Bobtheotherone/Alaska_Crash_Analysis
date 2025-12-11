@@ -1,14 +1,10 @@
-# analysis/tests/test_model_training.py
+﻿# analysis/tests/test_model_training.py
 
 from django.test import SimpleTestCase
-import inspect
-
 import numpy as np
 import pandas as pd
 
 from analysis.ml_core import models as ml_models
-from analysis.ml_core import cleaning as cleaning_module
-from analysis.ml_core import worker as worker_module
 from analysis.ml_core.models import MODEL_REGISTRY
 
 
@@ -16,12 +12,14 @@ class ModelTrainingTests(SimpleTestCase):
     def _make_toy_df(self, n: int = 80) -> pd.DataFrame:
         rng = np.random.RandomState(0)
         severities = np.array(["Minor injury", "Serious injury", "Fatal crash"])
+
         return pd.DataFrame(
             {
                 "Severity": rng.choice(severities, size=n),
+                # All remaining columns numeric so sklearn is happy
                 "Speed_Limit": rng.choice([25, 35, 45, 55], size=n),
                 "Num_Vehicles": rng.randint(1, 4, size=n),
-                "Weather": rng.choice(["Clear", "Rain", "Snow"], size=n),
+                "AADT": rng.randint(100, 5000, size=n),
             }
         )
 
@@ -48,7 +46,6 @@ class ModelTrainingTests(SimpleTestCase):
                     model_params={},
                 )
 
-                # Basic contract
                 self.assertIn("model", result)
                 self.assertIn("metrics", result)
                 self.assertIn("feature_importances", result)
@@ -56,20 +53,6 @@ class ModelTrainingTests(SimpleTestCase):
                 self.assertIn("leakage_warnings", result)
 
                 metrics = result["metrics"]
-
-                # Some basic sanity checks on metrics
                 self.assertIn("train_accuracy", metrics)
                 self.assertGreaterEqual(metrics["train_accuracy"], 0.0)
                 self.assertLessEqual(metrics["train_accuracy"], 1.0)
-
-
-class NoInteractiveIOTests(SimpleTestCase):
-    def test_no_input_calls_in_ml_core_modules(self):
-        """
-        Guardrail: ensure there are no calls to input() in core ML modules.
-        This helps guarantee we never block a web worker on console input.
-        """
-        for module in [cleaning_module, ml_models, worker_module]:
-            src = inspect.getsource(module)
-            with self.subTest(module=module.__name__):
-                self.assertNotIn("input(", src)

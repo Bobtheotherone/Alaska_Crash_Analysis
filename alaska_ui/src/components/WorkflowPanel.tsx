@@ -58,11 +58,24 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({
     "import" | "prep" | "analysis" | null
   >("import");
 
+  const ingestionStatus = validationResults?.ingestionOverallStatus
+    ? String(validationResults.ingestionOverallStatus).toLowerCase()
+    : undefined;
+
+  const isIngestionRejected = ingestionStatus === "rejected";
+
+  // Step 1 is considered complete only once the import pipeline reaches "complete"
+  // (i.e., after upload/ingestion has returned) and the ingestion gateway hasn't rejected the dataset.
+  const isImportComplete =
+    validationStage === "complete" &&
+    !!validationResults &&
+    !validationResults.error &&
+    !isIngestionRejected;
   useEffect(() => {
-    if (validationResults && !validationResults.error) {
+    if (isImportComplete) {
       setActiveSection("prep");
     }
-  }, [validationResults]);
+  }, [isImportComplete]);
 
   useEffect(() => {
     if (isAnalysisReady) {
@@ -128,11 +141,18 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({
             return { type: "ready", text: "Validating dataset…" };
           case "uploading":
             return { type: "ready", text: "Saving dataset to server…" };
-          case "complete":
+          case "complete": {
+            if (ingestionStatus === "accepted") {
+              return { type: "valid", text: "Ingestion accepted" };
+            }
+            if (ingestionStatus === "rejected") {
+              return { type: "error", text: "Ingestion rejected" };
+            }
             if (validationResults && !validationResults.error) {
               return { type: "valid", text: "Schema valid" };
             }
             return { type: "ready", text: "Ready" };
+          }
           case "error":
             return {
               type: "error",
@@ -154,7 +174,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({
         if (isAnalysisReady) {
           return { type: "valid", text: "Done" };
         }
-        if (validationResults && !validationResults.error) {
+        if (isImportComplete) {
           return { type: "ready", text: "Ready" };
         }
         return null;
@@ -455,7 +475,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({
           <button
             onClick={onDataPrepRun}
             disabled={
-              !validationResults || !!validationResults.error || isPreparing
+              !isImportComplete || isPreparing
             }
             className="w-full bg-brand-primary text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 hover:bg-brand-secondary disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center mt-4"
           >

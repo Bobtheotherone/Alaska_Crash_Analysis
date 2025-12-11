@@ -10,6 +10,10 @@ interface MainContentProps {
   isValidating: boolean;
   validationStage: ValidationStage;
   validationResults: ValidationResults | null;
+  openDataSection?: "validationChecks" | "columnPlan" | "columnDetails" | null;
+  setOpenDataSection?: (
+    section: "validationChecks" | "columnPlan" | "columnDetails" | null
+  ) => void;
   isAnalyzing: boolean;
   analysisResults: AnalysisResults | null;
   onExportValidationCsv?: () => void;
@@ -25,6 +29,10 @@ const TabContent: React.FC<{
   validationResults: ValidationResults | null;
   isAnalyzing: boolean;
   analysisResults: AnalysisResults | null;
+  openDataSection?: "validationChecks" | "columnPlan" | "columnDetails" | null;
+  setOpenDataSection?: (
+    section: "validationChecks" | "columnPlan" | "columnDetails" | null
+  ) => void;
   onExportValidationCsv?: () => void;
   canExportValidationCsv?: boolean;
 }> = ({
@@ -34,6 +42,8 @@ const TabContent: React.FC<{
   validationResults,
   isAnalyzing,
   analysisResults,
+  openDataSection,
+  setOpenDataSection,
   onExportValidationCsv,
   canExportValidationCsv,
 }) => {
@@ -42,22 +52,36 @@ const TabContent: React.FC<{
 
   // When validation finishes, automatically open the Validation Results dropdown.
   useEffect(() => {
-    const hasResults = !!validationResults && !validationResults.error;
+    const hasPayload = !!validationResults;
     const finishedStage =
       validationStage === 'complete' ||
       (validationResults != null && !isValidating);
 
-    if (activeTab === 'Data Tables' && hasResults && finishedStage) {
-      setIsValidationPanelOpen(true);
-      setAutoExpandColumnDetails(false);
-    }
-  }, [activeTab, validationResults, validationStage, isValidating]);
+    if (activeTab !== 'Data Tables' || !hasPayload || !finishedStage) return;
 
-  // When analysis (feature importance) becomes available, collapse the summary card
-  // and have the column-by-column details expanded the next time we open it.
+    setIsValidationPanelOpen(true);
+
+    const shouldExpandDetails = openDataSection === 'columnDetails';
+    setAutoExpandColumnDetails(shouldExpandDetails);
+
+    // Consume the one-shot "openDataSection" hint so it doesn't keep re-triggering UX.
+    if (shouldExpandDetails && setOpenDataSection) {
+      setOpenDataSection(null);
+    }
+  }, [
+    activeTab,
+    validationResults,
+    validationStage,
+    isValidating,
+    openDataSection,
+    setOpenDataSection,
+  ]);
+
+  // When analysis (feature importance) becomes available, keep the Validation Results visible
+  // and ensure the Column-by-column details section is expanded.
   useEffect(() => {
     if (analysisResults && !analysisResults.error) {
-      setIsValidationPanelOpen(false);
+      setIsValidationPanelOpen(true);
       setAutoExpandColumnDetails(true);
     }
   }, [analysisResults]);
@@ -112,7 +136,10 @@ const TabContent: React.FC<{
       }
 
       if (validationResults) {
-        const hasError = !!validationResults.error;
+        const ingestionRejected =
+          String(validationResults.ingestionOverallStatus || "").toLowerCase() ===
+          "rejected";
+        const hasError = !!validationResults.error || ingestionRejected;
 
         return (
           <div className="flex flex-col h-full">
@@ -300,6 +327,8 @@ const MainContent: React.FC<MainContentProps> = ({
   validationResults,
   isAnalyzing,
   analysisResults,
+  openDataSection,
+  setOpenDataSection,
   onExportValidationCsv,
   canExportValidationCsv,
 }) => {
@@ -330,6 +359,8 @@ const MainContent: React.FC<MainContentProps> = ({
           validationResults={validationResults}
           isAnalyzing={isAnalyzing}
           analysisResults={analysisResults}
+          openDataSection={openDataSection}
+          setOpenDataSection={setOpenDataSection}
           onExportValidationCsv={onExportValidationCsv}
           canExportValidationCsv={canExportValidationCsv}
         />

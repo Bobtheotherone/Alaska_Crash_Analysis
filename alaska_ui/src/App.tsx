@@ -46,7 +46,27 @@ export interface ValidationResults {
   droppedColumnCount: number;
   columnStats: ColumnStat[];
   error?: string;
+
+  // Ingestion gateway / upload-safety summary returned by the backend.
+  // These fields power the "Ingestion gateway: accepted/rejected" banner and the ingestion checks log.
+  ingestionOverallStatus?: "accepted" | "rejected" | "pending" | string;
+  ingestionMessage?: string;
+  ingestionErrorCode?: string;
+  ingestionRowChecks?: {
+    total_rows: number;
+    invalid_row_count: number;
+    invalid_geo_row_count: number;
+  };
+  ingestionSteps?: {
+    step: string;
+    message: string;
+    status: "passed" | "failed" | "skipped";
+    severity?: "info" | "warning" | "error";
+    code?: string;
+    is_hard_fail?: boolean;
+  }[];
 }
+
 
 export interface ClassificationReportRow {
   className: string;
@@ -80,6 +100,245 @@ export type ValidationStage =
   | "uploading"
   | "complete"
   | "error";
+
+
+// -------- Ingestion / upload-safety helpers --------
+
+// Normalize unknown/enum-ish values from the backend to a consistent lowercase string.
+const toLower = (value: unknown): string | undefined => {
+  if (value === null || value === undefined) return undefined;
+  const s = String(value).trim();
+  if (!s) return undefined;
+  return s.toLowerCase();
+};
+
+const asNumber = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === "") return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+};
+
+const normalizeIngestionOverallStatus = (
+  raw: unknown
+): ValidationResults["ingestionOverallStatus"] | undefined => {
+  const s = toLower(raw);
+  if (!s) return undefined;
+
+  if (
+    [
+      "accepted",
+      "accept",
+      "ok",
+      "passed",
+      "pass",
+      "success",
+      "succeeded",
+      "safe",
+    ].includes(s)
+  ) {
+    return "accepted";
+  }
+
+  if (
+    [
+      "rejected",
+      "reject",
+      "failed",
+      "fail",
+      "error",
+      "unsafe",
+      "denied",
+      "blocked",
+    ].includes(s)
+  ) {
+    return "rejected";
+  }
+
+  if (
+    [
+      "pending",
+      "processing",
+      "in_progress",
+      "in-progress",
+      "queued",
+      "running",
+    ].includes(s)
+  ) {
+    return "pending";
+  }
+
+  // Fall back to the raw, normalized string.
+  return s;
+};
+
+const normalizeIngestionStepStatus = (
+  raw: unknown
+): "passed" | "failed" | "skipped" => {
+  const s = toLower(raw);
+  if (!s) return "passed";
+
+  if (["failed", "fail", "error", "rejected", "deny", "denied"].includes(s)) {
+    return "failed";
+  }
+
+  if (["skipped", "skip", "ignored", "n/a", "na"].includes(s)) {
+    return "skipped";
+  }
+
+  return "passed";
+};
+
+const normalizeIngestionSeverity = (
+  raw: unknown
+): "info" | "warning" | "error" | undefined => {
+  const s = toLower(raw);
+  if (!s) return undefined;
+
+  if (["error", "err", "fatal", "critical"].includes(s)) return "error";
+  if (["warning", "warn"].includes(s)) return "warning";
+  if (["info", "information", "debug"].includes(s)) return "info";
+  return undefined;
+};
+
+/**
+ * Best-effort extraction of ingestion-gateway summary fields from the backend upload response.
+ * The backend's JSON keys have changed a few times, so this function supports multiple aliases.
+ */
+const extractIngestionSummary = (
+  backendSummary: any
+): Pick<
+  ValidationResults,
+  | "ingestionOverallStatus"
+  | "ingestionMessage"
+  | "ingestionErrorCode"
+  | "ingestionRowChecks"
+  | "ingestionSteps"
+> => {
+  const summary = backendSummary ?? {};
+
+  const ingestionOverallStatus = normalizeIngestionOverallStatus(
+    summary.ingestion_overall_status ??
+      summary.ingestionOverallStatus ??
+      summary.ingestion_status ??
+      summary.ingestionStatus ??
+      summary.gateway_status ??
+      summary.gatewayStatus ??
+      summary.status
+  );
+
+  const ingestionMessage: string | undefined =
+    summary.ingestion_message ??
+    summary.ingestionMessage ??
+    summary.message ??
+    summary.detail ??
+    summary.details;
+
+  const ingestionErrorCode: string | undefined =
+    summary.ingestion_error_code ??
+    summary.ingestionErrorCode ??
+    summary.error_code ??
+    summary.errorCode ??
+    summary.code;
+
+  // Row counts may be returned as a nested object or as top-level fields.
+  const rowChecksRaw =
+    summary.ingestion_row_checks ??
+    summary.ingestionRowChecks ??
+    summary.row_checks ??
+    summary.rowChecks ??
+    summary.rows;
+
+  const totalRows =
+    asNumber(rowChecksRaw?.total_rows) ??
+    asNumber(rowChecksRaw?.rows_seen) ??
+    asNumber(rowChecksRaw?.rowsSeen) ??
+    asNumber(summary.total_rows) ??
+    asNumber(summary.rows_seen) ??
+    asNumber(summary.rowsSeen);
+
+  const invalidRowCount =
+    asNumber(rowChecksRaw?.invalid_row_count) ??
+    asNumber(rowChecksRaw?.invalid_rows) ??
+    asNumber(rowChecksRaw?.invalid_schema_row_count) ??
+    asNumber(rowChecksRaw?.invalid_schema_rows) ??
+    asNumber(rowChecksRaw?.invalid_value_row_count) ??
+    asNumber(summary.invalid_row_count) ??
+    asNumber(summary.invalid_rows) ??
+    asNumber(summary.invalid_schema_rows) ??
+    asNumber(summary.invalid_value_rows);
+
+  const invalidGeoRowCount =
+    asNumber(rowChecksRaw?.invalid_geo_row_count) ??
+    asNumber(rowChecksRaw?.invalid_geometry_row_count) ??
+    asNumber(rowChecksRaw?.invalid_geometry_rows) ??
+    asNumber(rowChecksRaw?.invalid_geo_rows) ??
+    asNumber(summary.invalid_geo_row_count) ??
+    asNumber(summary.invalid_geometry_rows) ??
+    asNumber(summary.invalid_geo_rows);
+
+  const ingestionRowChecks =
+    totalRows !== undefined ||
+    invalidRowCount !== undefined ||
+    invalidGeoRowCount !== undefined
+      ? {
+          total_rows: totalRows ?? 0,
+          invalid_row_count: invalidRowCount ?? 0,
+          invalid_geo_row_count: invalidGeoRowCount ?? 0,
+        }
+      : undefined;
+
+  // Ingestion check list / log.
+  const stepsRaw =
+    summary.ingestion_steps ??
+    summary.ingestionSteps ??
+    summary.steps ??
+    summary.checks ??
+    summary.ingestion_checks ??
+    summary.ingestionChecks;
+
+  const ingestionSteps = Array.isArray(stepsRaw)
+    ? (stepsRaw
+        .map((s: any) => {
+          const step = String(
+            s.step ?? s.check ?? s.name ?? s.id ?? s.type ?? ""
+          ).trim();
+          if (!step) return null;
+
+          const message = String(
+            s.message ?? s.detail ?? s.details ?? s.info ?? s.reason ?? ""
+          ).trim();
+
+          const status = normalizeIngestionStepStatus(
+            s.status ?? s.result ?? s.outcome
+          );
+          const severity = normalizeIngestionSeverity(
+            s.severity ?? s.level ?? s.kind
+          );
+          const code = s.code ?? s.error_code ?? s.errorCode;
+          const is_hard_fail = s.is_hard_fail ?? s.hard_fail ?? s.isHardFail;
+
+          return {
+            step,
+            message,
+            status,
+            ...(severity ? { severity } : {}),
+            ...(code ? { code: String(code) } : {}),
+            ...(is_hard_fail !== undefined
+              ? { is_hard_fail: Boolean(is_hard_fail) }
+              : {}),
+          };
+        })
+        .filter(Boolean) as NonNullable<ValidationResults["ingestionSteps"]>)
+    : undefined;
+
+  return {
+    ...(ingestionOverallStatus ? { ingestionOverallStatus } : {}),
+    ...(ingestionMessage ? { ingestionMessage } : {}),
+    ...(ingestionErrorCode ? { ingestionErrorCode } : {}),
+    ...(ingestionRowChecks ? { ingestionRowChecks } : {}),
+    ...(ingestionSteps ? { ingestionSteps } : {}),
+  };
+};
 
 // Helper to format a short error string
 const formatShortError = (msg: string | undefined): string =>
@@ -887,6 +1146,15 @@ const App: React.FC = () => {
         try {
           const backendSummary = await uploadFileToBackend(file);
           console.log("[UI] Backend upload summary:", backendSummary);
+
+          // Merge ingestion-gateway summary fields (if present) into the existing validationResults
+          // so the UI can render the upload safety banner and ingestion log.
+          const ingestionSummary = extractIngestionSummary(backendSummary);
+          setValidationResults((prev) => ({
+            ...(prev || richerResults),
+            ...ingestionSummary,
+          }));
+
           setValidationStage("complete");
         } catch (inner) {
           console.error("[UI] Backend upload failed:", inner);
@@ -949,7 +1217,16 @@ const App: React.FC = () => {
           baseResults,
           leakageColumns
         );
-        setValidationResults(resultsWithLeakage);
+        setValidationResults((prev) => ({
+          ...resultsWithLeakage,
+          // Preserve ingestion-gateway info captured during upload so it stays visible
+          // through data prep and model selection.
+          ingestionOverallStatus: prev?.ingestionOverallStatus,
+          ingestionMessage: prev?.ingestionMessage,
+          ingestionErrorCode: prev?.ingestionErrorCode,
+          ingestionRowChecks: prev?.ingestionRowChecks,
+          ingestionSteps: prev?.ingestionSteps,
+        }));
 
         const columnsToKeep = new Set(
           resultsWithLeakage.columnStats

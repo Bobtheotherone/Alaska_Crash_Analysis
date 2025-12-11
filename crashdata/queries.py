@@ -26,7 +26,7 @@ def _apply_common_filters(
     if start_datetime is not None:
         qs = qs.filter(crash_datetime__gte=start_datetime)
     if end_datetime is not None:
-        qs = qs.filter(crash_datetime__lt=end_datetime)
+        qs = qs.filter(crash_datetime__lte=end_datetime)
     return qs
 
 

@@ -777,11 +777,11 @@ const App: React.FC = () => {
     useState<ValidationStage>("idle");
 
   // Build a Basic Auth header
-  const buildAuthHeader = () => {
+  const buildAuthHeader = useCallback(() => {
     if (!auth.username || !auth.password) return {};
     const encoded = btoa(`${auth.username}:${auth.password}`);
     return { Authorization: `Basic ${encoded}` };
-  };
+  }, [auth.username, auth.password]);
 
   // ========= AUTH / LOGIN =========
 
@@ -958,7 +958,7 @@ const App: React.FC = () => {
       }
       return data;
     },
-    [auth.username, auth.password]
+    [buildAuthHeader]
   );
 
   // Start ML job
@@ -1030,8 +1030,7 @@ const App: React.FC = () => {
       return data as { job_id: string; results_url?: string; status: string };
     },
     [
-      auth.username,
-      auth.password,
+      buildAuthHeader,
       selectedModelName,
       dataPrep.leakageColumnsToDrop,
       dataPrep.unknownThreshold,
@@ -1067,7 +1066,7 @@ const App: React.FC = () => {
       }
       return resp.json();
     },
-    [auth.username, auth.password]
+    [buildAuthHeader]
   );
 
   // ========= STEP 1: VALIDATION =========
@@ -1643,6 +1642,8 @@ const App: React.FC = () => {
             <MainContent
               activeTab={activeTab}
               setActiveTab={setActiveTab}
+              uploadId={uploadId}
+              authHeader={buildAuthHeader}
               isValidating={isValidating}
               validationStage={validationStage}
               validationResults={validationResults}

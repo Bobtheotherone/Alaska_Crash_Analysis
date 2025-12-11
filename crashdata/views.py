@@ -64,24 +64,32 @@ def _parse_datetime_param(raw: str | None):
     return None
 
 
+def _parse_optional_datetime_param(raw: str | None, field_name: str):
+    """Parse an optional ISO datetime/date. Returns None when absent, raises on bad strings."""
+    if not raw:
+        return None
+
+    dt = _parse_datetime_param(raw)
+    if dt is None:
+        raise ValueError(f"{field_name} must be ISO-8601 datetimes or dates.")
+    return dt
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def severity_histogram_view(request):
     """Return a severity histogram for a given upload (or all uploads)."""
     upload_id = request.query_params.get("upload_id")
     municipality = request.query_params.get("municipality") or None
-    start_raw = request.query_params.get("start_datetime")
-    end_raw = request.query_params.get("end_datetime")
-
-    start_dt = _parse_datetime_param(start_raw)
-    end_dt = _parse_datetime_param(end_raw)
-    if (start_raw and start_dt is None) or (end_raw and end_dt is None):
-        return JsonResponse(
-            {
-                "detail": "start_datetime and end_datetime must be ISO-8601 datetimes or dates."
-            },
-            status=status.HTTP_400_BAD_REQUEST,
+    try:
+        start_dt = _parse_optional_datetime_param(
+            request.query_params.get("start_datetime"), "start_datetime"
         )
+        end_dt = _parse_optional_datetime_param(
+            request.query_params.get("end_datetime"), "end_datetime"
+        )
+    except ValueError as exc:
+        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
     dataset = None
     if upload_id:
@@ -141,21 +149,15 @@ def crashes_within_bbox_view(request):
         severity = None
 
     municipality = request.query_params.get("municipality") or None
-    start_dt = _parse_datetime_param(request.query_params.get("start_datetime"))
-    end_dt = _parse_datetime_param(request.query_params.get("end_datetime"))
-    if (
-        request.query_params.get("start_datetime")
-        and start_dt is None
-    ) or (
-        request.query_params.get("end_datetime")
-        and end_dt is None
-    ):
-        return JsonResponse(
-            {
-                "detail": "start_datetime and end_datetime must be ISO-8601 datetimes or dates."
-            },
-            status=status.HTTP_400_BAD_REQUEST,
+    try:
+        start_dt = _parse_optional_datetime_param(
+            request.query_params.get("start_datetime"), "start_datetime"
         )
+        end_dt = _parse_optional_datetime_param(
+            request.query_params.get("end_datetime"), "end_datetime"
+        )
+    except ValueError as exc:
+        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         limit = int(request.query_params.get("limit", "5000"))
@@ -257,8 +259,15 @@ def heatmap_view(request):
         severity = None
 
     municipality = request.query_params.get("municipality") or None
-    start_dt = _parse_datetime_param(request.query_params.get("start_datetime"))
-    end_dt = _parse_datetime_param(request.query_params.get("end_datetime"))
+    try:
+        start_dt = _parse_optional_datetime_param(
+            request.query_params.get("start_datetime"), "start_datetime"
+        )
+        end_dt = _parse_optional_datetime_param(
+            request.query_params.get("end_datetime"), "end_datetime"
+        )
+    except ValueError as exc:
+        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
     qs = queries.crashes_within_bbox(
         dataset=dataset,
@@ -324,8 +333,15 @@ def export_crashes_csv(request):
         severity = None
 
     municipality = request.query_params.get("municipality") or None
-    start_dt = _parse_datetime_param(request.query_params.get("start_datetime"))
-    end_dt = _parse_datetime_param(request.query_params.get("end_datetime"))
+    try:
+        start_dt = _parse_optional_datetime_param(
+            request.query_params.get("start_datetime"), "start_datetime"
+        )
+        end_dt = _parse_optional_datetime_param(
+            request.query_params.get("end_datetime"), "end_datetime"
+        )
+    except ValueError as exc:
+        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
     qs = CrashRecord.objects.filter(dataset=dataset)
     if severity:
@@ -335,7 +351,7 @@ def export_crashes_csv(request):
     if start_dt is not None:
         qs = qs.filter(crash_datetime__gte=start_dt)
     if end_dt is not None:
-        qs = qs.filter(crash_datetime__lt=end_dt)
+        qs = qs.filter(crash_datetime__lte=end_dt)
 
     try:
         max_rows = int(request.query_params.get("max_rows", "100000"))

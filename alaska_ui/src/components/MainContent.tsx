@@ -3,10 +3,13 @@ import { ValidationResults, AnalysisResults, ValidationStage } from './App';
 import ValidationResultsDisplay from './ValidationResults';
 import ReportCharts from './ReportCharts';
 import ClassificationResults from './ClassificationResults';
+import CrashMap from './CrashMap';
 
 interface MainContentProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  uploadId: string | null;
+  authHeader: () => Record<string, string>;
   isValidating: boolean;
   validationStage: ValidationStage;
   validationResults: ValidationResults | null;
@@ -24,6 +27,8 @@ const TABS = ['Map', 'Data Tables', 'Report Charts', 'Classifications', 'EBM'];
 
 const TabContent: React.FC<{
   activeTab: string;
+  uploadId: string | null;
+  authHeader: () => Record<string, string>;
   isValidating: boolean;
   validationStage: ValidationStage;
   validationResults: ValidationResults | null;
@@ -37,6 +42,8 @@ const TabContent: React.FC<{
   canExportValidationCsv?: boolean;
 }> = ({
   activeTab,
+  uploadId,
+  authHeader,
   isValidating,
   validationStage,
   validationResults,
@@ -50,17 +57,11 @@ const TabContent: React.FC<{
   switch (activeTab) {
     case 'Map':
       return (
-        <div className="h-full w-full bg-gray-200 rounded-lg overflow-hidden">
-          <iframe
-            title="Map of Alaska"
-            width="100%"
-            height="100%"
-            loading="lazy"
-            allowFullScreen
-            src="https://www.openstreetmap.org/export/embed.html?bbox=-179.14734,51.20978,-129.97955,71.38957&layer=mapnik"
-            className="border-0"
-          ></iframe>
-        </div>
+        <CrashMap
+          uploadId={uploadId}
+          authHeader={authHeader}
+          ingestionRowChecks={validationResults?.ingestionRowChecks}
+        />
       );
 
     case 'Data Tables': {
@@ -228,6 +229,8 @@ const TabContent: React.FC<{
 const MainContent: React.FC<MainContentProps> = ({
   activeTab,
   setActiveTab,
+  uploadId,
+  authHeader,
   isValidating,
   validationStage,
   validationResults,
@@ -260,6 +263,8 @@ const MainContent: React.FC<MainContentProps> = ({
       <div className="p-6 h-[calc(80vh-65px)]">
         <TabContent
           activeTab={activeTab}
+          uploadId={uploadId}
+          authHeader={authHeader}
           isValidating={isValidating}
           validationStage={validationStage}
           validationResults={validationResults}

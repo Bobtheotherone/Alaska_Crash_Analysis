@@ -1,641 +1,582 @@
-# AGENTS.md – Data-Prep & Cleaning Agent Guide
+# AGENTS.md – Map & Geospatial Integration Guide
 
-**Goal:**  
-Keep the **“2. Data Preparation”** UI, the **`/api/models/run/`** contract, and the **backend cleaning pipeline** in sync.
+Audience: **AI coding assistants** (Codex, Copilot, ChatGPT, etc.) and future developers working in this repo.
 
-After following this guide, an agent (or human) should be able to:
-
-* Understand how the data-prep knobs flow **UI → API → worker → cleaning code → model**.
-* Wire up currently-supported backend knobs that are **not yet UI-visible**.
-* Fix knobs that are **UI-visible but not backend-connected**.
-* Avoid breaking the existing ingestion gateway or model API.
+Scope: how to correctly use the existing geospatial backend (PostGIS + Django) and wire it to a fully-featured, interactive **Map** tab in the React UI. This document is the canonical reference for anything involving maps, crash locations, or geospatial filters.
 
 ---
 
-## 1. End-to-end architecture (quick map)
+## 1. System overview (what already exists)
 
-High-level flow:
+### 1.1 Backend
 
-1. **Upload & quick validation (frontend)**  
-   * React app in `alaska_ui` parses CSV/XLSX on the client and runs Peyton-style validation using `runValidationLogic` and `runClientValidation`. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}  
-   * UI writes results into `ValidationResults`, which power the **Data Tables** view and the **column plan**. :contentReference[oaicite:2]{index=2}
+* Project: Django with GeoDjango + PostGIS.
+* App: `crashdata`
+  * Model `CrashRecord` includes:
+    * `location`: `PointField` (SRID=4326, lon/lat), indexed with GiST.
+    * `severity`: MMUCC KABCO codes (`"K"|"A"|"B"|"C"|"O"`).
+    * `crash_datetime`, `roadway_name`, `municipality`, `posted_speed_limit`, counts, etc.
+  * ETL command `import_crash_records <upload_id>` maps cleaned CSV → `CrashRecord`, setting `location` from `longitude`/`latitude` (or `None` if invalid).
 
-2. **Upload to backend**  
-   * `App.tsx` posts the file to `POST /api/upload/` (`analysis.views.upload_and_analyze`). :contentReference[oaicite:3]{index=3}  
-   * Backend parses the file, saves an `ingestion.UploadedDataset`, and returns a summary plus `upload_id` (a.k.a. **dataset ID**). :contentReference[oaicite:4]{index=4}
+Geospatial endpoints (defined in `crashdata/urls.py`):
 
-3. **Start a model job**  
-   * React calls `startModelJob(datasetId)` → `POST /api/models/run/` (`analysis.views.model_run`). :contentReference[oaicite:5]{index=5}  
-   * The JSON body looks like:
+```python
+urlpatterns = [
+    path("severity-histogram/", views.severity_histogram_view, name="crashdata-severity-histogram"),
+    path("crashes-within-bbox/", views.crashes_within_bbox_view, name="crashdata-crashes-within-bbox"),
+    path("heatmap/", views.heatmap_view, name="crashdata-heatmap"),
+    path("exports/crashes.csv", views.export_crashes_csv, name="crashdata-export-crashes-csv"),
+]
+````
 
-     ```json
-     {
-       "dataset_id": "<uuid>",
-       "model_name": "crash_severity_risk_v1",
-       "parameters": {
-         "cleaning": { ... },
-         "model_params": { ... }
-       }
-     }
+These are served under `/api/crashdata/…` by the project router.
+
+> **Important:** The README still references older paths like `/api/crashdata/within-bbox/` and `/api/crashdata/export/`. Treat **`crashdata/urls.py` as ground truth**. If you change endpoints, update both the code and the README in a single PR.
+
+### 1.2 Frontend
+
+* Vite + React app in `alaska_ui`.
+
+* Main layout component: `alaska_ui/src/components/MainContent.tsx`.
+
+  * Tabs: `['Map', 'Data Tables', 'Report Charts', 'Classifications', 'EBM']`.
+  * **Map tab currently renders only a static OpenStreetMap `<iframe>`** and does not call any backend geospatial APIs.
+
+* Root app component: `alaska_ui/src/App.tsx`.
+
+  * Holds canonical state:
+
+    * `uploadId: string | null` – backend ID of the selected/validated upload.
+    * `validationResults: ValidationResults | null` – includes ingestion gateway summary and row checks.
+    * `analysisResults`, `dataPrep`, `selectedModelName`, etc.
+
+  * `ValidationResults` type includes:
+
+    ```ts
+    export interface ValidationResults {
+      // client-side stats...
+      ingestionOverallStatus?: 'accepted' | 'rejected' | 'pending' | string;
+      ingestionMessage?: string;
+      ingestionErrorCode?: string;
+      ingestionRowChecks?: {
+        total_rows: number;
+        invalid_row_count: number;
+        invalid_geo_row_count: number;
+      };
+      ingestionSteps?: {
+        step: string;
+        message: string;
+        status: 'passed' | 'failed' | 'skipped';
+        severity?: 'info' | 'warning' | 'error';
+        code?: string;
+        is_hard_fail?: boolean;
+      }[];
+    }
+    ```
+
+  * `extractIngestionSummary(...)` normalizes the backend’s ingestion/geo row counts into `validationResults.ingestionRowChecks`.
+
+**Key point:** backend + ETL already have rich geospatial support. The UI just isn’t using it yet.
+
+---
+
+## 2. Backend geospatial API contracts
+
+When wiring up or extending map behavior, **do not change these contracts** unless you also:
+
+1. Update `crashdata/urls.py` and `crashdata/views.py`.
+2. Update the README / docs.
+3. Update any frontend callers.
+
+### 2.1 `GET /api/crashdata/crashes-within-bbox/`
+
+Purpose: return crashes as a GeoJSON `FeatureCollection` of points.
+
+**Required query params**
+
+* `min_lon`, `min_lat`, `max_lon`, `max_lat` – floats (WGS84 degrees).
+
+Return `400` if any are missing or not floats.
+
+**Optional query params**
+
+* `upload_id` – UUID of `ingestion.UploadedDataset`.
+* `severity` – comma-separated list of KABCO letters, e.g. `"K,A,B"`.
+* `municipality` – string; filters `CrashRecord.municipality__iexact`.
+* `start_datetime`, `end_datetime` – ISO-8601 datetime **or** date; parsed by `_parse_datetime_param`.
+
+  * Dates are treated as midnight UTC.
+  * If either parameter cannot be parsed, returns `400`.
+* `limit` – integer; default 5,000; clamped to `1–50,000`. If outside, resets to 5,000.
+
+**Response shape (success)**
+
+```json
+{
+  "type": "FeatureCollection",
+  "count": <number of features returned>,
+  "limit": <limit used>,
+  "bbox": [min_lon, min_lat, max_lon, max_lat],
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [lon, lat]
+      },
+      "properties": {
+        "id": <CrashRecord.id>,
+        "crash_id": "<string>",
+        "severity": "K|A|B|C|O",
+        "crash_datetime": "<ISO datetime>",
+        "roadway_name": "<string>",
+        "municipality": "<string>",
+        "posted_speed_limit": <int | null>,
+        "dataset_id": "<upload UUID as string>"
+      }
+    },
+    ...
+  ]
+}
+```
+
+Notes:
+
+* Rows with `location=None` are **silently skipped**; they never appear as features.
+* Features come from `queries.crashes_within_bbox(...)` with exactly the filters listed above.
+
+### 2.2 `GET /api/crashdata/heatmap/`
+
+Purpose: return a lightweight crash density grid for the current bounding box.
+
+**Required query params**
+
+* Same bbox as above: `min_lon`, `min_lat`, `max_lon`, `max_lat`.
+
+**Optional query params**
+
+* `upload_id`, `severity`, `municipality`, `start_datetime`, `end_datetime` (same semantics as `/crashes-within-bbox/`).
+* `grid_size` – float in degrees; default `0.05`. If `<= 0`, reset to `0.05`.
+
+Backend behavior:
+
+* Re-uses `queries.crashes_within_bbox(...)` but only selects `location`.
+* Buckets each crash into integer grid cells via `x = int(lon // grid_size)`, `y = int(lat // grid_size)`.
+* Returns per-cell counts.
+
+**Response shape**
+
+```json
+{
+  "bbox": [min_lon, min_lat, max_lon, max_lat],
+  "grid_size": 0.05,
+  "cells": [
+    {
+      "count": 12,
+      "center": [lon, lat],
+      "grid_size": 0.05
+    },
+    ...
+  ]
+}
+```
+
+The UI is expected to render these as either:
+
+* discrete colored squares (approximate cell extents from `center` and `grid_size`), or
+* inputs to a heatmap layer.
+
+### 2.3 `GET /api/crashdata/exports/crashes.csv`
+
+Purpose: CSV export for offline analysis / external GIS, honoring the same conceptual filters.
+
+**Required query params**
+
+* `upload_id` – UUID.
+
+**Optional query params**
+
+* `severity`, `municipality`, `start_datetime`, `end_datetime` as above.
+* `max_rows` – integer; default 100,000; clamped to `1–500,000`.
+
+Behavior:
+
+* Filters `CrashRecord` by dataset + optional filters.
+
+* Counts rows; if `row_count > max_rows`, returns `400` with a JSON body explaining that max_rows was exceeded.
+
+* Otherwise streams CSV with the following header:
+
+  ```csv
+  id,dataset_id,crash_id,crash_datetime,severity,roadway_name,municipality,posted_speed_limit,vehicle_count,person_count,lon,lat
+  ```
+
+* Cells that could be interpreted as formulas are prefixed with `'` in the CSV to avoid Excel CSV injection (`_safe_csv_value`).
+
+### 2.4 Authentication
+
+All crashdata endpoints are decorated with:
+
+```python
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+```
+
+The frontend currently uses **Basic Auth** headers built in `App.tsx`:
+
+```ts
+const buildAuthHeader = () => {
+  if (!auth.username || !auth.password) return {};
+  const encoded = btoa(`${auth.username}:${auth.password}`);
+  return { Authorization: `Basic ${encoded}` };
+};
+```
+
+Any new fetches from the map UI must **reuse this mechanism**.
+
+---
+
+## 3. Desired Map UI behavior
+
+The current Map tab is just an embedded OSM basemap. The goal is:
+
+> **A fully interactive map of Alaska that shows crash points and crash density for the currently selected upload, shares filters with the rest of the app, surfaces geo quality issues, and can export map-filtered data.**
+
+### 3.1 Functional requirements
+
+When `uploadId` is set (i.e., ingestion + ETL have completed):
+
+1. **Basemap**
+
+   * Use a real JS map library (e.g. `react-leaflet`, MapLibre, Mapbox GL) instead of an `<iframe>`.
+   * Default center/zoom should show Alaska; reuse the existing OSM bbox as a starting view.
+
+2. **Crash points layer (`/crashes-within-bbox/`)**
+
+   * On initial render and on each pan/zoom, call:
+
+     ```
+     GET /api/crashdata/crashes-within-bbox/
+       ?upload_id=<uploadId>
+       &min_lon=<west>&min_lat=<south>
+       &max_lon=<east>&max_lat=<north>
+       [&severity=K,A,B]
+       [&municipality=Anchorage]
+       [&start_datetime=2024-01-01]
+       [&end_datetime=2024-12-31]
+       [&limit=5000]   // optional
      ```
 
-     `parameters` is stored verbatim in `ModelJob.parameters`. :contentReference[oaicite:6]{index=6}
+   * Render each feature as a marker.
 
-4. **Worker**  
-   * `enqueue_model_job(job.id)` (imported in `analysis.views`) runs `run_model_job` in `analysis/ml_core/worker.py`. :contentReference[oaicite:7]{index=7} :contentReference[oaicite:8]{index=8}  
-   * Worker:
-     * Reloads the job and its `UploadedDataset`. :contentReference[oaicite:9]{index=9}  
-     * Loads the raw file into a DataFrame via `load_dataframe_from_bytes`. :contentReference[oaicite:10]{index=10}  
-     * Splits `parameters` into `cleaning_params` and `model_params`. :contentReference[oaicite:11]{index=11}  
-     * Calls the appropriate trainer (`spec.trainer`) from `analysis/ml_core/models.py`. :contentReference[oaicite:12]{index=12}  
-     * Stashes metrics, feature importances and **cleaning metadata** into `ModelJob.result_metadata`. :contentReference[oaicite:13]{index=13}
+     * Color markers by `properties.severity` (e.g., K/A red/orange, B/C yellow, O gray).
+     * Popups should show at minimum: `crash_id`, `crash_datetime`, `roadway_name`, `municipality`, `posted_speed_limit`.
 
-5. **Training & cleaning**  
-   * Each trainer (`train_crash_severity_decision_tree`, `train_mrf`, etc.) calls `_ensure_cleaning_params(cleaning_params)` to normalize the `parameters.cleaning` object into kwargs for `build_ml_ready_dataset`. :contentReference[oaicite:14]{index=14}  
-   * `build_ml_ready_dataset` in `analysis/ml_core/cleaning.py` performs:
-     * Unknown value discovery.
-     * Script-to-Clean column pruning (`unknown_threshold`, `yes_no_threshold`, `columns_to_drop`). :contentReference[oaicite:15]{index=15} :contentReference[oaicite:16]{index=16}  
-     * Severity column selection (`guess_severity_column`) and mapping. :contentReference[oaicite:17]{index=17} :contentReference[oaicite:18]{index=18}  
-     * Leakage detection (`find_leakage_columns_noninteractive`) + optional manual `leakage_columns`. :contentReference[oaicite:19]{index=19}  
+   * If `count === limit`, show a small UI notice that the view may be truncated and the user should zoom or filter further.
+
+3. **Heatmap layer (`/heatmap/`)**
+
+   * Add a layer toggle UI (checkboxes or buttons):
+
+     * `[x] Crash points`
+     * `[ ] Crash density`
+
+   * When the **density** layer is enabled, call:
+
+     ```
+     GET /api/crashdata/heatmap/
+       ?upload_id=<uploadId>
+       &min_lon=<west>&min_lat=<south>
+       &max_lon=<east>&max_lat=<north>
+       &grid_size=<derivedFromZoom>    // e.g., 0.25 at zoomed out, 0.05 at mid, 0.01 zoomed in
+       [&severity=...]
+       [&municipality=...]
+       [&start_datetime=...]
+       [&end_datetime=...]
+     ```
+
+   * Render each cell either as:
+
+     * a square polygon approximated from `center` and `grid_size`, colored on a continuous scale by `count`, or
+     * a point in an actual heatmap layer with weight = `count`.
+
+4. **Filters**
+
+   * Map filters must be kept in React state and **reused across endpoints**:
+
+     * severity (multi-select)
+     * municipality (text input or dropdown)
+     * date range (start/end date or datetime)
+   * These should eventually stay in sync with the rest of the app (charts, classifications). Until a global filter system exists, it’s acceptable to keep them map-local but designed in a way that they can easily be lifted to top-level state.
+
+5. **Geo-quality surfacing**
+
+   * Above the map (or in the left workflow panel) show a short summary derived from `validationResults.ingestionRowChecks`:
+
+     * total rows
+     * invalid rows (generic data issues)
+     * invalid_geo_row_count (rows outside Alaska bounds or with invalid coordinates)
+
+   * Example text:
+
+     > **Geo coverage:** 12,345 total rows, 123 with invalid values, 42 with invalid / out-of-bounds coordinates. Only crashes with valid coordinates are shown on the map.
+
+   * If `invalid_geo_row_count > 0`, also show a non-blocking warning banner or icon in the Map tab.
+
+6. **No dataset selected**
+
+   * If `uploadId === null` or no crash records have been imported yet, show an empty-state message in the Map tab:
+
+     > “Import and validate a dataset, then run the ETL to see crashes on the map.”
+
+   * You may reuse an existing pattern from other tabs for this “nothing to show yet” state.
+
+7. **Export shortcut**
+
+   * Provide a “Export map-filtered crashes (CSV)” button in the map UI that calls:
+
+     ```
+     GET /api/crashdata/exports/crashes.csv
+       ?upload_id=<uploadId>
+       [&severity=...]
+       [&municipality=...]
+       [&start_datetime=...]
+       [&end_datetime=...]
+     ```
+
+   * This should initiate a file download in the browser.
+
+   * If the backend responds with `400` and a JSON body complaining about `row_count > max_rows`, display that message to the user and suggest narrowing filters.
+
+### 3.2 Non-functional requirements
+
+* **Do not break other tabs.**
+
+  * `MainContent` should continue to pass the same props to `Data Tables` / `Report Charts` / `Classifications`.
+* **Reuse auth / base URL conventions.**
+
+  * All map fetches must use `buildAuthHeader()` from `App.tsx`.
+* **Error handling.**
+
+  * For HTTP errors:
+
+    * `401/403`: show “You may not be logged in or lack access to this dataset.”
+    * `400`: show the `detail` message from the response if present.
+  * For network failures: show a compact inline error and log the full error to `console.error`.
 
 ---
 
-## 2. Current Data-Prep UI state
+## 4. Frontend implementation blueprint
 
-### 2.1 DataPrepState
+When asked to “hook the map up” or “add new map features”, follow this plan unless the user explicitly requests a different architecture.
 
-`alaska_ui/src/App.tsx` defines the `DataPrepState` interface used by the Data Prep card and validators: :contentReference[oaicite:20]{index=20}  
+### 4.1 New component: `CrashMap`
+
+Create `alaska_ui/src/components/CrashMap.tsx` with roughly this public interface:
 
 ```ts
-export interface DataPrepState {
-  unknownThreshold: number;   // %
-  yesNoThreshold: number;     // %
-  speedLimit: number;         // MPH
-  roadSurface: {
-    dry: boolean;
-    wet: boolean;
-    iceSnow: boolean;
-  };
-
-  /**
-   * User-chosen leakage columns (Peyton-style interactive flow).
-   * These names are passed to the backend cleaning step and also
-   * used to mark columns as Drop in the UI.
-   */
-  leakageColumnsToDrop: string[];
+interface CrashMapProps {
+  uploadId: string | null;
+  authHeader: () => Record<string, string>; // wrapper around buildAuthHeader
+  // optional: shared filters
+  initialSeverity?: string[];         // ['K', 'A', 'B', ...]
+  initialMunicipality?: string;
+  initialStartDate?: string;          // ISO date or datetime
+  initialEndDate?: string;
+  ingestionRowChecks?: {
+    total_rows: number;
+    invalid_row_count: number;
+    invalid_geo_row_count: number;
+  } | undefined;
 }
-````
+```
 
-Default values: 
+Responsibilities of `CrashMap`:
+
+1. Manage **viewport state** (center, zoom, bbox) using your chosen map library.
+2. Manage **local filter state** (severity, municipality, date range) until a global filter store exists.
+3. On viewport or filter change, fetch:
+
+   * current crash points from `/api/crashdata/crashes-within-bbox/`
+   * current heatmap from `/api/crashdata/heatmap/` when density layer is toggled on
+4. Render:
+
+   * base map
+   * markers and/or heatmap cells
+   * status bar above the map showing ingestion geo summary and any fetch errors.
+
+Map wiring inside `MainContent.tsx`:
+
+Replace the current `Map` tab branch:
+
+```tsx
+case 'Map':
+  return (
+    <div className="h-full w-full bg-gray-200 rounded-lg overflow-hidden">
+      <iframe ... />
+    </div>
+  );
+```
+
+with:
+
+```tsx
+case 'Map':
+  return (
+    <CrashMap
+      uploadId={uploadId}
+      authHeader={buildAuthHeader}
+      ingestionRowChecks={validationResults?.ingestionRowChecks}
+      // if/when you lift filters to App, pass them here too
+    />
+  );
+```
+
+You’ll need to plumb `uploadId`, `buildAuthHeader`, and `validationResults` through `MainContent`’s props from `App.tsx`.
+
+### 4.2 Data fetching inside `CrashMap`
+
+Use `fetch` with the auth header:
 
 ```ts
-const [dataPrep, setDataPrep] = useState<DataPrepState>({
-  unknownThreshold: 10,
-  yesNoThreshold: 1,
-  speedLimit: 70,
-  roadSurface: { dry: true, wet: true, iceSnow: true },
-  leakageColumnsToDrop: [],
+const headers = {
+  ...authHeader(),
+  'Accept': 'application/json',
+};
+
+const params = new URLSearchParams({
+  upload_id: uploadId,
+  min_lon: bbox.minLon.toString(),
+  min_lat: bbox.minLat.toString(),
+  max_lon: bbox.maxLon.toString(),
+  max_lat: bbox.maxLat.toString(),
+});
+
+if (severity.length) params.set('severity', severity.join(','));
+if (municipality) params.set('municipality', municipality);
+if (startDate) params.set('start_datetime', startDate);
+if (endDate) params.set('end_datetime', endDate);
+
+const resp = await fetch(`/api/crashdata/crashes-within-bbox/?${params.toString()}`, {
+  method: 'GET',
+  headers,
 });
 ```
 
-### 2.2 “2. Data Preparation” card
+Guidelines:
 
-`WorkflowPanel` renders the card shown in your screenshot: 
+* Always guard against `uploadId === null` — do nothing and show an empty-state.
+* Debounce fetches on viewport change (e.g., wait for the user to stop panning for ~200–300 ms).
+* Cancel in-flight requests when new ones are issued (e.g., by tracking an `AbortController` per fetch).
 
-* Slider – **Unknown threshold** (`unknownThreshold`).
-* Slider – **Yes/No imbalance threshold** (`yesNoThreshold`).
-* Slider – **Max posted speed limit (MPH)** (`speedLimit`).
-* Checkboxes – **Road surface** (`roadSurface.*`).
-* Button – **Run Data Preparation** → `onDataPrepRun`. 
+### 4.3 Coordinate conventions
 
-The card is disabled until Step 1 is complete (`isImportComplete`). 
+* The backend uses WGS84 longitude/latitude (SRID 4326).
+* All bbox and coordinate arrays are `[lon, lat]`.
+* When you convert between map library bounds and API params:
 
-### 2.3 How those knobs are actually used
+  * `min_lon` = west, `min_lat` = south
+  * `max_lon` = east, `max_lat` = north
 
-1. **Unknown & Yes/No thresholds – used *only* on the client**
+Double-check that the library’s `getBounds()` returns the same order; different map libraries sometimes use `(southWest, northEast)` or `(lat, lon)` tuples.
 
-   * Used by `runValidationLogic` in `alaska_ui/src/lib/validator.ts` to compute `ColumnStat.status` (`Keep`/`Drop`) and `reason` based on Peyton’s rules.  
-   * Also used by `runClientValidation` in `App.tsx` (richer version of same logic). 
+### 4.4 Using ingestion geo stats in the Map
 
-   **They are *not* sent to the backend; the training pipeline always uses default thresholds from `ml_partner_adapters.config_bridge.UNKNOWN_THRESHOLD` and `YES_NO_THRESHOLD`.** 
-
-2. **Leakage columns – used on client and server**
-
-   * Selected via the interactive `window.confirm` + `window.prompt` flow executed inside `handleRunValidation`. 
-   * Passed to `runValidationLogic` and `runClientValidation` via `applyLeakageOverrides`, which forces their status to `Drop` and appends an explanation.  
-   * Sent to backend as `parameters.cleaning.leakage_columns` in `startModelJob`. 
-   * In the backend, `_ensure_cleaning_params` passes them through to `build_ml_ready_dataset(leakage_columns=...)`.  
-
-3. **Speed limit and road surface – currently NO-OP**
-
-   * Only stored in `DataPrepState` and updated by UI handlers.  
-   * Nowhere else in the frontend or backend reads `dataPrep.speedLimit` or `dataPrep.roadSurface.*`. There is no cleaning or filtering logic tied to these values.
-
----
-
-## 3. Backend cleaning knobs that exist today
-
-All cleaning is centralized in `analysis/ml_core/cleaning.py` and the model helpers in `analysis/ml_core/models.py`.
-
-### 3.1 `build_ml_ready_dataset` parameters
-
-Signature: 
-
-```py
-def build_ml_ready_dataset(
-    df: pd.DataFrame,
-    *,
-    severity_col: str | None = None,
-    base_unknowns: Iterable[str] | None = None,
-    unknown_threshold: float | None = None,
-    yes_no_threshold: float | None = None,
-    leakage_columns: Iterable[str] | None = None,
-    columns_to_drop: Iterable[str] | None = None,
-) -> Tuple[pd.DataFrame, pd.Series, Dict[str, Any]]:
-```
-
-Relevant behaviour:
-
-* `severity_col`
-
-  * If `None`, uses `guess_severity_column(df)` (prefers column literally named `"severity"`, otherwise first column containing `"severity"`). 
-  * Protected from being dropped by Script-to-Clean.
-
-* `base_unknowns`
-
-  * If `None`, defaults to canonical `DEFAULT_UNKNOWN_STRINGS` built from `ml_partner_adapters`.  
-  * Passed into `discover_unknown_placeholders`, which augments them based on data.  
-
-* `unknown_threshold`, `yes_no_threshold`
-
-  * If `None`, default to Peyton’s global `UNKNOWN_THRESHOLD` and `YES_NO_THRESHOLD` (0–100). 
-  * Used in `clean_crash_dataframe_for_import` and `suggest_columns_to_drop` to drop high-unknown and highly imbalanced Yes/No columns.  
-
-* `columns_to_drop`
-
-  * Manually specified drop list; merged with automatically suggested drops. 
-
-* `leakage_columns`
-
-  * Manual leakage list; any features in this list are dropped *after* cleaning, in addition to automatically detected leakage columns. 
-
-### 3.2 How HTTP `parameters.cleaning` is interpreted
-
-`analysis/ml_core/models._ensure_cleaning_params` is the gatekeeper: 
-
-```py
-def _ensure_cleaning_params(cleaning_params: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    params = dict(cleaning_params or {})
-
-    return {
-        "severity_col": params.get("severity_col"),
-        "base_unknowns": params.get("base_unknowns"),
-        "unknown_threshold": params.get("unknown_threshold"),
-        "yes_no_threshold": params.get("yes_no_threshold"),
-        "columns_to_drop": params.get("columns_to_drop"),
-        # Peyton-style manual leakage list; passed through to build_ml_ready_dataset
-        "leakage_columns": params.get("leakage_columns"),
-    }
-```
-
-And each trainer uses:
-
-````py
-cleaning_kwargs = _ensure_cleaning_params(cleaning_params)
-X, y, cleaning_meta = build_ml_ready_dataset(df, **cleaning_kwargs)
-``` :contentReference[oaicite:49]{index=49}  
-
-**Key point:** The backend already supports `severity_col`, `base_unknowns`, `unknown_threshold`, `yes_no_threshold`, `columns_to_drop`, and `leakage_columns`. Only `leakage_columns` is currently wired from the UI.
-
----
-
-## 4. Design goals for this agent
-
-When modifying this area of the codebase, treat these as **non-negotiable invariants**:
-
-1. **Single source of truth for cleaning thresholds**  
-   * The sliders in the Data Prep card must be the same values used in **Script-to-Clean** on the backend.
-
-2. **Frontend and backend agree on what’s dropped and why**  
-   * Column plan / Data Tables should roughly match the columns that the worker actually drops. Minor differences (e.g. extra unknown tokens) are acceptable but should be intentional.
-
-3. **Backwards compatibility**  
-   * `POST /api/models/run/` must remain compatible with existing docs (`docs/model_api.md`). Adding optional fields is OK; breaking or renaming is not. :contentReference[oaicite:50]{index=50}  
-
-4. **Data Prep card only contains meaningful knobs**  
-   * Any knob in the “2. Data Preparation” section should influence either the cleaning pipeline or clearly labelled downstream filtering.
-
----
-
-## 5. Concrete implementation plan
-
-### 5.1 Extend DataPrepState with backend-visible knobs
-
-Add the following fields to `DataPrepState` in `alaska_ui/src/App.tsx`: :contentReference[oaicite:51]{index=51}  
+Within `CrashMap`, if `ingestionRowChecks` is provided:
 
 ```ts
-export interface DataPrepState {
-  unknownThreshold: number;
-  yesNoThreshold: number;
-  speedLimit: number;
-  roadSurface: {
-    dry: boolean;
-    wet: boolean;
-    iceSnow: boolean;
-  };
-
-  leakageColumnsToDrop: string[];
-
-  // NEW: manual non-leakage drops
-  columnsToDrop: string[];
-
-  // NEW: allow overriding which column is treated as severity
-  severityColumn: string | null;
-
-  // NEW: per-run extra "unknown" tokens (strings)
-  additionalUnknownTokens: string[];
-}
-````
-
-Update the default state accordingly:
-
-```ts
-const [dataPrep, setDataPrep] = useState<DataPrepState>({
-  unknownThreshold: 10,
-  yesNoThreshold: 1,
-  speedLimit: 70,
-  roadSurface: { dry: true, wet: true, iceSnow: true },
-  leakageColumnsToDrop: [],
-  columnsToDrop: [],
-  severityColumn: null,
-  additionalUnknownTokens: [],
-});
+const { total_rows, invalid_row_count, invalid_geo_row_count } =
+  ingestionRowChecks ?? { total_rows: 0, invalid_row_count: 0, invalid_geo_row_count: 0 };
 ```
 
-Any place that resets `dataPrep` (e.g. `handleFileSelect`) must now also clear `columnsToDrop`, `severityColumn`, and `additionalUnknownTokens` while preserving other values. 
+Render a small summary above the map:
 
-### 5.2 Wire thresholds + cleaning params to backend (`startModelJob`)
+* Example:
 
-Modify `startModelJob` in `App.tsx` to send a richer `parameters.cleaning` payload. Current implementation only sends `leakage_columns`. 
+  > **Data quality:** 12,345 rows (12 invalid, 42 invalid coordinates – excluded from map)
 
-Replace the body construction with something like:
+* Only show the warning highlight if `invalid_geo_row_count > 0`.
 
-```ts
-const startModelJob = useCallback(
-  async (datasetId: string) => {
-    console.log("[UI] Starting model job for dataset:", datasetId);
-
-    // Build cleaning payload expected by analysis.ml_core.models._ensure_cleaning_params
-    const cleaning: any = {
-      leakage_columns: dataPrep.leakageColumnsToDrop,
-      unknown_threshold: dataPrep.unknownThreshold,
-      yes_no_threshold: dataPrep.yesNoThreshold,
-    };
-
-    if (dataPrep.columnsToDrop.length > 0) {
-      cleaning.columns_to_drop = dataPrep.columnsToDrop;
-    }
-
-    if (dataPrep.severityColumn) {
-      cleaning.severity_col = dataPrep.severityColumn;
-    }
-
-    if (dataPrep.additionalUnknownTokens.length > 0) {
-      // Merge UI-known base tokens with user-specified extras.
-      const base = new Set<string>();
-      BASE_UNKNOWN_TOKENS.forEach((tok) => base.add(tok));
-      dataPrep.additionalUnknownTokens.forEach((tok) => {
-        const norm = tok.trim().toLowerCase();
-        if (norm) base.add(norm);
-      });
-      cleaning.base_unknowns = Array.from(base);
-    }
-
-    const body = {
-      dataset_id: datasetId,
-      model_name: selectedModelName,
-      parameters: {
-        cleaning,
-        model_params: {},
-      },
-    };
-
-    const resp = await fetch("/api/models/run/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...buildAuthHeader(),
-      },
-      body: JSON.stringify(body),
-    });
-    ...
-  },
-  [auth.username, auth.password, selectedModelName, dataPrep]
-);
-```
-
-> Why this works: `_ensure_cleaning_params` pulls exactly these keys and forwards them to `build_ml_ready_dataset`.  That function, in turn, passes `unknown_threshold`, `yes_no_threshold`, and `columns_to_drop` into `clean_crash_dataframe_for_import`, and treats `severity_col`, `base_unknowns`, and `leakage_columns` as documented above.   
-
-No backend code changes are required for these fields; only the UI must start sending them.
-
-### 5.3 Add severity column override UI
-
-Use the existing `ValidationResults` to populate a dropdown listing column names.
-
-In `WorkflowPanel.tsx`:
-
-1. Compute available columns:
-
-   ```ts
-   const availableColumns =
-     validationResults?.columnStats.map((cs) => cs.column) ?? [];
-   ```
-
-   Place this near the top of the component body, after `getStatus` / before the `return`. 
-
-2. Inside the Data Prep `<fieldset>`, add a new block after the road-surface controls:
-
-   ```tsx
-   {availableColumns.length > 0 && (
-     <div>
-       <label
-         htmlFor="severity-column"
-         className="block font-medium text-gray-700 mb-1"
-       >
-         Severity / outcome column
-       </label>
-       <select
-         id="severity-column"
-         className="w-full bg-white border border-neutral-medium rounded px-2 py-1 text-sm"
-         value={dataPrepState.severityColumn ?? ""}
-         onChange={(e) =>
-           onDataPrepChange({
-             severityColumn: e.target.value || null,
-           })
-         }
-       >
-         <option value="">
-           Auto-detect (prefer column named &quot;severity&quot;)
-         </option>
-         {availableColumns.map((col) => (
-           <option key={col} value={col}>
-             {col}
-           </option>
-         ))}
-       </select>
-       <p className="mt-1 text-xs text-gray-500">
-         If left blank, the backend will guess the severity column by name.
-       </p>
-     </div>
-   )}
-   ```
-
-3. Ensure `DataPrepState` includes `severityColumn` and that you’ve added it to the default state as described in §5.1.
-
-When this dropdown is non-empty, the value will be shipped as `parameters.cleaning.severity_col` and fed into `build_ml_ready_dataset`, which passes it through to `clean_crash_dataframe_for_import` and protects that column from being dropped.  
-
-### 5.4 Add manual `columns_to_drop` UI
-
-Goal: Let users drop additional low-value columns even if they don’t exceed the unknown/imbalance thresholds.
-
-**Minimal implementation (text field):**
-
-In the Data Prep card, still inside the `<fieldset>`, add a simple comma-separated text box:
-
-```tsx
-<div>
-  <label
-    htmlFor="manual-drop-columns"
-    className="block font-medium text-gray-700"
-  >
-    Additional columns to drop
-  </label>
-  <p className="text-xs text-gray-500 mb-1">
-    Comma-separated list of columns to always drop before modeling.
-  </p>
-  <input
-    id="manual-drop-columns"
-    type="text"
-    className="w-full border border-neutral-medium rounded px-2 py-1 text-sm"
-    placeholder="Example: VIN, CrashReportId"
-    value={dataPrepState.columnsToDrop.join(", ")}
-    onChange={(e) =>
-      onDataPrepChange({
-        columnsToDrop: e.target.value
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      })
-    }
-  />
-</div>
-```
-
-This populates `dataPrep.columnsToDrop`, which is then sent as `parameters.cleaning.columns_to_drop` (see §5.2). Backend logic in `clean_crash_dataframe_for_import` already unions these with automatically suggested drops: 
-
-```py
-auto_drop = suggest_columns_to_drop(...)
-user_specified_drops: Set[str] = set(columns_to_drop or [])
-drop_cols = auto_drop | user_specified_drops
-```
-
-**Optional UX alignment:**
-To have the **Data Tables** view reflect these manual drops, you can generalize `applyLeakageOverrides` into `applyColumnOverrides(results, { leakageColumns, manualDropColumns })` that:
-
-* Forces both leakage columns and `columnsToDrop` to `status = "Drop"`.
-* Appends a human-readable reason for manual drops (e.g., “User-marked as low-value (manual drop).”).
-
-This requires updating:
-
-* The helper in `App.tsx`. 
-* The call sites in `handleRunValidation` where `applyLeakageOverrides` is used. 
-
-### 5.5 Add “extra unknown tokens” UI and align with backend
-
-**Frontend control (Data Prep card):**
-
-Add:
-
-```tsx
-<div>
-  <label
-    htmlFor="extra-unknowns"
-    className="block font-medium text-gray-700"
-  >
-    Additional values to treat as &quot;unknown&quot;
-  </label>
-  <p className="text-xs text-gray-500 mb-1">
-    Comma-separated; e.g. &quot;UNK, 99, 9999&quot;.
-  </p>
-  <input
-    id="extra-unknowns"
-    type="text"
-    className="w-full border border-neutral-medium rounded px-2 py-1 text-sm"
-    value={dataPrepState.additionalUnknownTokens.join(", ")}
-    onChange={(e) =>
-      onDataPrepChange({
-        additionalUnknownTokens: e.target.value
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      })
-    }
-  />
-</div>
-```
-
-**Client-side validators:**
-
-Update `alaska_ui/src/lib/validator.ts` so that the discovery function merges in `config.additionalUnknownTokens`.
-
-1. Change the signature of `discoverUnknownPlaceholders`:
-
-   ```ts
-   const discoverUnknownPlaceholders = (
-     data: Record<string, string>[],
-     extraUnknowns: string[] = []
-   ): Set<string> => {
-     ...
-     const frequentNewUnknowns = new Set<string>();
-     ...
-     const extras = extraUnknowns
-       .map((s) => s.trim().toLowerCase())
-       .filter((s) => !!s);
-
-     return new Set([
-       ...BASE_UNKNOWN_STRINGS,
-       ...frequentNewUnknowns,
-       ...extras,
-     ]);
-   };
-   ```
-
-2. Pass `config.additionalUnknownTokens` from `runValidationLogic`: 
-
-   ```ts
-   const augmentedUnknowns = discoverUnknownPlaceholders(
-     data,
-     config.additionalUnknownTokens || []
-   );
-   ```
-
-3. Optionally, do similar wiring for `discoverUnknownTokens` in `App.tsx`’s `runClientValidation` path, or refactor to share the same helper. 
-
-**Backend alignment:**
-
-As in §5.2, you’re already sending:
-
-```ts
-cleaning.base_unknowns = Array.from(base); // BASE_UNKNOWN_TOKENS + additionalUnknownTokens
-```
-
-`build_ml_ready_dataset` will pass `base_unknowns` through to `clean_crash_dataframe_for_import`, which then calls `discover_unknown_placeholders` with the same seed list. 
-
-This keeps “unknown” semantics largely aligned between frontend and backend.
-
-### 5.6 Expose leakage list in the Data Prep card (read-only)
-
-Even if editing stays in the Step-1 prompt, it’s helpful for users to *see* which columns will be treated as leakage during modeling.
-
-In `WorkflowPanel.tsx`, under the other Data Prep controls, add:
-
-```tsx
-{dataPrepState.leakageColumnsToDrop.length > 0 ? (
-  <div className="text-xs text-gray-600">
-    <span className="font-medium">Leakage columns:</span>{" "}
-    {dataPrepState.leakageColumnsToDrop.join(", ")}
-  </div>
-) : (
-  <p className="text-xs text-gray-500">
-    No leakage columns selected yet. You can mark them during validation.
-  </p>
-)}
-```
-
-The actual selection flow remains in `handleRunValidation` (interactive prompt). 
-
-If you later want editing from Step 2, refactor the leakage-prompt logic into a reusable function that can be called both from the validation step and from an “Edit leakage columns…” button.
-
-### 5.7 Handling `speedLimit` and `roadSurface` knobs
-
-These controls are **currently not connected** to any backend behaviour:
-
-* No cleaning parameter uses them.
-* They are not used when loading `CrashRecord` or building `X, y`.  
-
-To **resolve the mismatch** while keeping the code maintainable:
-
-1. **Short-term (recommended default):**
-
-   * Document in the UI (small text under the controls) that they are **map-filter preferences only** and do not affect model training yet.
-   * Optionally, hide or disable them in the Data Prep card until a map-filter pipeline is implemented.
-
-2. **Future work (if you choose to wire them):**
-
-   * Introduce a filter layer in the worker or model code that subsets the DataFrame before calling `build_ml_ready_dataset`, using:
-
-     * `posted_speed_limit` for `speedLimit` (see `CrashRecord.posted_speed_limit`). 
-     * A normalized “road surface” column for `roadSurface`.
-   * Pass the chosen values via `parameters.model_params` (not `cleaning`), since they are **row filters**, not column-cleaning rules.
+Do **not** attempt to “fix” or drop rows yourself on the frontend; trust the backend’s ETL + validation logic.
 
 ---
 
-## 6. Testing & verification checklist
+## 5. Testing and validation
 
-When implementing or modifying these behaviours, validate with the following steps:
+When you implement or modify map behavior, ensure at least:
 
-1. **Unit tests (Python)**
+1. **Smoke tests / manual checks**
 
-   * Add tests under `analysis/tests/` that:
+   * Upload a sample dataset, run ingestion + ETL, log into the UI, and:
 
-     * Call `_ensure_cleaning_params` with a dict containing all keys and assert the result matches expectations. 
-     * Call `build_ml_ready_dataset` with explicit `unknown_threshold` / `yes_no_threshold` and verify that columns above/below thresholds are dropped as expected.
-     * Verify that `severity_col` override is respected and protected from dropping, and that an invalid `severity_col` raises a clear error. 
+     * Verify that the Map tab shows crash markers in the expected locations.
+     * Zoom in/out and pan; markers and/or heatmap must update accordingly.
+     * Change severity, municipality, and date filters and confirm server calls include the proper query parameters.
+     * Trigger a `limit` hit by zooming way out on a dense dataset and confirm the explanatory UI message appears.
 
-2. **Integration test (Python)**
+2. **Error paths**
 
-   * Create a `ModelJob` with `parameters={"cleaning": {...}}` including:
+   * Intentionally break the auth header (wrong password) and confirm 401/403 are handled gracefully.
+   * Temporarily force the backend to return `400` (e.g. by passing bad date strings) and confirm the UI surfaces `detail`.
 
-     * `unknown_threshold`
-     * `yes_no_threshold`
-     * `columns_to_drop`
-     * `leakage_columns`
-     * `severity_col`
-   * Run `run_model_job(job.id)` and assert that:
+3. **Consistency**
 
-     * `job.result_metadata["cleaning_meta"]["cleaning_config"]` reflects your thresholds. 
-     * `job.result_metadata["leakage_warnings"]["leakage_columns"]` matches the leakage list. 
+   * Confirm that `invalid_geo_row_count` in the ingestion panel matches the text shown in the map geo-quality summary.
+   * Confirm that a CSV exported from the map with given filters matches the points shown (modulo `max_rows` caps).
 
-3. **Frontend manual tests**
+If you add automated tests:
 
-   * Start dev env with `start_app.bat` (or equivalent). 
-   * Upload a small CSV and run validation.
-   * Change the Data Prep sliders:
+* For backend: unit tests for `crashes_within_bbox_view` and `heatmap_view` should cover:
 
-     * Confirm that column statuses in the **Data Tables** view update when re-running Step 2.
-   * Run a model:
-
-     * Inspect the `POST /api/models/run/` request in the browser dev tools:
-
-       * `parameters.cleaning.unknown_threshold` matches the slider.
-       * `yes_no_threshold`, `columns_to_drop`, `severity_col`, `base_unknowns`, and `leakage_columns` are present when set.
-   * Poll `GET /api/models/results/<job_id>/` and confirm that:
-
-     * The job succeeds.
-     * `result_metadata.cleaning_meta.cleaning_config` matches the UI values. 
+  * bbox validation
+  * date parsing
+  * severity/municipality filters
+  * `limit` and `grid_size` sanity.
+* For frontend: test that `CrashMap` builds the correct URLs from a given bbox and filter state and that it renders a reasonable number of markers/heat cells for a mocked response.
 
 ---
 
-## 7. Non-goals and guardrails
+## 6. Common pitfalls (and how to avoid them)
 
-* **Do not** change the shape of the `ModelJob.parameters` JSON beyond adding optional keys in `parameters.cleaning` and `parameters.model_params`. The docs in `docs/model_api.md` must remain valid. 
-* **Do not** move cleaning logic out of `analysis.ml_core.cleaning`; keep a single shared cleaning stack for ETL and modeling. 
-* **Do not** make frontend-only “fixes” (e.g., changing thresholds only in React) without also ensuring the backend honours the same values when training models.
+When working on this area, **do not**:
+
+1. **Change endpoint paths** (`crashes-within-bbox/`, `heatmap/`, `exports/crashes.csv`) by hand in the frontend.
+
+   * If a bug appears to be “wrong path,” confirm against `crashdata/urls.py` before “fixing” anything.
+2. **Swap lat/lon order.**
+
+   * API, DB, and GeoJSON are consistently `[lon, lat]`. If the map looks mirrored or offset, check your order.
+3. **Ignore auth.**
+
+   * All crashdata endpoints require `IsAuthenticated`. Always include the Basic Auth header from `App.tsx`.
+4. **Duplicate state.**
+
+   * Treat `uploadId` in `App.tsx` as the single source of truth. Do not add another upload ID in `CrashMap` or `MainContent`.
+5. **Hide geo problems.**
+
+   * Don’t silently ignore `invalid_geo_row_count`. Always surface it in the UI so analysts know some rows are off-map.
 
 ---
 
-If you’re an agent working in this repo, treat this document as the **source of truth** for data-prep / cleaning behaviour. When in doubt, keep the three layers aligned:
+## 7. Extending beyond the basics
 
-* Data Prep UI (`alaska_ui`),
-* Model API (`/api/models/run/`), and
-* Cleaning stack (`analysis/ml_core`).
+Once the core wiring is correct, additional features are welcome, but they MUST reuse the contracts above:
+
+* Add clustering for point markers at low zooms if needed.
+* Add clickable selection that cross-highlights a crash in both Map and Data Tables (requires a shared “selected crash” state).
+* When models start returning spatially indexed results (e.g., risk scores per segment/grid cell), add new overlays **on top of** the existing crash + heatmap layers rather than replacing them.
+
+---
+
+## 8. Summary checklist for Codex / assistants
+
+Before you propose code changes related to maps:
+
+1. **Confirm** the endpoint URLs in `crashdata/urls.py`.
+2. **Use** `uploadId` from `App.tsx` as the dataset key.
+3. **Include** Basic Auth headers using `buildAuthHeader()`.
+4. **Pass** map filters as query params exactly matching the backend (`severity`, `municipality`, `start_datetime`, `end_datetime`, `limit`, `grid_size`).
+5. **Respect** `invalid_geo_row_count` and communicate geo coverage in the Map tab.
+6. **Avoid** touching unrelated tabs or changing backend contracts unless the user explicitly asks for it and you update docs/tests accordingly.
+
+If you follow this document, all the previously identified gaps (static map, no crash markers, no heatmap, no exposure of geo quality, no CSV export from map filters) should be fully resolved and the map UI will correctly leverage the existing geospatial backend.

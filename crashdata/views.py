@@ -141,6 +141,22 @@ def crashes_within_bbox_view(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    if not (-180.0 <= min_lon <= 180.0 and -180.0 <= max_lon <= 180.0):
+        return JsonResponse(
+            {"detail": "Longitude values must be between -180 and 180."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not (-90.0 <= min_lat <= 90.0 and -90.0 <= max_lat <= 90.0):
+        return JsonResponse(
+            {"detail": "Latitude values must be between -90 and 90."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if min_lon >= max_lon or min_lat >= max_lat:
+        return JsonResponse(
+            {"detail": "Invalid bbox: min values must be less than max values."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     dataset = None
     if upload_id:
         dataset = _get_dataset_for_user(upload_id, request.user)
@@ -253,6 +269,22 @@ def heatmap_view(request):
     except ValueError:
         return JsonResponse(
             {"detail": "Bounding box parameters must be valid floats."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not (-180.0 <= min_lon <= 180.0 and -180.0 <= max_lon <= 180.0):
+        return JsonResponse(
+            {"detail": "Longitude values must be between -180 and 180."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not (-90.0 <= min_lat <= 90.0 and -90.0 <= max_lat <= 90.0):
+        return JsonResponse(
+            {"detail": "Latitude values must be between -90 and 90."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if min_lon >= max_lon or min_lat >= max_lat:
+        return JsonResponse(
+            {"detail": "Invalid bbox: min values must be less than max values."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -491,9 +523,12 @@ def import_crash_records_view(request, upload_id: str):
     start = timezone.now()
     dataset = _get_dataset_for_user(upload_id, request.user)
     try:
-        imported, mappable = import_crash_records_for_dataset(dataset)
+        imported, mappable, meta = import_crash_records_for_dataset(dataset)
     except ImportError as exc:
-        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        payload = {"detail": str(exc)}
+        if getattr(exc, "meta", None):
+            payload["meta"] = exc.meta
+        return JsonResponse(payload, status=status.HTTP_400_BAD_REQUEST)
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception(
             "Unexpected error importing crash records",
@@ -510,12 +545,19 @@ def import_crash_records_view(request, upload_id: str):
             "upload_id": str(dataset.id),
             "imported": imported,
             "mappable": mappable,
+            "meta": meta,
             "duration_sec": (timezone.now() - start).total_seconds(),
         }
     )
     response["X-Alaska-Import-Duration"] = str(
         round((timezone.now() - start).total_seconds(), 3)
     )
+    # Optional backend version to detect stale deployments.
+    from django.conf import settings
+
+    version = getattr(settings, "SPECTACULAR_SETTINGS", {}).get("VERSION")
+    if version:
+        response["X-Alaska-Backend-Version"] = str(version)
     return response
 
 

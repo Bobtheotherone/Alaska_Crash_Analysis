@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Iterable, Optional
 
 from django.contrib.gis.geos import Polygon
+from django.contrib.gis.db import models as gis_models
 from django.db.models import Count, QuerySet
+from django.db.models.functions import Cast
 
 from ingestion.models import UploadedDataset
 
@@ -69,7 +71,11 @@ def crashes_within_bbox(
     """Return crash records that fall within the provided bounding box."""
     bbox = Polygon.from_bbox((min_lon, min_lat, max_lon, max_lat))
     bbox.srid = 4326
-    qs: QuerySet = CrashRecord.objects.filter(location__within=bbox)
+    qs: QuerySet = (
+        CrashRecord.objects.exclude(location__isnull=True)
+        .annotate(loc_geom=Cast("location", output_field=gis_models.GeometryField(srid=4326)))
+        .filter(loc_geom__within=bbox)
+    )
     if dataset is not None:
         qs = qs.filter(dataset=dataset)
 

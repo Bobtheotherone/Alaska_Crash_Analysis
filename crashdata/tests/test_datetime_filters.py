@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
+from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from crashdata.views import crashes_within_bbox_view, heatmap_view
@@ -92,6 +93,7 @@ class DateFilterBehaviorTests(SimpleTestCase):
         response = heatmap_view(request)
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"start_datetime", response.content)
+        self.assertIn(b"InvalidDatetime", response.content)
 
     def test_export_missing_dates(self):
         with patch("crashdata.views._get_dataset_for_user") as mock_get_dataset:
@@ -108,3 +110,26 @@ class DateFilterBehaviorTests(SimpleTestCase):
                 force_authenticate(request, user=self.user)
                 response = export_crashes_csv(request)
                 self.assertEqual(response.status_code, 200)
+
+    @patch("crashdata.views.queries.crashes_within_bbox")
+    def test_bbox_datetime_local_accepted_and_aware(self, mock_query):
+        mock_query.return_value = DummyQS()
+        request = self.factory.get(
+            "/api/crashdata/crashes-within-bbox/",
+            {
+                "min_lon": "-1",
+                "min_lat": "0",
+                "max_lon": "1",
+                "max_lat": "1",
+                "start_datetime": "2013-01-01T00:00",
+                "end_datetime": "2017-12-31T23:50",
+            },
+        )
+        force_authenticate(request, user=self.user)
+
+        response = crashes_within_bbox_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        kwargs = mock_query.call_args.kwargs
+        self.assertTrue(timezone.is_aware(kwargs["start_datetime"]))
+        self.assertTrue(timezone.is_aware(kwargs["end_datetime"]))

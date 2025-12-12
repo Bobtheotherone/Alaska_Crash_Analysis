@@ -1,13 +1,15 @@
 import csv
 import io
 import logging
-from datetime import datetime, time
+from uuid import UUID
+from datetime import datetime, time, timezone as dt_timezone
 
 from django.conf import settings
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -43,7 +45,10 @@ def _user_is_admin(user) -> bool:
 
 
 def _get_dataset_for_user(upload_id, user) -> UploadedDataset:
-    dataset = get_object_or_404(UploadedDataset, id=upload_id)
+    try:
+        dataset = get_object_or_404(UploadedDataset, id=upload_id)
+    except (ValidationError, ValueError):
+        raise Http404("No such upload.")
     if dataset.owner_id != getattr(user, "id", None) and not _user_is_admin(user):
         raise Http404("No such upload.")
     return dataset
@@ -56,13 +61,15 @@ def _parse_datetime_param(raw: str | None):
     dt = parse_datetime(raw)
     if dt is not None:
         if timezone.is_naive(dt):
-            dt = timezone.make_aware(dt, timezone=timezone.utc)
+            dt = timezone.make_aware(dt, timezone=dt_timezone.utc)
         return dt
 
     d = parse_date(raw)
     if d is not None:
         dt = datetime.combine(d, time.min)
-        return timezone.make_aware(dt, timezone=timezone.utc)
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, timezone=dt_timezone.utc)
+        return dt
 
     return None
 
@@ -92,11 +99,26 @@ def severity_histogram_view(request):
             request.query_params.get("end_datetime"), "end_datetime"
         )
     except ValueError as exc:
-        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            {"detail": str(exc), "error_type": "InvalidDatetime"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     dataset = None
     if upload_id:
-        dataset = _get_dataset_for_user(upload_id, request.user)
+        try:
+            parsed_upload_id = UUID(str(upload_id))
+        except (ValueError, AttributeError, TypeError):
+            return JsonResponse(
+                {"detail": "upload_id must be a valid UUID.", "error_type": "InvalidUUID"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            dataset = _get_dataset_for_user(parsed_upload_id, request.user)
+        except Http404:
+            return JsonResponse(
+                {"detail": "No such upload."}, status=status.HTTP_404_NOT_FOUND
+            )
 
     histogram_qs = queries.severity_histogram(
         dataset=dataset,
@@ -159,7 +181,19 @@ def crashes_within_bbox_view(request):
 
     dataset = None
     if upload_id:
-        dataset = _get_dataset_for_user(upload_id, request.user)
+        try:
+            parsed_upload_id = UUID(str(upload_id))
+        except (ValueError, AttributeError, TypeError):
+            return JsonResponse(
+                {"detail": "upload_id must be a valid UUID.", "error_type": "InvalidUUID"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            dataset = _get_dataset_for_user(parsed_upload_id, request.user)
+        except Http404:
+            return JsonResponse(
+                {"detail": "No such upload."}, status=status.HTTP_404_NOT_FOUND
+            )
 
     severity_param = request.query_params.get("severity") or ""
     if severity_param:
@@ -176,7 +210,10 @@ def crashes_within_bbox_view(request):
             request.query_params.get("end_datetime"), "end_datetime"
         )
     except ValueError as exc:
-        return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            {"detail": str(exc), "error_type": "InvalidDatetime"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         limit = int(request.query_params.get("limit", "5000"))
@@ -200,7 +237,29 @@ def crashes_within_bbox_view(request):
             start_datetime=start_dt,
             end_datetime=end_dt,
         ).select_related("dataset")
-    except Exception:
+
+        features = []
+        for crash in qs[:limit]:
+            if not crash.location:
+                continue
+            lon, lat = crash.location.coords
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [lon, lat]},
+                    "properties": {
+                        "id": crash.id,
+                        "crash_id": crash.crash_id,
+                        "severity": crash.severity,
+                        "crash_datetime": crash.crash_datetime.isoformat(),
+                        "roadway_name": crash.roadway_name,
+                        "municipality": crash.municipality,
+                        "posted_speed_limit": crash.posted_speed_limit,
+                        "dataset_id": str(crash.dataset_id),
+                    },
+                }
+            )
+    except Exception as exc:
         logger.exception(
             "Failed to query crashes within bbox",
             extra={
@@ -211,30 +270,12 @@ def crashes_within_bbox_view(request):
             },
         )
         return JsonResponse(
-            {"detail": "Internal error while querying crashes."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    features = []
-    for crash in qs[:limit]:
-        if not crash.location:
-            continue
-        lon, lat = crash.location.coords
-        features.append(
             {
-                "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [lon, lat]},
-                "properties": {
-                    "id": crash.id,
-                    "crash_id": crash.crash_id,
-                    "severity": crash.severity,
-                    "crash_datetime": crash.crash_datetime.isoformat(),
-                    "roadway_name": crash.roadway_name,
-                    "municipality": crash.municipality,
-                    "posted_speed_limit": crash.posted_speed_limit,
-                    "dataset_id": str(crash.dataset_id),
-                },
-            }
+                "detail": "Internal error while querying crashes.",
+                "error_type": exc.__class__.__name__,
+                **({"error": str(exc)} if settings.DEBUG else {}),
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     return JsonResponse(
@@ -290,7 +331,19 @@ def heatmap_view(request):
 
     dataset = None
     if upload_id:
-        dataset = _get_dataset_for_user(upload_id, request.user)
+        try:
+            parsed_upload_id = UUID(str(upload_id))
+        except (ValueError, AttributeError, TypeError):
+            return JsonResponse(
+                {"detail": "upload_id must be a valid UUID.", "error_type": "InvalidUUID"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            dataset = _get_dataset_for_user(parsed_upload_id, request.user)
+        except Http404:
+            return JsonResponse(
+                {"detail": "No such upload."}, status=status.HTTP_404_NOT_FOUND
+            )
 
     try:
         grid_size = float(request.query_params.get("grid_size", "0.05"))
@@ -331,7 +384,30 @@ def heatmap_view(request):
             start_datetime=start_dt,
             end_datetime=end_dt,
         ).only("location")
-    except Exception:
+
+        # Aggregate into simple grid cells.
+        buckets: dict[tuple[int, int], int] = {}
+        for crash in qs:
+            if not crash.location:
+                continue
+            lon, lat = crash.location.coords
+            x = int(lon // grid_size)
+            y = int(lat // grid_size)
+            key = (x, y)
+            buckets[key] = buckets.get(key, 0) + 1
+
+        cells = []
+        for (x, y), count in buckets.items():
+            center_lon = (x + 0.5) * grid_size
+            center_lat = (y + 0.5) * grid_size
+            cells.append(
+                {
+                    "count": count,
+                    "center": [center_lon, center_lat],
+                    "grid_size": grid_size,
+                }
+            )
+    except Exception as exc:
         logger.exception(
             "Failed to query heatmap within bbox",
             extra={
@@ -342,31 +418,12 @@ def heatmap_view(request):
             },
         )
         return JsonResponse(
-            {"detail": "Internal error while querying heatmap."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    # Aggregate into simple grid cells.
-    buckets: dict[tuple[int, int], int] = {}
-    for crash in qs:
-        if not crash.location:
-            continue
-        lon, lat = crash.location.coords
-        x = int(lon // grid_size)
-        y = int(lat // grid_size)
-        key = (x, y)
-        buckets[key] = buckets.get(key, 0) + 1
-
-    cells = []
-    for (x, y), count in buckets.items():
-        center_lon = (x + 0.5) * grid_size
-        center_lat = (y + 0.5) * grid_size
-        cells.append(
             {
-                "count": count,
-                "center": [center_lon, center_lat],
-                "grid_size": grid_size,
-            }
+                "detail": "Internal error while querying heatmap.",
+                "error_type": exc.__class__.__name__,
+                **({"error": str(exc)} if settings.DEBUG else {}),
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     return JsonResponse(

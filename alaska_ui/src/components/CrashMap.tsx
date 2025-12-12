@@ -90,6 +90,44 @@ const boundsToBbox = (bounds: LatLngBounds): Bbox => ({
   maxLat: bounds.getNorth(),
 });
 
+const wrapLon = (lon: number) =>
+  ((((lon + 180) % 360) + 360) % 360) - 180;
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
+const normalizeBboxes = (bbox: Bbox | null): Bbox[] => {
+  if (!bbox) return [];
+  const { minLon, maxLon, minLat, maxLat } = bbox;
+  if (![minLon, maxLon, minLat, maxLat].every((v) => Number.isFinite(v))) {
+    return [];
+  }
+
+  const wrappedMinLon = wrapLon(minLon);
+  const wrappedMaxLon = wrapLon(maxLon);
+  const boundedMinLat = clamp(minLat, -90, 90);
+  const boundedMaxLat = clamp(maxLat, -90, 90);
+
+  if (boundedMinLat >= boundedMaxLat) return [];
+
+  if (wrappedMinLon <= wrappedMaxLon) {
+    return [
+      {
+        minLon: wrappedMinLon,
+        maxLon: wrappedMaxLon,
+        minLat: boundedMinLat,
+        maxLat: boundedMaxLat,
+      },
+    ];
+  }
+
+  // Dateline crossing: split into two bboxes to keep longitudes in [-180, 180].
+  return [
+    { minLon: -180, maxLon: wrappedMaxLon, minLat: boundedMinLat, maxLat: boundedMaxLat },
+    { minLon: wrappedMinLon, maxLon: 180, minLat: boundedMinLat, maxLat: boundedMaxLat },
+  ].filter((b) => b.minLon < b.maxLon && b.minLat < b.maxLat);
+};
+
 const gridSizeForZoom = (zoom: number) => {
   if (zoom >= 11) return 0.01;
   if (zoom >= 8) return 0.025;
@@ -184,6 +222,7 @@ const CrashMap: React.FC<CrashMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   const gridSize = useMemo(() => gridSizeForZoom(zoom), [zoom]);
+  const normalizedBboxes = useMemo(() => normalizeBboxes(bbox), [bbox]);
 
   const onViewportChange = useCallback((nextBbox: Bbox, nextZoom: number) => {
     setBbox(nextBbox);
@@ -324,7 +363,17 @@ const CrashMap: React.FC<CrashMapProps> = ({
   }, [datasetStats, datesTouched, startDate, endDate]);
 
   useEffect(() => {
-    if (!uploadId || !bbox || !showPoints) {
+    if (!uploadId || !showPoints) {
+      setFeatures([]);
+      setFeatureCount(0);
+      setLimitNotice(false);
+      setPointLoading(false);
+      setPointError(null);
+      setLimitValue(null);
+      return;
+    }
+
+    if (!normalizedBboxes.length) {
       setFeatures([]);
       setFeatureCount(0);
       setLimitNotice(false);
@@ -351,51 +400,85 @@ const CrashMap: React.FC<CrashMapProps> = ({
 
     const timer = setTimeout(async () => {
       try {
-        const params = new URLSearchParams({
-          upload_id: uploadId,
-          min_lon: bbox.minLon.toString(),
-          min_lat: bbox.minLat.toString(),
-          max_lon: bbox.maxLon.toString(),
-          max_lat: bbox.maxLat.toString(),
-          limit: POINT_LIMIT.toString(),
-        });
-        appendFilters(params);
+        const fetchForBbox = async (box: Bbox) => {
+          const params = new URLSearchParams({
+            upload_id: uploadId,
+            min_lon: box.minLon.toString(),
+            min_lat: box.minLat.toString(),
+            max_lon: box.maxLon.toString(),
+            max_lat: box.maxLat.toString(),
+            limit: POINT_LIMIT.toString(),
+          });
+          appendFilters(params);
 
-        const resp = await fetch(
-          `/api/crashdata/crashes-within-bbox/?${params.toString()}`,
-          {
-            method: "GET",
-            headers: { Accept: "application/json", ...authHeader() },
-            signal: controller.signal,
+          const resp = await fetch(
+            `/api/crashdata/crashes-within-bbox/?${params.toString()}`,
+            {
+              method: "GET",
+              headers: { Accept: "application/json", ...authHeader() },
+              signal: controller.signal,
+            }
+          );
+
+          if (!resp.ok) {
+            const contentType =
+              resp.headers.get("content-type")?.toLowerCase() || "";
+            let message = `Request failed (${resp.status})`;
+            if (resp.status === 401 || resp.status === 403) {
+              message =
+                "You may not be logged in or lack access to this dataset.";
+            } else if (contentType.includes("application/json")) {
+              try {
+                const data = await resp.json();
+                if (data?.detail) message = String(data.detail);
+              } catch {
+                // ignore parse errors
+              }
+            }
+            throw new Error(message);
           }
+
+          const data = await resp.json();
+          const respFeatures = (data?.features as CrashFeature[]) || [];
+          const respCount = Number.isFinite(Number(data?.count))
+            ? Number(data?.count)
+            : respFeatures.length;
+          const respLimit = Number.isFinite(Number(data?.limit))
+            ? Number(data?.limit)
+            : POINT_LIMIT;
+
+          return { respFeatures, respCount, respLimit };
+        };
+
+        const responses = await Promise.all(
+          normalizedBboxes.map((box) => fetchForBbox(box))
         );
 
-        if (!resp.ok) {
-          const contentType =
-            resp.headers.get("content-type")?.toLowerCase() || "";
-          let message = `Request failed (${resp.status})`;
-          if (resp.status === 401 || resp.status === 403) {
-            message =
-              "You may not be logged in or lack access to this dataset.";
-          } else if (contentType.includes("application/json")) {
-            try {
-              const data = await resp.json();
-              if (data?.detail) message = String(data.detail);
-            } catch {
-              // ignore parse errors
-            }
-          }
-          throw new Error(message);
-        }
+        const featureMap = new Map<string, CrashFeature>();
+        let limitHit = false;
+        let limitUsed: number | null = null;
 
-        const data = await resp.json();
-        const respFeatures = (data?.features as CrashFeature[]) || [];
-        const respCount = Number(data?.count ?? respFeatures.length);
-        const respLimit = Number(data?.limit ?? 0);
-        setFeatures(respFeatures);
-        setFeatureCount(respCount);
-        setLimitNotice(respLimit > 0 && respCount === respLimit);
-        setLimitValue(respLimit > 0 ? respLimit : null);
+        responses.forEach(({ respFeatures, respCount, respLimit }) => {
+          respFeatures.forEach((feature) => {
+            const key =
+              feature?.properties?.id !== undefined
+                ? String(feature.properties.id)
+                : feature?.properties?.crash_id ?? feature.geometry.coordinates.join(",");
+            if (!featureMap.has(key)) {
+              featureMap.set(key, feature);
+            }
+          });
+          if (respLimit > 0 && respCount >= respLimit) {
+            limitHit = true;
+            limitUsed = respLimit;
+          }
+        });
+
+        const mergedFeatures = Array.from(featureMap.values());
+        setFeatures(mergedFeatures);
+        setFeatureCount(mergedFeatures.length);
+        setLimitNotice(limitHit);
+        setLimitValue(limitHit ? limitUsed ?? POINT_LIMIT : null);
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         console.error("[CrashMap] Point fetch failed:", err);
@@ -415,7 +498,7 @@ const CrashMap: React.FC<CrashMapProps> = ({
     };
   }, [
     uploadId,
-    bbox,
+    normalizedBboxes,
     severity,
     municipality,
     startDate,
@@ -427,7 +510,14 @@ const CrashMap: React.FC<CrashMapProps> = ({
   ]);
 
   useEffect(() => {
-    if (!uploadId || !bbox || !showHeatmap) {
+    if (!uploadId || !showHeatmap) {
+      setHeatCells([]);
+      setHeatLoading(false);
+      setHeatError(null);
+      return;
+    }
+
+    if (!normalizedBboxes.length) {
       setHeatCells([]);
       setHeatLoading(false);
       setHeatError(null);
@@ -451,45 +541,80 @@ const CrashMap: React.FC<CrashMapProps> = ({
 
     const timer = setTimeout(async () => {
       try {
-        const params = new URLSearchParams({
-          upload_id: uploadId,
-          min_lon: bbox.minLon.toString(),
-          min_lat: bbox.minLat.toString(),
-          max_lon: bbox.maxLon.toString(),
-          max_lat: bbox.maxLat.toString(),
-          grid_size: gridSize.toString(),
-        });
-        appendFilters(params);
+        const fetchHeatForBbox = async (box: Bbox) => {
+          const params = new URLSearchParams({
+            upload_id: uploadId,
+            min_lon: box.minLon.toString(),
+            min_lat: box.minLat.toString(),
+            max_lon: box.maxLon.toString(),
+            max_lat: box.maxLat.toString(),
+            grid_size: gridSize.toString(),
+          });
+          appendFilters(params);
 
-        const resp = await fetch(
-          `/api/crashdata/heatmap/?${params.toString()}`,
-          {
-            method: "GET",
-            headers: { Accept: "application/json", ...authHeader() },
-            signal: controller.signal,
+          const resp = await fetch(
+            `/api/crashdata/heatmap/?${params.toString()}`,
+            {
+              method: "GET",
+              headers: { Accept: "application/json", ...authHeader() },
+              signal: controller.signal,
+            }
+          );
+
+          if (!resp.ok) {
+            const contentType =
+              resp.headers.get("content-type")?.toLowerCase() || "";
+            let message = `Request failed (${resp.status})`;
+            if (resp.status === 401 || resp.status === 403) {
+              message =
+                "You may not be logged in or lack access to this dataset.";
+            } else if (contentType.includes("application/json")) {
+              try {
+                const data = await resp.json();
+                if (data?.detail) message = String(data.detail);
+              } catch {
+                // ignore parse errors
+              }
+            }
+            throw new Error(message);
           }
+
+          const data = await resp.json();
+          const cells = (data?.cells as HeatCell[]) || [];
+          const returnedGrid =
+            Number.isFinite(Number(data?.grid_size)) && Number(data?.grid_size) > 0
+              ? Number(data?.grid_size)
+              : gridSize;
+          return { cells, returnedGrid };
+        };
+
+        const responses = await Promise.all(
+          normalizedBboxes.map((box) => fetchHeatForBbox(box))
         );
 
-        if (!resp.ok) {
-          const contentType =
-            resp.headers.get("content-type")?.toLowerCase() || "";
-          let message = `Request failed (${resp.status})`;
-          if (resp.status === 401 || resp.status === 403) {
-            message =
-              "You may not be logged in or lack access to this dataset.";
-          } else if (contentType.includes("application/json")) {
-            try {
-              const data = await resp.json();
-              if (data?.detail) message = String(data.detail);
-            } catch {
-              // ignore parse errors
+        const cellMap = new Map<string, HeatCell>();
+        responses.forEach(({ cells, returnedGrid }) => {
+          cells.forEach((cell) => {
+            const grid = Number.isFinite(cell.grid_size)
+              ? cell.grid_size
+              : returnedGrid;
+            const key = `${grid}:${cell.center[0]},${cell.center[1]}`;
+            const existing = cellMap.get(key);
+            if (existing) {
+              cellMap.set(key, {
+                ...existing,
+                count: existing.count + cell.count,
+              });
+            } else {
+              cellMap.set(key, {
+                ...cell,
+                grid_size: grid,
+              });
             }
-          }
-          throw new Error(message);
-        }
+          });
+        });
 
-        const data = await resp.json();
-        setHeatCells((data?.cells as HeatCell[]) || []);
+        setHeatCells(Array.from(cellMap.values()));
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         console.error("[CrashMap] Heatmap fetch failed:", err);
@@ -509,7 +634,7 @@ const CrashMap: React.FC<CrashMapProps> = ({
     };
   }, [
     uploadId,
-    bbox,
+    normalizedBboxes,
     severity,
     municipality,
     startDate,

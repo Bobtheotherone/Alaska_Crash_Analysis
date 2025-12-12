@@ -1,3 +1,13 @@
+# --- virtual environments ---
+.venv/
+.venv*/
+venv/
+env/
+
+# --- local database ---
+db.sqlite3
+*.sqlite3
+
 # keep raw data files out of version control
 *.xlsx
 *.csv

@@ -80,6 +80,9 @@ const SEVERITY_COLORS: Record<string, string> = {
   O: "#6b7280",
 };
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const boundsToBbox = (bounds: LatLngBounds): Bbox => ({
   minLon: bounds.getWest(),
   minLat: bounds.getSouth(),
@@ -230,6 +233,14 @@ const CrashMap: React.FC<CrashMapProps> = ({
       return;
     }
 
+    if (!UUID_REGEX.test(uploadId)) {
+      setDatasetStats(null);
+      setStatsUnavailable(false);
+      setStatsError("Invalid dataset id (expected UUID).");
+      setStatsLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
     setStatsLoading(true);
     setStatsError(null);
@@ -242,19 +253,41 @@ const CrashMap: React.FC<CrashMapProps> = ({
           headers: { Accept: "application/json", ...authHeader() },
           signal: controller.signal,
         });
+        const contentType =
+          resp.headers.get("content-type")?.toLowerCase() || "";
         if (resp.status === 404) {
-          // Older backends may not expose the stats endpoint yet.
+          if (contentType.includes("application/json")) {
+            try {
+              const data = await resp.json();
+              const detail =
+                (data && (data.detail || data.error || data.message)) || null;
+              setDatasetStats(null);
+              setStatsError(
+                detail
+                  ? String(detail)
+                  : "Dataset not found or you may not have access."
+              );
+              return;
+            } catch {
+              // fall through to unavailable handling below
+            }
+          }
           setDatasetStats(null);
           setStatsUnavailable(true);
           return;
         }
         if (!resp.ok) {
-          let message = `Stats request failed (${resp.status})`;
-          try {
-            const data = await resp.json();
-            if (data?.detail) message = String(data.detail);
-          } catch {
-            // ignore
+          let message =
+            resp.status === 401 || resp.status === 403
+              ? "You may not be logged in or lack access to this dataset."
+              : `Stats request failed (${resp.status})`;
+          if (contentType.includes("application/json")) {
+            try {
+              const data = await resp.json();
+              if (data?.detail) message = String(data.detail);
+            } catch {
+              // ignore parse errors
+            }
           }
           throw new Error(message);
         }
@@ -338,11 +371,13 @@ const CrashMap: React.FC<CrashMapProps> = ({
         );
 
         if (!resp.ok) {
+          const contentType =
+            resp.headers.get("content-type")?.toLowerCase() || "";
           let message = `Request failed (${resp.status})`;
           if (resp.status === 401 || resp.status === 403) {
             message =
               "You may not be logged in or lack access to this dataset.";
-          } else if (resp.status === 400) {
+          } else if (contentType.includes("application/json")) {
             try {
               const data = await resp.json();
               if (data?.detail) message = String(data.detail);
@@ -436,11 +471,13 @@ const CrashMap: React.FC<CrashMapProps> = ({
         );
 
         if (!resp.ok) {
+          const contentType =
+            resp.headers.get("content-type")?.toLowerCase() || "";
           let message = `Request failed (${resp.status})`;
           if (resp.status === 401 || resp.status === 403) {
             message =
               "You may not be logged in or lack access to this dataset.";
-          } else if (resp.status === 400) {
+          } else if (contentType.includes("application/json")) {
             try {
               const data = await resp.json();
               if (data?.detail) message = String(data.detail);

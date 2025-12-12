@@ -488,20 +488,35 @@ def dataset_stats_view(request, upload_id: str):
 @permission_classes([IsAuthenticated])
 def import_crash_records_view(request, upload_id: str):
     """Run the crash record import for a dataset so the map has data."""
+    start = timezone.now()
     dataset = _get_dataset_for_user(upload_id, request.user)
     try:
         imported, mappable = import_crash_records_for_dataset(dataset)
     except ImportError as exc:
         return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.exception(
+            "Unexpected error importing crash records",
+            extra={"dataset_id": str(upload_id)},
+        )
+        return JsonResponse(
+            {"detail": "Internal error importing crash records."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
-    return JsonResponse(
+    response = JsonResponse(
         {
             "status": "completed",
             "upload_id": str(dataset.id),
             "imported": imported,
             "mappable": mappable,
+            "duration_sec": (timezone.now() - start).total_seconds(),
         }
     )
+    response["X-Alaska-Import-Duration"] = str(
+        round((timezone.now() - start).total_seconds(), 3)
+    )
+    return response
 
 
 # Throttle scope for exports

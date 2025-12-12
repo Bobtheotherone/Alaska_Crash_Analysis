@@ -3,6 +3,7 @@ import io
 import logging
 from datetime import datetime, time
 
+from django.conf import settings
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -171,17 +172,32 @@ def crashes_within_bbox_view(request):
     if limit <= 0 or limit > 50000:
         limit = 5000
 
-    qs = queries.crashes_within_bbox(
-        dataset=dataset,
-        min_lon=min_lon,
-        min_lat=min_lat,
-        max_lon=max_lon,
-        max_lat=max_lat,
-        severity=severity,
-        municipality=municipality,
-        start_datetime=start_dt,
-        end_datetime=end_dt,
-    ).select_related("dataset")
+    try:
+        qs = queries.crashes_within_bbox(
+            dataset=dataset,
+            min_lon=min_lon,
+            min_lat=min_lat,
+            max_lon=max_lon,
+            max_lat=max_lat,
+            severity=severity,
+            municipality=municipality,
+            start_datetime=start_dt,
+            end_datetime=end_dt,
+        ).select_related("dataset")
+    except Exception:
+        logger.exception(
+            "Failed to query crashes within bbox",
+            extra={
+                "upload_id": upload_id,
+                "bbox": [min_lon, min_lat, max_lon, max_lat],
+                "start_dt": start_dt,
+                "end_dt": end_dt,
+            },
+        )
+        return JsonResponse(
+            {"detail": "Internal error while querying crashes."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     features = []
     for crash in qs[:limit]:
@@ -271,17 +287,32 @@ def heatmap_view(request):
     except ValueError as exc:
         return JsonResponse({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
-    qs = queries.crashes_within_bbox(
-        dataset=dataset,
-        min_lon=min_lon,
-        min_lat=min_lat,
-        max_lon=max_lon,
-        max_lat=max_lat,
-        severity=severity,
-        municipality=municipality,
-        start_datetime=start_dt,
-        end_datetime=end_dt,
-    ).only("location")
+    try:
+        qs = queries.crashes_within_bbox(
+            dataset=dataset,
+            min_lon=min_lon,
+            min_lat=min_lat,
+            max_lon=max_lon,
+            max_lat=max_lat,
+            severity=severity,
+            municipality=municipality,
+            start_datetime=start_dt,
+            end_datetime=end_dt,
+        ).only("location")
+    except Exception:
+        logger.exception(
+            "Failed to query heatmap within bbox",
+            extra={
+                "upload_id": upload_id,
+                "bbox": [min_lon, min_lat, max_lon, max_lat],
+                "start_dt": start_dt,
+                "end_dt": end_dt,
+            },
+        )
+        return JsonResponse(
+            {"detail": "Internal error while querying heatmap."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     # Aggregate into simple grid cells.
     buckets: dict[tuple[int, int], int] = {}
@@ -438,7 +469,7 @@ def dataset_stats_view(request, upload_id: str):
         min_dt=Min("crash_datetime"),
         max_dt=Max("crash_datetime"),
     )
-    return JsonResponse(
+    response = JsonResponse(
         {
             "upload_id": str(dataset.id),
             "crashrecord_count": agg["crashrecord_count"] or 0,
@@ -447,6 +478,10 @@ def dataset_stats_view(request, upload_id: str):
             "max_crash_datetime": agg["max_dt"].isoformat() if agg["max_dt"] else None,
         }
     )
+    version = getattr(settings, "SPECTACULAR_SETTINGS", {}).get("VERSION")
+    if version:
+        response["X-Alaska-Backend-Version"] = str(version)
+    return response
 
 
 @api_view(["POST"])

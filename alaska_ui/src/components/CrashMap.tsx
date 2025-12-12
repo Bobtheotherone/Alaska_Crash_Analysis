@@ -95,6 +95,18 @@ const gridSizeForZoom = (zoom: number) => {
   return 0.25;
 };
 
+const isoToDatetimeLocal = (iso: string): string => {
+  const dt = new Date(iso);
+  if (!Number.isFinite(dt.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const yyyy = dt.getUTCFullYear();
+  const mm = pad(dt.getUTCMonth() + 1);
+  const dd = pad(dt.getUTCDate());
+  const hh = pad(dt.getUTCHours());
+  const min = pad(dt.getUTCMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+};
+
 const getHeatColor = (count: number, maxCount: number) => {
   if (maxCount <= 0) return "#e5e7eb";
   const t = Math.min(1, count / maxCount);
@@ -157,6 +169,8 @@ const CrashMap: React.FC<CrashMapProps> = ({
   const [datasetStats, setDatasetStats] = useState<DatasetStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
+  const [statsUnavailable, setStatsUnavailable] = useState(false);
+  const [datesTouched, setDatesTouched] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
@@ -211,6 +225,7 @@ const CrashMap: React.FC<CrashMapProps> = ({
     if (!uploadId) {
       setDatasetStats(null);
       setStatsError(null);
+      setStatsUnavailable(false);
       setStatsLoading(false);
       return;
     }
@@ -218,6 +233,7 @@ const CrashMap: React.FC<CrashMapProps> = ({
     const controller = new AbortController();
     setStatsLoading(true);
     setStatsError(null);
+    setStatsUnavailable(false);
 
     (async () => {
       try {
@@ -226,6 +242,12 @@ const CrashMap: React.FC<CrashMapProps> = ({
           headers: { Accept: "application/json", ...authHeader() },
           signal: controller.signal,
         });
+        if (resp.status === 404) {
+          // Older backends may not expose the stats endpoint yet.
+          setDatasetStats(null);
+          setStatsUnavailable(true);
+          return;
+        }
         if (!resp.ok) {
           let message = `Stats request failed (${resp.status})`;
           try {
@@ -253,6 +275,20 @@ const CrashMap: React.FC<CrashMapProps> = ({
 
     return () => controller.abort();
   }, [uploadId, authHeader, refreshNonce]);
+
+  useEffect(() => {
+    if (!datasetStats || datesTouched) return;
+    const minIso = datasetStats.min_crash_datetime;
+    const maxIso = datasetStats.max_crash_datetime;
+    if (minIso && (!startDate || !startDate.trim())) {
+      const converted = isoToDatetimeLocal(minIso);
+      if (converted) setStartDate(converted);
+    }
+    if (maxIso && (!endDate || !endDate.trim())) {
+      const converted = isoToDatetimeLocal(maxIso);
+      if (converted) setEndDate(converted);
+    }
+  }, [datasetStats, datesTouched, startDate, endDate]);
 
   useEffect(() => {
     if (!uploadId || !bbox || !showPoints) {
@@ -590,7 +626,14 @@ const CrashMap: React.FC<CrashMapProps> = ({
     if (mapRef.current) {
       mapRef.current.invalidateSize();
     }
-  }, [statsError, datasetStats, ingestionSummary, pointError, heatError]);
+  }, [
+    statsError,
+    statsUnavailable,
+    datasetStats,
+    ingestionSummary,
+    pointError,
+    heatError,
+  ]);
 
   if (!uploadId) {
     return (
@@ -662,6 +705,10 @@ const CrashMap: React.FC<CrashMapProps> = ({
                 </span>
               )}
             </>
+          ) : statsUnavailable ? (
+            <span className="text-neutral-darker bg-neutral-light border border-neutral-medium rounded px-2 py-1">
+              Dataset stats unavailable on this server.
+            </span>
           ) : (
             <span>Dataset stats not loaded.</span>
           )}
@@ -775,7 +822,10 @@ const CrashMap: React.FC<CrashMapProps> = ({
             <input
               type="datetime-local"
               value={startDate ?? ""}
-              onChange={(e) => setStartDate(e.target.value || null)}
+              onChange={(e) => {
+                setDatesTouched(true);
+                setStartDate(e.target.value || null);
+              }}
               className="border border-neutral-medium rounded px-2 py-1 text-sm w-48"
               placeholder="mm/dd/yyyy --:-- --"
             />
@@ -787,7 +837,10 @@ const CrashMap: React.FC<CrashMapProps> = ({
             <input
               type="datetime-local"
               value={endDate ?? ""}
-              onChange={(e) => setEndDate(e.target.value || null)}
+              onChange={(e) => {
+                setDatesTouched(true);
+                setEndDate(e.target.value || null);
+              }}
               className="border border-neutral-medium rounded px-2 py-1 text-sm w-48"
               placeholder="mm/dd/yyyy --:-- --"
             />

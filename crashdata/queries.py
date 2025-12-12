@@ -68,6 +68,7 @@ def crashes_within_bbox(
 ) -> QuerySet:
     """Return crash records that fall within the provided bounding box."""
     bbox = Polygon.from_bbox((min_lon, min_lat, max_lon, max_lat))
+    bbox.srid = 4326
     qs: QuerySet = CrashRecord.objects.filter(location__within=bbox)
     if dataset is not None:
         qs = qs.filter(dataset=dataset)

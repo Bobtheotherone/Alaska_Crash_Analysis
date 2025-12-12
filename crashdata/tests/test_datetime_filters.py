@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from crashdata.views import crashes_within_bbox_view, heatmap_view
+from crashdata.views import export_crashes_csv
 
 
 class DummyQS:
@@ -91,3 +92,19 @@ class DateFilterBehaviorTests(SimpleTestCase):
         response = heatmap_view(request)
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"start_datetime", response.content)
+
+    def test_export_missing_dates(self):
+        with patch("crashdata.views._get_dataset_for_user") as mock_get_dataset:
+            dataset = SimpleNamespace(id="abc")
+            mock_get_dataset.return_value = dataset
+            with patch("crashdata.views.CrashRecord.objects.filter") as mock_filter:
+                qs = DummyQS()
+                qs.count = lambda: 0
+                qs.iterator = lambda: iter([])
+                mock_filter.return_value = qs
+                request = self.factory.get(
+                    "/api/crashdata/exports/crashes.csv", {"upload_id": "abc"}
+                )
+                force_authenticate(request, user=self.user)
+                response = export_crashes_csv(request)
+                self.assertEqual(response.status_code, 200)

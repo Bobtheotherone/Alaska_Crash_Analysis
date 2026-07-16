@@ -32,7 +32,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13"]
+        # 3.11 removed at r4: the pinned xgboost==3.3.0 requires Python >=3.12
+        # (hosted evidence: 3.12/3.13 green on both OSes; 3.11 cannot install the lock)
+        python-version: ["3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

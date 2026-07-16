@@ -7,13 +7,14 @@ Two levels of reproduction: (A) the code, tests, and re-analysis with **no raw d
 
 ```bash
 cd remediation
-python -m pip install -r requirements-lock.txt   # minimal DIRECT pins - not a resolved transitive lock (Py 3.11-3.13)
+python -m pip install -r requirements-lock.txt   # minimal DIRECT pins - not a resolved transitive lock (Py 3.12-3.13; the xgboost==3.3.0 pin requires >=3.12)
 python -m pip install -e .
 ```
 
-A CI workflow is defined (`.github/workflows/crashsev-ci.yml`) and has been run **locally**
-(Windows, Python 3.13); it has **not** run on hosted CI (Windows/Linux across Python
-3.11/3.12/3.13) because the branch is unpublished.
+CI workflows are defined (`.github/workflows/crashsev-ci.yml` — test matrix on
+Windows/Linux across Python 3.12/3.13 — and `.github/workflows/verify-portfolio.yml`
+— the no-license verification tier); their hosted execution status is visible on the
+public repository.
 
 ## A. Reproduce without raw data (anyone)
 

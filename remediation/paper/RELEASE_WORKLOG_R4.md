@@ -202,3 +202,41 @@ deterministic package/handoff rebuilt from the final commit):
   release manifests are rebuilt from the final commit so `release_commit` and
   `canonical/` match it exactly. The PDF is not rebuilt (its source is
   unchanged; hash above remains the build of record).
+
+### Phase 10 — publication (2026-07-16)
+
+- Author chose publication route (a): **snapshot commit** `3d95b7cb` created
+  with `git commit-tree` (tree byte-identical to the frozen finalization
+  commit `c1ad9bd`; parent = public default tip `bb9247a`); branch and
+  annotated tag `portfolio-final-r4` re-pointed to it before any push; the
+  full lineage preserved locally at `portfolio-final-r4-local`; handoff
+  rebuilt at the snapshot commit (clean-room PASS; MANIFEST `release_commit`
+  = `3d95b7cb`); release SHA256SUMS surgically refreshed for the two files
+  that change with the rebuild (MANIFEST.json, the stable-named ZIP, plus the
+  re-captured cleanroom_results.json) and every one of the 48 lines
+  re-verified.
+- GitHub auth: the CLI token initially lacked the `workflow` scope (push
+  rejected); resolved with an author-supplied PAT consumed from a local file
+  (deleted immediately; never in chat or repo).
+- Pushed `refs/heads/portfolio-final-r4` and `refs/tags/portfolio-final-r4`
+  (no force). PR #2 opened against `integrate-peyton-ml`. Repository
+  description + 11 topics set; no homepage.
+- **First hosted CI executions ever for this project.** Results on the
+  snapshot commit: 3.12/3.13 green on BOTH OSes (8 matrix-cell/step successes
+  overall) with two defect classes, both CI-infrastructure, zero scientific
+  impact:
+  1. `xgboost==3.3.0` (the frozen environment's pin) requires Python >=3.12,
+     so the 3.11 matrix cells cannot install the lock → 3.11 removed from the
+     matrix; `research/REPRODUCE.md` environment note corrected to
+     Py 3.12–3.13 (its "not run on hosted CI / branch unpublished" sentence
+     was also stale after publication and was updated).
+  2. `verify_manuscript_numbers.py` artifact-existence check for the two
+     policy-gitignored parquets knew only two resolutions (working tree,
+     package evidence tier); in a bare hosted checkout neither exists → added
+     the third resolution: verify the committed pin sidecar and emit a
+     SKIP-NOTE (the parquets ship in the release evidence tier and are
+     hash-checked at packaging). Local verifier remains 926/926.
+- These fixes are follow-up commits on the public branch; the release tag
+  remains on the verified snapshot commit unless the author approves
+  re-pointing before the release is drafted (recorded in
+  `GITHUB_PUBLICATION_R4.md`).

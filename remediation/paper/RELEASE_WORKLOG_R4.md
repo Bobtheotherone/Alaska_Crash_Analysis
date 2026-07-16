@@ -264,7 +264,25 @@ deterministic package/handoff rebuilt from the final commit):
   the diff is exactly the one changed figure.
 - Verified visually at high resolution (standalone figure) and at print size
   (page-27 render of the rebuilt 56-page PDF): every label clear of markers,
-  lines, the diagonal, and the legend; identical plotted values; identical
-  numeric token multiset (same sixteen counts). Full gate suite + packaging
-  rerun follows; the tag and draft-release assets are refreshed to the fixed
-  build (pre-publication, author-requested change).
+  lines, the diagonal, and the legend; identical plotted values. Full gate
+  suite + packaging rerun; the tag and draft-release assets are refreshed to
+  the fixed build (pre-publication, author-requested change).
+- Two additional defects were caught and fixed during this pass:
+  1. The first halo implementation (matplotlib `path_effects.withStroke`)
+     rendered the count glyphs as vector paths in the PDF backend — the
+     numeric-token gate flagged 18 vanished tokens (non-searchable text).
+     Replaced with a softly transparent white bbox pad behind real text; all
+     16 labels verified machine-extractable.
+  2. Packaging from the snapshot lineage exposed the frozen verifier's
+     ancestry check (merge-base vs governed baseline `42194a6` fails on graph
+     topology even though content is intact). Added the content-check
+     fallback: when the baseline object exists but is not an ancestor, the
+     gate diffs the baseline tree vs HEAD over the frozen paths
+     (modifications/deletions forbidden; additions allowed) — the same rule
+     the manuscript verifier applies. Gate: 34/34 on the snapshot lineage.
+- Final fixed build: PDF sha256
+  `f50b79b54dfe9ed03ef551042bb3b0c6eafb604920d0f7101a7f2284df9facc7`
+  (56 pages, 1,021,889 B); rebuild-from-source text-identical on all pages;
+  token diff vs r3 = the prior enumerated set plus exactly the de-overlap
+  signature (r3's mashed extraction token `8,7061,958` → clean `8,706` +
+  `1,958`; every governed numeric token unchanged).

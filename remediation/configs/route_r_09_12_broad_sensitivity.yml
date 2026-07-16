@@ -1,0 +1,43 @@
+# v4 SENSITIVITY configuration — broad feature tier (FEAT-001 robustness check B4).
+# Identical to the canonical v4 config (configs/route_r_09_12.yml) except feature_tier: broad.
+# This run is a SENSITIVITY, not the headline benchmark: it measures what the conservative
+# strict-tier restriction costs/changes with the protocol, decision rule, seeds, and cohort
+# held fixed. Its outputs live under experiment_broad_sensitivity/ and its own frozen bundle.
+
+use_case: post_crash_triage
+year_col: Year
+group_col: Crash Number
+row_id_col: Crash Number
+final_test_years: [2012]
+
+n_classes: 3
+primary_metric: ordinal_mae
+decision_rule: posterior_median
+
+feature_tier: broad            # <- the ONLY substantive difference from route_r_09_12.yml
+exclude_high_coupling: false
+
+baseline_set:
+  - majority
+  - ordinal_median
+  - prior_probability
+  - multinomial_logistic
+  - proportional_odds
+  - frank_hall_logistic
+  - shallow_tree
+
+cv_strategy: rolling
+cv_seeds: [1, 2, 3]
+cv_n_splits: 3
+cv_models: null
+
+include_optional_models: true
+min_frequency: 0.01
+categorical_max_cardinality: 100
+
+bootstrap_resamples: 2000
+seed: 42
+
+calibrate: true
+calibration_method: sigmoid
+calibration_folds: temporal

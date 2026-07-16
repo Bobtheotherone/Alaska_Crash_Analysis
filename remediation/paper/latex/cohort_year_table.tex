@@ -1,0 +1,27 @@
+% GENERATED FILE — do not edit by hand.
+% Source: tools/gen_cohort_year_table.py (canonical modeling table, reconciled
+% against the frozen target audits).
+\begin{table}[htbp]
+\centering
+\caption{Year-by-year cohort accounting (mapped working classes and quarantine).}
+\label{tab:cohort-year}
+\footnotesize
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}l R{0.0815\textwidth} R{0.0815\textwidth} R{0.107\textwidth} R{0.085\textwidth} R{0.085\textwidth} R{0.075\textwidth} R{0.09\textwidth} Y@{}}
+\toprule
+\textbf{Year} & \textbf{Source rows} & \textbf{Mapped} & \textbf{Quarantined} & \textbf{Class 0} & \textbf{Class 1} & \textbf{Class 2} & \textbf{Class-2 share} & \textbf{Role} \\
+\midrule
+2009 & 12,862 & 11,920 & 942 & 8,086 & 3,392 & 442 & 0.037 & Development \\
+2010 & 12,459 & 11,590 & 869 & 7,902 & 3,245 & 443 & 0.038 & Development \\
+2011 & 12,682 & 11,704 & 978 & 8,181 & 3,107 & 416 & 0.036 & Development \\
+\midrule
+2009--2011 & 38,003 & 35,214 & 2,789 & 24,169 & 9,744 & 1,301 & 0.037 & Development total \\
+\midrule
+2012 & 12,540 & 11,630 & 910 & 7,877 & 3,303 & 450 & 0.039 & Final retrospective \\
+\midrule
+Total & 50,543 & 46,844 & 3,699 & 32,046 & 13,047 & 1,751 & 0.037 & --- \\
+\bottomrule
+\end{tabularx}
+\endgroup
+\tabnote{Counts are computed from the canonical modeling table and reconcile exactly with the frozen target audits (\artifact{experiment/final_results.json}, \artifact{experiment/development_report.json}) and the per-year audit shares (\artifact{experiment/target_reporting_process_audit.json}, q6). Quarantined = \texttt{Unknown}, \texttt{Not Reported}, or \texttt{Null value} severity; never coerced into a class. Class-2 share is of mapped rows. Development rows feed the rolling-origin folds of \cref{sec:selection}; 2012 is the historically exposed final retrospective cohort.}
+\end{table}

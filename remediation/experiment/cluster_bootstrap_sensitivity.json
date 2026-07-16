@@ -1,0 +1,235 @@
+{
+  "analysis": "cluster_bootstrap_sensitivity",
+  "status": "POST HOC (v4.1 revision addendum): proxy-cluster resampling of the primary paired contrast (ordinal_random_forest minus majority, 2012). NOT prespecified; no proxy is a validated dependence model; the frozen headline interval is unchanged and remains the published estimate.",
+  "generated_utc": "2026-07-15T19:54:41Z",
+  "git_commit": "42194a619c3a8c1a146c1202ac6afe6a919e392b",
+  "source_run": "final_8af9d5bc23d8",
+  "headline_case_bootstrap_ci_for_reference": [
+    -0.0231,
+    -0.0063
+  ],
+  "seed": 42,
+  "replicates": 2000,
+  "missing_key_rule": "rows with a missing cluster key form one pooled '<axis>__missing__' cluster; counts reported per axis",
+  "clusters": {
+    "calendar_day": {
+      "missing_key_rows": 0,
+      "n_clusters": 366,
+      "cluster_size_min_median_max": [
+        8,
+        27.0,
+        107
+      ],
+      "point": -0.014445399828030947,
+      "ci95_percentile": [
+        -0.023263556667343054,
+        -0.005223510992056957
+      ],
+      "excludes_zero": true,
+      "replicates": 2000,
+      "method": "cluster bootstrap (resample clusters with replacement)"
+    },
+    "calendar_week": {
+      "missing_key_rows": 0,
+      "n_clusters": 53,
+      "cluster_size_min_median_max": [
+        43,
+        192.0,
+        524
+      ],
+      "point": -0.014445399828030947,
+      "ci95_percentile": [
+        -0.026099131099532255,
+        -0.0036433516076420664
+      ],
+      "excludes_zero": true,
+      "replicates": 2000,
+      "method": "cluster bootstrap (resample clusters with replacement)"
+    },
+    "region": {
+      "missing_key_rows": 0,
+      "method": "leave-one-group-out point deltas (only 4 groups; too few for a stable cluster bootstrap)",
+      "n_clusters": 4,
+      "point": -0.014445399828030947,
+      "leave_one_out": [
+        {
+          "left_out": "Central Region",
+          "rows_left_out": 9216,
+          "delta_omae_without_group": -0.03438276719138361
+        },
+        {
+          "left_out": "Northern Region",
+          "rows_left_out": 1336,
+          "delta_omae_without_group": -0.015737322712259583
+        },
+        {
+          "left_out": "Null value",
+          "rows_left_out": 686,
+          "delta_omae_without_group": -0.011970029239766034
+        },
+        {
+          "left_out": "Southeast Region",
+          "rows_left_out": 392,
+          "delta_omae_without_group": -0.0113899270332799
+        }
+      ]
+    },
+    "borough": {
+      "missing_key_rows": 0,
+      "method": "leave-one-group-out point deltas (only 18 groups; too few for a stable cluster bootstrap)",
+      "n_clusters": 18,
+      "point": -0.014445399828030947,
+      "leave_one_out": [
+        {
+          "left_out": "Anchorage Municipality",
+          "rows_left_out": 6978,
+          "delta_omae_without_group": -0.022570937231298327
+        },
+        {
+          "left_out": "Matanuska-Susitna Borough",
+          "rows_left_out": 1329,
+          "delta_omae_without_group": -0.0127172119211727
+        },
+        {
+          "left_out": "Fairbanks North Star Borough",
+          "rows_left_out": 1057,
+          "delta_omae_without_group": -0.017213657429301032
+        },
+        {
+          "left_out": "Kenai Peninsula Borough",
+          "rows_left_out": 789,
+          "delta_omae_without_group": -0.017341573655566822
+        },
+        {
+          "left_out": "Null value",
+          "rows_left_out": 686,
+          "delta_omae_without_group": -0.011970029239766034
+        },
+        {
+          "left_out": "Non-Borough Area",
+          "rows_left_out": 282,
+          "delta_omae_without_group": -0.012777581952766959
+        },
+        {
+          "left_out": "Juneau City and Borough",
+          "rows_left_out": 192,
+          "delta_omae_without_group": -0.011103339744710616
+        },
+        {
+          "left_out": "Ketchikan Gateway Borough",
+          "rows_left_out": 78,
+          "delta_omae_without_group": -0.01428324099722994
+        },
+        {
+          "left_out": "Sitka City and Borough",
+          "rows_left_out": 60,
+          "delta_omae_without_group": -0.014866032843560917
+        },
+        {
+          "left_out": "Kodiak Island Borough",
+          "rows_left_out": 60,
+          "delta_omae_without_group": -0.014433880726015536
+        },
+        {
+          "left_out": "North Slope Borough",
+          "rows_left_out": 51,
+          "delta_omae_without_group": -0.014163571983763668
+        },
+        {
+          "left_out": "Haines Borough",
+          "rows_left_out": 19,
+          "delta_omae_without_group": -0.014469037981224675
+        },
+        {
+          "left_out": "Denali Borough",
+          "rows_left_out": 15,
+          "delta_omae_without_group": -0.014722341799397354
+        },
+        {
+          "left_out": "Wrangell City and Borough",
+          "rows_left_out": 13,
+          "delta_omae_without_group": -0.014461564947921168
+        },
+        {
+          "left_out": "Bristol Bay Borough",
+          "rows_left_out": 9,
+          "delta_omae_without_group": -0.014714740555890227
+        },
+        {
+          "left_out": "Northwest Arctic Borough",
+          "rows_left_out": 5,
+          "delta_omae_without_group": -0.014193548387096744
+        },
+        {
+          "left_out": "Skagway Municipality",
+          "rows_left_out": 4,
+          "delta_omae_without_group": -0.01436435575434375
+        },
+        {
+          "left_out": "Yakutat City and Borough",
+          "rows_left_out": 3,
+          "delta_omae_without_group": -0.01453513374043175
+        }
+      ]
+    },
+    "maintenance_responsibility": {
+      "missing_key_rows": 0,
+      "method": "leave-one-group-out point deltas (only 9 groups; too few for a stable cluster bootstrap)",
+      "n_clusters": 9,
+      "point": -0.014445399828030947,
+      "leave_one_out": [
+        {
+          "left_out": "State Highway Agency",
+          "rows_left_out": 6899,
+          "delta_omae_without_group": -0.01585288522511097
+        },
+        {
+          "left_out": "Borough Highway Agency",
+          "rows_left_out": 2532,
+          "delta_omae_without_group": -0.016157397230160464
+        },
+        {
+          "left_out": "Unknown Maint Responsibility",
+          "rows_left_out": 943,
+          "delta_omae_without_group": -0.01534574716945819
+        },
+        {
+          "left_out": "Null value",
+          "rows_left_out": 686,
+          "delta_omae_without_group": -0.011970029239766034
+        },
+        {
+          "left_out": "City Highway Agency",
+          "rows_left_out": 546,
+          "delta_omae_without_group": -0.014074341392998901
+        },
+        {
+          "left_out": "Private Agency",
+          "rows_left_out": 11,
+          "delta_omae_without_group": -0.014373009725449692
+        },
+        {
+          "left_out": "Other Local Agencies",
+          "rows_left_out": 10,
+          "delta_omae_without_group": -0.014457831325301207
+        },
+        {
+          "left_out": "Military - C.G. - Corps of Eng",
+          "rows_left_out": 2,
+          "delta_omae_without_group": -0.014447884416924683
+        },
+        {
+          "left_out": "U.S. Forest Service",
+          "rows_left_out": 1,
+          "delta_omae_without_group": -0.014446642015650546
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "calendar clusters capture shared-day/week shocks (weather, events) only",
+    "geographic clusters are coarse and few; they proxy region-level practice, not agency",
+    "no route/roadway grouping exists in the licensed extract (route/milepoint are excluded identifiers)",
+    "cluster axes are proxies chosen post hoc; none is a validated dependence structure"
+  ]
+}

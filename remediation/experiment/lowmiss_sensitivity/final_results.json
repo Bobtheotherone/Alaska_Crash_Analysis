@@ -1,0 +1,1608 @@
+{
+  "run_id": "final_d612d030bc51",
+  "protocol_version": "v4-structural-isolation",
+  "generated_utc": "2026-07-12T05:09:36Z",
+  "data_sha256": "059559cd7a9c40a37f7f60e12e6a82137dc8c70d12817246c2a19d59ea3e097b",
+  "config": {
+    "use_case": "post_crash_triage",
+    "year_col": "Year",
+    "group_col": "Crash Number",
+    "row_id_col": "Crash Number",
+    "final_test_years": [
+      2012
+    ],
+    "min_frequency": 0.01,
+    "primary_metric": "ordinal_mae",
+    "baseline_set": [
+      "majority",
+      "ordinal_median",
+      "prior_probability",
+      "multinomial_logistic",
+      "proportional_odds",
+      "frank_hall_logistic",
+      "shallow_tree"
+    ],
+    "bootstrap_resamples": 2000,
+    "seed": 42,
+    "cv_strategy": "rolling",
+    "cv_seeds": [
+      1,
+      2,
+      3
+    ],
+    "cv_n_splits": 3,
+    "cv_models": null,
+    "include_optional_models": true,
+    "categorical_max_cardinality": 100,
+    "calibrate": true,
+    "calibration_method": "sigmoid",
+    "calibration_folds": "temporal",
+    "exclude_high_coupling": false,
+    "feature_tier": "strict",
+    "decision_rule": "posterior_median",
+    "n_classes": 3,
+    "exclude_features": [
+      "Unit 1 Person 1 Residence State",
+      "Direction"
+    ]
+  },
+  "config_sha256": "764e17441d371ca9f9e9f1d0d5a0c9c8304f734a099e45887ecd299487a918fc",
+  "contract_sha256": {
+    "schema_sha256": "fe7d8b1caf5c49ec810ac43f987b26ee1ceb189cb59576828c3be2e5c37c8e85",
+    "target_mapping_sha256": "806d02652e348d1462c9f650e25f762df05a8bc50b9d3a480d61d7df454f3301",
+    "feature_ledger_sha256": "a6293c81f4b0c9ae7650bc48d6f22a40dca65404215a5344b0d492aff2a68231"
+  },
+  "git": {
+    "commit": "3add4282b74e4b1ed521a073400c76d86a841f55",
+    "branch": "portfolio-research-finalization-v4",
+    "dirty": true,
+    "source_dirty": false
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "libraries": {
+      "python": "3.13.13",
+      "numpy": "2.4.4",
+      "pandas": "3.0.3",
+      "scikit-learn": "1.9.0",
+      "scipy": "1.17.1",
+      "xgboost": "3.3.0",
+      "interpret": "0.7.8"
+    }
+  },
+  "target_audit": {
+    "n_total": 50543,
+    "n_mapped": 46844,
+    "n_quarantined": 3699,
+    "blank_maps_to": "O",
+    "raw_value_counts": {
+      "<NA>": 32046,
+      "Non-Incapacitating": 7790,
+      "Possible": 5257,
+      "Unknown": 1847,
+      "Not Reported": 1788,
+      "Incapacitating": 1512,
+      "Fatal": 239,
+      "Null value": 64
+    },
+    "mapped_counts": {
+      "0": 32046,
+      "1": 13047,
+      "2": 1751
+    },
+    "quarantined_value_counts": {
+      "Unknown": 1847,
+      "Not Reported": 1788,
+      "Null value": 64
+    },
+    "kabco_to_ordinal": {
+      "O": 0,
+      "C": 1,
+      "B": 1,
+      "A": 2,
+      "K": 2
+    },
+    "reconciles": true
+  },
+  "split": {
+    "strategy": "chronological_final_test_with_crash_grouping",
+    "group_col": "Crash Number",
+    "row_id_col": "Crash Number",
+    "year_col": "Year",
+    "final_test_years": [
+      2012
+    ],
+    "development_years": [
+      2009,
+      2010,
+      2011
+    ],
+    "n_total": 46844,
+    "n_development": 35214,
+    "n_final_test": 11630,
+    "n_excluded": 0,
+    "excluded_reason_counts": {},
+    "class_prevalence": {
+      "development": {
+        "0": 0.6863463395240529,
+        "1": 0.27670812744930995,
+        "2": 0.03694553302663713
+      },
+      "final_test": {
+        "0": 0.6773000859845227,
+        "1": 0.28400687876182285,
+        "2": 0.03869303525365434
+      }
+    },
+    "group_overlap_count": 0,
+    "assignment_sha256": "119085e9a5aeeeeadcf88145531c3117bd98fc02ded9b766e3599f2283ff13c3",
+    "reconciles": true,
+    "notes": "Final test is the latest contiguous year(s), held out from development (an exposed retrospective cohort, not a prospective seal). group_overlap_count MUST be 0; excluded rows are explicit."
+  },
+  "dev_assignment_sha256": "b7fd83f52bc869abfed3891a4fcb05f81ad9ce7f51dbe6439f181cb61d65d8c1",
+  "sentinel_flagged": {
+    "AADT": 15431,
+    "Distance From Intersection": 3635,
+    "Temperature": 10265
+  },
+  "feature_tier": "strict",
+  "decision_rule": "posterior_median",
+  "allowed_feature_columns": [
+    "AADT",
+    "AHS System",
+    "At Intersection",
+    "Borough",
+    "Census Area",
+    "City",
+    "Day of Month",
+    "Day of the Week",
+    "Distance From Intersection",
+    "Election District",
+    "Functional Class",
+    "Hit and Run",
+    "Lighting",
+    "Maintenance Category",
+    "Maintenance Responsibility",
+    "Month",
+    "NHS System",
+    "Number of Commercial Vehicles Involved",
+    "Number of Pedestrians Involved",
+    "Number of Persons Involved",
+    "Number of Units Involved",
+    "Pavement",
+    "Posted Speed",
+    "Region",
+    "Road Surface",
+    "Roadway Characteristics",
+    "Roadway Junction",
+    "Temperature",
+    "Temperature Range",
+    "Time of Day",
+    "Unit 1 Action",
+    "Unit 1 CV Configuration",
+    "Unit 1 CV Issuing Authority",
+    "Unit 1 CV Placard",
+    "Unit 1 Commercial Vehicle (CV)",
+    "Unit 1 Direction of Travel",
+    "Unit 1 License Plate State",
+    "Unit 1 Model Year",
+    "Unit 1 Non-CV Configuration",
+    "Unit 1 Occupants",
+    "Unit 1 Person 1 Age Range",
+    "Unit 1 Person 1 Gender",
+    "Unit 1 Person 1 Raw Age",
+    "Unit 1 Person 1 Type",
+    "Unit 1 Traffic Control",
+    "Weather",
+    "Week of the Year"
+  ],
+  "dropped_invariant_features": [
+    "Rural Urban"
+  ],
+  "numeric_features": [
+    "AADT",
+    "Day of Month",
+    "Distance From Intersection",
+    "Number of Commercial Vehicles Involved",
+    "Number of Pedestrians Involved",
+    "Temperature",
+    "Week of the Year"
+  ],
+  "categorical_features": [
+    "AHS System",
+    "At Intersection",
+    "Borough",
+    "Census Area",
+    "City",
+    "Day of the Week",
+    "Election District",
+    "Functional Class",
+    "Hit and Run",
+    "Lighting",
+    "Maintenance Category",
+    "Maintenance Responsibility",
+    "Month",
+    "NHS System",
+    "Number of Persons Involved",
+    "Number of Units Involved",
+    "Pavement",
+    "Posted Speed",
+    "Region",
+    "Road Surface",
+    "Roadway Characteristics",
+    "Roadway Junction",
+    "Temperature Range",
+    "Time of Day",
+    "Unit 1 Action",
+    "Unit 1 CV Configuration",
+    "Unit 1 CV Issuing Authority",
+    "Unit 1 CV Placard",
+    "Unit 1 Commercial Vehicle (CV)",
+    "Unit 1 Direction of Travel",
+    "Unit 1 License Plate State",
+    "Unit 1 Model Year",
+    "Unit 1 Non-CV Configuration",
+    "Unit 1 Occupants",
+    "Unit 1 Person 1 Age Range",
+    "Unit 1 Person 1 Gender",
+    "Unit 1 Person 1 Raw Age",
+    "Unit 1 Person 1 Type",
+    "Unit 1 Traffic Control",
+    "Weather"
+  ],
+  "encoded_feature_dims": 365,
+  "peak_memory_mb": 600.6,
+  "primary_metric": "ordinal_mae",
+  "primary_baseline": "majority",
+  "model_cards": {
+    "majority": {
+      "class_weight_mode": "none",
+      "sample_weight_applied": false,
+      "estimator": "DummyClassifier",
+      "note": "constant most-frequent class (the accuracy trap)",
+      "fit_seconds": 3.593,
+      "predict_seconds": 0.237
+    },
+    "ordinal_median": {
+      "class_weight_mode": "none",
+      "sample_weight_applied": false,
+      "estimator": "OrdinalMedianClassifier",
+      "note": "constant median class (minimises expected |error| under the prior)",
+      "fit_seconds": 3.61,
+      "predict_seconds": 0.225
+    },
+    "prior_probability": {
+      "class_weight_mode": "none",
+      "sample_weight_applied": false,
+      "estimator": "DummyClassifier",
+      "note": "DETERMINISTIC training-prevalence probability forecast \u2014 the honest trivial probabilistic floor (BASE-001; replaces the v3 'empirical_prior', which was stochastic hard-label draws misdescribed as a probability baseline)",
+      "fit_seconds": 3.483,
+      "predict_seconds": 0.224
+    },
+    "multinomial_logistic": {
+      "class_weight_mode": "builtin",
+      "sample_weight_applied": false,
+      "estimator": "LogisticRegression",
+      "note": "regularised multinomial logistic (nominal, ignores order)",
+      "fit_seconds": 6.275,
+      "predict_seconds": 0.203
+    },
+    "proportional_odds": {
+      "class_weight_mode": "builtin",
+      "sample_weight_applied": false,
+      "estimator": "ProportionalOddsClassifier",
+      "note": "TRUE proportional-odds ordered logit (single latent + ordered thresholds, MLE)",
+      "fit_seconds": 6.809,
+      "predict_seconds": 0.222
+    },
+    "frank_hall_logistic": {
+      "class_weight_mode": "builtin",
+      "sample_weight_applied": false,
+      "estimator": "FrankHallOrdinalClassifier",
+      "note": "Frank-Hall ordinal decomposition: K-1 binary cumulative logits (NOT proportional odds)",
+      "fit_seconds": 4.595,
+      "predict_seconds": 0.243
+    },
+    "shallow_tree": {
+      "class_weight_mode": "builtin",
+      "sample_weight_applied": false,
+      "estimator": "DecisionTreeClassifier",
+      "note": "depth-4 transparent tree",
+      "fit_seconds": 3.653,
+      "predict_seconds": 0.205
+    },
+    "decision_tree": {
+      "class_weight_mode": "builtin",
+      "sample_weight_applied": false,
+      "estimator": "DecisionTreeClassifier",
+      "note": "repo DecisionTree config (entropy, depth 10)",
+      "fit_seconds": 4.32,
+      "predict_seconds": 0.211
+    },
+    "random_forest": {
+      "class_weight_mode": "builtin",
+      "sample_weight_applied": false,
+      "estimator": "RandomForestClassifier",
+      "note": "ordinary RF comparator (nominal)",
+      "fit_seconds": 32.711,
+      "predict_seconds": 0.523
+    },
+    "ordinal_random_forest": {
+      "class_weight_mode": "builtin",
+      "sample_weight_applied": false,
+      "estimator": "FrankHallOrdinalClassifier",
+      "note": "Frank-Hall ordinal RF with coherent predict_proba (supersedes repo MultiLevelRF)",
+      "fit_seconds": 51.967,
+      "predict_seconds": 0.789
+    },
+    "random_forest_unweighted": {
+      "class_weight_mode": "none",
+      "sample_weight_applied": false,
+      "estimator": "RandomForestClassifier",
+      "note": "RF, class_weight=None \u2014 matched unweighted control for random_forest (WGT-001)",
+      "fit_seconds": 42.411,
+      "predict_seconds": 0.553
+    },
+    "ordinal_random_forest_unweighted": {
+      "class_weight_mode": "none",
+      "sample_weight_applied": false,
+      "estimator": "FrankHallOrdinalClassifier",
+      "note": "ordinal RF, class_weight=None \u2014 matched unweighted control for ordinal_random_forest (WGT-001)",
+      "fit_seconds": 52.385,
+      "predict_seconds": 0.797
+    },
+    "xgboost": {
+      "class_weight_mode": "sample_weight",
+      "sample_weight_applied": true,
+      "estimator": "XGBClassifier",
+      "note": "XGBoost (CPU hist); balanced sample_weight applied at fit",
+      "fit_seconds": 7.068,
+      "predict_seconds": 1.335
+    },
+    "ebm": {
+      "class_weight_mode": "sample_weight",
+      "sample_weight_applied": true,
+      "estimator": "ExplainableBoostingClassifier",
+      "note": "Explainable Boosting Machine (final-only EXPLORATORY: excluded from development CV, so it never competes for the primary candidate; reported for interest only) (MODEL-FAMILY-001)",
+      "fit_seconds": 411.171,
+      "predict_seconds": 0.804
+    }
+  },
+  "results": {
+    "majority": {
+      "n": 11630,
+      "accuracy": 0.6773000859845227,
+      "ordinal_mae": 0.36139294926913157,
+      "qwk": 0.0,
+      "macro_f1": NaN,
+      "balanced_accuracy": 0.3333333333333333,
+      "within_one_accuracy": 0.9613069647463457,
+      "two_step_error_rate": 0.03869303525365434,
+      "per_class": {
+        "0": {
+          "precision": 0.6773000859845227,
+          "recall": 1.0,
+          "f1": 0.8076075255036652,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "support": 3303,
+          "status": "precision_undefined_class_never_predicted"
+        },
+        "2": {
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "support": 450,
+          "status": "precision_undefined_class_never_predicted"
+        }
+      },
+      "severe_precision": NaN,
+      "severe_recall": 0.0,
+      "severe_f1": NaN,
+      "predicted_distribution": {
+        "0": 1.0,
+        "1": 0.0,
+        "2": 0.0
+      },
+      "predicted_class0_share": 1.0,
+      "confusion_matrix": [
+        [
+          7877,
+          0,
+          0
+        ],
+        [
+          3303,
+          0,
+          0
+        ],
+        [
+          450,
+          0,
+          0
+        ]
+      ],
+      "kind": "baseline",
+      "note": "constant most-frequent class (the accuracy trap)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.36139294926913157,
+      "accuracy_argmax": 0.6773000859845227,
+      "log_loss": 11.145660172837474,
+      "brier": 0.6453998280309544,
+      "rps": 0.36139294926913157,
+      "ece": 0.32269991401547726,
+      "ordinal_mae_ci": {
+        "point": 0.36139294926913157,
+        "ci_low": 0.35141874462596734,
+        "ci_high": 0.3710253654342219,
+        "n_resamples": 2000
+      }
+    },
+    "ordinal_median": {
+      "n": 11630,
+      "accuracy": 0.6773000859845227,
+      "ordinal_mae": 0.36139294926913157,
+      "qwk": 0.0,
+      "macro_f1": NaN,
+      "balanced_accuracy": 0.3333333333333333,
+      "within_one_accuracy": 0.9613069647463457,
+      "two_step_error_rate": 0.03869303525365434,
+      "per_class": {
+        "0": {
+          "precision": 0.6773000859845227,
+          "recall": 1.0,
+          "f1": 0.8076075255036652,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "support": 3303,
+          "status": "precision_undefined_class_never_predicted"
+        },
+        "2": {
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "support": 450,
+          "status": "precision_undefined_class_never_predicted"
+        }
+      },
+      "severe_precision": NaN,
+      "severe_recall": 0.0,
+      "severe_f1": NaN,
+      "predicted_distribution": {
+        "0": 1.0,
+        "1": 0.0,
+        "2": 0.0
+      },
+      "predicted_class0_share": 1.0,
+      "confusion_matrix": [
+        [
+          7877,
+          0,
+          0
+        ],
+        [
+          3303,
+          0,
+          0
+        ],
+        [
+          450,
+          0,
+          0
+        ]
+      ],
+      "kind": "baseline",
+      "note": "constant median class (minimises expected |error| under the prior)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.36139294926913157,
+      "accuracy_argmax": 0.6773000859845227,
+      "log_loss": 11.145660172837474,
+      "brier": 0.6453998280309544,
+      "rps": 0.36139294926913157,
+      "ece": 0.32269991401547726,
+      "ordinal_mae_ci": {
+        "point": 0.36139294926913157,
+        "ci_low": 0.35141874462596734,
+        "ci_high": 0.3710253654342219,
+        "n_resamples": 2000
+      }
+    },
+    "prior_probability": {
+      "n": 11630,
+      "accuracy": 0.6773000859845227,
+      "ordinal_mae": 0.36139294926913157,
+      "qwk": 0.0,
+      "macro_f1": NaN,
+      "balanced_accuracy": 0.3333333333333333,
+      "within_one_accuracy": 0.9613069647463457,
+      "two_step_error_rate": 0.03869303525365434,
+      "per_class": {
+        "0": {
+          "precision": 0.6773000859845227,
+          "recall": 1.0,
+          "f1": 0.8076075255036652,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "support": 3303,
+          "status": "precision_undefined_class_never_predicted"
+        },
+        "2": {
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "support": 450,
+          "status": "precision_undefined_class_never_predicted"
+        }
+      },
+      "severe_precision": NaN,
+      "severe_recall": 0.0,
+      "severe_f1": NaN,
+      "predicted_distribution": {
+        "0": 1.0,
+        "1": 0.0,
+        "2": 0.0
+      },
+      "predicted_class0_share": 1.0,
+      "confusion_matrix": [
+        [
+          7877,
+          0,
+          0
+        ],
+        [
+          3303,
+          0,
+          0
+        ],
+        [
+          450,
+          0,
+          0
+        ]
+      ],
+      "kind": "baseline",
+      "note": "DETERMINISTIC training-prevalence probability forecast \u2014 the honest trivial probabilistic floor (BASE-001; replaces the v3 'empirical_prior', which was stochastic hard-label draws misdescribed as a probability baseline)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.36139294926913157,
+      "accuracy_argmax": 0.6773000859845227,
+      "log_loss": 0.7474288217526872,
+      "brier": 0.45924569560204154,
+      "rps": 0.2558454522535295,
+      "ece": 0.009046253539530147,
+      "ordinal_mae_ci": {
+        "point": 0.36139294926913157,
+        "ci_low": 0.35141874462596734,
+        "ci_high": 0.3710253654342219,
+        "n_resamples": 2000
+      }
+    },
+    "multinomial_logistic": {
+      "n": 11630,
+      "accuracy": 0.5085124677558039,
+      "ordinal_mae": 0.544883920894239,
+      "qwk": 0.2521823438453583,
+      "macro_f1": 0.42840946673452923,
+      "balanced_accuracy": 0.523419574392043,
+      "within_one_accuracy": 0.946603611349957,
+      "two_step_error_rate": 0.053396388650042995,
+      "per_class": {
+        "0": {
+          "precision": 0.8301627320650928,
+          "recall": 0.4598197283229656,
+          "f1": 0.591830065359477,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.34920902053180747,
+          "recall": 0.6282167726309416,
+          "f1": 0.44889129259058946,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.16377358490566038,
+          "recall": 0.4822222222222222,
+          "f1": 0.2445070422535211,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.16377358490566038,
+      "severe_recall": 0.4822222222222222,
+      "severe_f1": 0.2445070422535211,
+      "predicted_distribution": {
+        "0": 0.3751504729148753,
+        "1": 0.5109200343938091,
+        "2": 0.11392949269131557
+      },
+      "predicted_class0_share": 0.3751504729148753,
+      "confusion_matrix": [
+        [
+          3622,
+          3676,
+          579
+        ],
+        [
+          699,
+          2075,
+          529
+        ],
+        [
+          42,
+          191,
+          217
+        ]
+      ],
+      "kind": "baseline",
+      "note": "regularised multinomial logistic (nominal, ignores order)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.5539982803095442,
+      "accuracy_argmax": 0.5472914875322442,
+      "log_loss": 0.9184657785818401,
+      "brier": 0.5567465640829327,
+      "rps": 0.35046033760337497,
+      "ece": 0.013117126950664675,
+      "ordinal_mae_ci": {
+        "point": 0.544883920894239,
+        "ci_low": 0.5345657781599312,
+        "ci_high": 0.5552020636285468,
+        "n_resamples": 2000
+      }
+    },
+    "proportional_odds": {
+      "n": 11630,
+      "accuracy": 0.5027515047291488,
+      "ordinal_mae": 0.5369733447979363,
+      "qwk": 0.252050124658208,
+      "macro_f1": 0.4299433102384917,
+      "balanced_accuracy": 0.5135366908052051,
+      "within_one_accuracy": 0.9602751504729149,
+      "two_step_error_rate": 0.039724849527085125,
+      "per_class": {
+        "0": {
+          "precision": 0.8129545454545455,
+          "recall": 0.45410689348736827,
+          "f1": 0.582715647145068,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.3357212634321068,
+          "recall": 0.6242809567060248,
+          "f1": 0.4366331392271043,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.19117647058823528,
+          "recall": 0.4622222222222222,
+          "f1": 0.27048114434330295,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.19117647058823528,
+      "severe_recall": 0.4622222222222222,
+      "severe_f1": 0.27048114434330295,
+      "predicted_distribution": {
+        "0": 0.37833190025795355,
+        "1": 0.5281169389509888,
+        "2": 0.09355116079105762
+      },
+      "predicted_class0_share": 0.37833190025795355,
+      "confusion_matrix": [
+        [
+          3577,
+          3880,
+          420
+        ],
+        [
+          781,
+          2062,
+          460
+        ],
+        [
+          42,
+          200,
+          208
+        ]
+      ],
+      "kind": "baseline",
+      "note": "TRUE proportional-odds ordered logit (single latent + ordered thresholds, MLE)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.5370593293207223,
+      "accuracy_argmax": 0.5426483233018057,
+      "convergence": {
+        "ok": false,
+        "n_iter": 200,
+        "grad_norm": 41.34688539980183
+      },
+      "log_loss": 0.9360073412913674,
+      "brier": 0.5579121404056199,
+      "rps": 0.35532931578957516,
+      "ece": 0.026166738358832087,
+      "ordinal_mae_ci": {
+        "point": 0.5369733447979363,
+        "ci_low": 0.5268250214961306,
+        "ci_high": 0.5465197764402407,
+        "n_resamples": 2000
+      }
+    },
+    "frank_hall_logistic": {
+      "n": 11630,
+      "accuracy": 0.5537403267411866,
+      "ordinal_mae": 0.553396388650043,
+      "qwk": 0.25812081973000056,
+      "macro_f1": 0.41559827093482554,
+      "balanced_accuracy": 0.5338286768101851,
+      "within_one_accuracy": 0.8928632846087704,
+      "two_step_error_rate": 0.10713671539122958,
+      "per_class": {
+        "0": {
+          "precision": 0.7823591602476967,
+          "recall": 0.657610765519868,
+          "f1": 0.7145813215615947,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.3755339805825243,
+          "recall": 0.29276415379957615,
+          "f1": 0.32902347737325627,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.12037797863599015,
+          "recall": 0.6511111111111111,
+          "f1": 0.20319001386962554,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.12037797863599015,
+      "severe_recall": 0.6511111111111111,
+      "severe_f1": 0.20319001386962554,
+      "predicted_distribution": {
+        "0": 0.5693035253654343,
+        "1": 0.22141014617368873,
+        "2": 0.20928632846087705
+      },
+      "predicted_class0_share": 0.5693035253654343,
+      "confusion_matrix": [
+        [
+          5180,
+          1543,
+          1154
+        ],
+        [
+          1349,
+          967,
+          987
+        ],
+        [
+          92,
+          65,
+          293
+        ]
+      ],
+      "kind": "baseline",
+      "note": "Frank-Hall ordinal decomposition: K-1 binary cumulative logits (NOT proportional odds)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.5704213241616509,
+      "accuracy_argmax": 0.5688736027515048,
+      "log_loss": 2.161875996428832,
+      "brier": 0.5860798252814092,
+      "rps": 0.3518794049319284,
+      "ece": 0.04664634517878631,
+      "ordinal_mae_ci": {
+        "point": 0.553396388650043,
+        "ci_low": 0.5415283748925194,
+        "ci_high": 0.565780309544282,
+        "n_resamples": 2000
+      }
+    },
+    "shallow_tree": {
+      "n": 11630,
+      "accuracy": 0.38589853826311266,
+      "ordinal_mae": 0.6276010318142734,
+      "qwk": 0.1297800882859642,
+      "macro_f1": 0.3144347068136963,
+      "balanced_accuracy": 0.41658133703767897,
+      "within_one_accuracy": 0.9865004299226139,
+      "two_step_error_rate": 0.01349957007738607,
+      "per_class": {
+        "0": {
+          "precision": 0.8893695920889988,
+          "recall": 0.18268376285387838,
+          "f1": 0.3031068983675619,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.30882658359293874,
+          "recall": 0.9003935815924917,
+          "f1": 0.4599087605350654,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.19633507853403143,
+          "recall": 0.16666666666666666,
+          "f1": 0.18028846153846154,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.19633507853403143,
+      "severe_recall": 0.16666666666666666,
+      "severe_f1": 0.18028846153846154,
+      "predicted_distribution": {
+        "0": 0.13912295786758383,
+        "1": 0.828030954428203,
+        "2": 0.03284608770421324
+      },
+      "predicted_class0_share": 0.13912295786758383,
+      "confusion_matrix": [
+        [
+          1439,
+          6287,
+          151
+        ],
+        [
+          173,
+          2974,
+          156
+        ],
+        [
+          6,
+          369,
+          75
+        ]
+      ],
+      "kind": "baseline",
+      "note": "depth-4 transparent tree",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.6673258813413585,
+      "accuracy_argmax": 0.506792777300086,
+      "log_loss": 0.9775421816252331,
+      "brier": 0.5928682355620123,
+      "rps": 0.38529200536058467,
+      "ece": 0.05644201480108215,
+      "ordinal_mae_ci": {
+        "point": 0.6276010318142734,
+        "ci_low": 0.6185705073086845,
+        "ci_high": 0.6366294067067928,
+        "n_resamples": 2000
+      }
+    },
+    "decision_tree": {
+      "n": 11630,
+      "accuracy": 0.4498710232158212,
+      "ordinal_mae": 0.6039552880481514,
+      "qwk": 0.1639887782399514,
+      "macro_f1": 0.36773958896554865,
+      "balanced_accuracy": 0.44534553788209535,
+      "within_one_accuracy": 0.9461736887360275,
+      "two_step_error_rate": 0.053826311263972484,
+      "per_class": {
+        "0": {
+          "precision": 0.8102903133084219,
+          "recall": 0.35787736447886254,
+          "f1": 0.49647763296935543,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.3245701293164701,
+          "recall": 0.6914925825007568,
+          "f1": 0.44177949709864606,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.11579892280071813,
+          "recall": 0.2866666666666667,
+          "f1": 0.16496163682864448,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.11579892280071813,
+      "severe_recall": 0.2866666666666667,
+      "severe_f1": 0.16496163682864448,
+      "predicted_distribution": {
+        "0": 0.299140154772141,
+        "1": 0.605073086844368,
+        "2": 0.09578675838349097
+      },
+      "predicted_class0_share": 0.299140154772141,
+      "confusion_matrix": [
+        [
+          2819,
+          4469,
+          589
+        ],
+        [
+          623,
+          2284,
+          396
+        ],
+        [
+          37,
+          284,
+          129
+        ]
+      ],
+      "kind": "candidate",
+      "note": "repo DecisionTree config (entropy, depth 10)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.6757523645743766,
+      "accuracy_argmax": 0.4922613929492691,
+      "log_loss": 1.7824609875945798,
+      "brier": 0.5989010439952255,
+      "rps": 0.3734035507897872,
+      "ece": 0.08048449069927352,
+      "ordinal_mae_ci": {
+        "point": 0.6039552880481514,
+        "ci_low": 0.5931212381771281,
+        "ci_high": 0.6143594153052451,
+        "n_resamples": 2000
+      }
+    },
+    "random_forest": {
+      "n": 11630,
+      "accuracy": 0.6276870163370594,
+      "ordinal_mae": 0.3816852966466036,
+      "qwk": 0.26386072196163135,
+      "macro_f1": 0.4102255569873865,
+      "balanced_accuracy": 0.4151025078499991,
+      "within_one_accuracy": 0.9906276870163371,
+      "two_step_error_rate": 0.00937231298366294,
+      "per_class": {
+        "0": {
+          "precision": 0.7637624031534593,
+          "recall": 0.7133426431382506,
+          "f1": 0.7376920047262702,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.3921522556390977,
+          "recall": 0.5052982137450802,
+          "f1": 0.44159280328085726,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.7058823529411765,
+          "recall": 0.02666666666666667,
+          "f1": 0.051391862955032126,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.7058823529411765,
+      "severe_recall": 0.02666666666666667,
+      "severe_f1": 0.051391862955032126,
+      "predicted_distribution": {
+        "0": 0.6325881341358556,
+        "1": 0.3659501289767842,
+        "2": 0.0014617368873602753
+      },
+      "predicted_class0_share": 0.6325881341358556,
+      "confusion_matrix": [
+        [
+          5619,
+          2258,
+          0
+        ],
+        [
+          1629,
+          1669,
+          5
+        ],
+        [
+          109,
+          329,
+          12
+        ]
+      ],
+      "kind": "candidate",
+      "note": "ordinary RF comparator (nominal)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.3601031814273431,
+      "accuracy_argmax": 0.65597592433362,
+      "log_loss": 0.7290030122366195,
+      "brier": 0.44910715773383014,
+      "rps": 0.2482487943059138,
+      "ece": 0.07249871023215824,
+      "ordinal_mae_ci": {
+        "point": 0.3816852966466036,
+        "ci_low": 0.3727429062768702,
+        "ci_high": 0.39071367153912295,
+        "n_resamples": 2000
+      }
+    },
+    "ordinal_random_forest": {
+      "n": 11630,
+      "accuracy": 0.6629406706792778,
+      "ordinal_mae": 0.3522785898538263,
+      "qwk": 0.25584716638554295,
+      "macro_f1": 0.42049896368253664,
+      "balanced_accuracy": 0.4107079450292315,
+      "within_one_accuracy": 0.9847807394668959,
+      "two_step_error_rate": 0.015219260533104042,
+      "per_class": {
+        "0": {
+          "precision": 0.7387082204155375,
+          "recall": 0.8305192332106132,
+          "f1": 0.7819279268511325,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.41929567131327955,
+          "recall": 0.3460490463215259,
+          "f1": 0.37916735777077465,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.5208333333333334,
+          "recall": 0.05555555555555555,
+          "f1": 0.1004016064257028,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.5208333333333334,
+      "severe_recall": 0.05555555555555555,
+      "severe_f1": 0.1004016064257028,
+      "predicted_distribution": {
+        "0": 0.7614789337919174,
+        "1": 0.23439380911435942,
+        "2": 0.00412725709372313
+      },
+      "predicted_class0_share": 0.7614789337919174,
+      "confusion_matrix": [
+        [
+          6542,
+          1335,
+          0
+        ],
+        [
+          2137,
+          1143,
+          23
+        ],
+        [
+          177,
+          248,
+          25
+        ]
+      ],
+      "kind": "candidate",
+      "note": "Frank-Hall ordinal RF with coherent predict_proba (supersedes repo MultiLevelRF)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.3453138435081685,
+      "accuracy_argmax": 0.6828030954428203,
+      "log_loss": 0.7092233660364605,
+      "brier": 0.43324596732741044,
+      "rps": 0.23915055412457886,
+      "ece": 0.06663571225958297,
+      "ordinal_mae_ci": {
+        "point": 0.3522785898538263,
+        "ci_low": 0.3431620808254514,
+        "ci_high": 0.36105116079105765,
+        "n_resamples": 2000
+      }
+    },
+    "random_forest_unweighted": {
+      "n": 11630,
+      "accuracy": 0.6870163370593293,
+      "ordinal_mae": 0.33877901977644026,
+      "qwk": 0.152649732885074,
+      "macro_f1": 0.3422221805751717,
+      "balanced_accuracy": 0.3648276933398484,
+      "within_one_accuracy": 0.9742046431642304,
+      "two_step_error_rate": 0.025795356835769563,
+      "per_class": {
+        "0": {
+          "precision": 0.7043907895963457,
+          "recall": 0.9592484448394059,
+          "f1": 0.8122984304450656,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.4794672586015538,
+          "recall": 0.1307901907356948,
+          "f1": 0.20551855375832542,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 1.0,
+          "recall": 0.0044444444444444444,
+          "f1": 0.008849557522123894,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 1.0,
+      "severe_recall": 0.0044444444444444444,
+      "severe_f1": 0.008849557522123894,
+      "predicted_distribution": {
+        "0": 0.9223559759243336,
+        "1": 0.07747205503009458,
+        "2": 0.00017196904557179707
+      },
+      "predicted_class0_share": 0.9223559759243336,
+      "confusion_matrix": [
+        [
+          7556,
+          321,
+          0
+        ],
+        [
+          2871,
+          432,
+          0
+        ],
+        [
+          300,
+          148,
+          2
+        ]
+      ],
+      "kind": "ablation",
+      "note": "RF, class_weight=None \u2014 matched unweighted control for random_forest (WGT-001)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.343250214961307,
+      "accuracy_argmax": 0.6870163370593293,
+      "log_loss": 0.6988829146610609,
+      "brier": 0.4219287914397631,
+      "rps": 0.23071778351007932,
+      "ece": 0.010192605331040386,
+      "ordinal_mae_ci": {
+        "point": 0.33877901977644026,
+        "ci_low": 0.3291487532244196,
+        "ci_high": 0.3477214101461737,
+        "n_resamples": 2000
+      }
+    },
+    "ordinal_random_forest_unweighted": {
+      "n": 11630,
+      "accuracy": 0.686500429922614,
+      "ordinal_mae": 0.33877901977644026,
+      "qwk": 0.15522033000934365,
+      "macro_f1": NaN,
+      "balanced_accuracy": 0.36358715011184745,
+      "within_one_accuracy": 0.9747205503009458,
+      "two_step_error_rate": 0.02527944969905417,
+      "per_class": {
+        "0": {
+          "precision": 0.7049425394749136,
+          "recall": 0.9578519741018154,
+          "f1": 0.8121636167922498,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.47357065803667747,
+          "recall": 0.13290947623372693,
+          "f1": 0.207565011820331,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "support": 450,
+          "status": "precision_undefined_class_never_predicted"
+        }
+      },
+      "severe_precision": NaN,
+      "severe_recall": 0.0,
+      "severe_f1": NaN,
+      "predicted_distribution": {
+        "0": 0.920292347377472,
+        "1": 0.07970765262252795,
+        "2": 0.0
+      },
+      "predicted_class0_share": 0.920292347377472,
+      "confusion_matrix": [
+        [
+          7545,
+          332,
+          0
+        ],
+        [
+          2864,
+          439,
+          0
+        ],
+        [
+          294,
+          156,
+          0
+        ]
+      ],
+      "kind": "ablation",
+      "note": "ordinal RF, class_weight=None \u2014 matched unweighted control for ordinal_random_forest (WGT-001)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": false,
+      "ordinal_mae_argmax": 0.34548581255374033,
+      "accuracy_argmax": 0.6843508168529665,
+      "log_loss": 0.686656966550795,
+      "brier": 0.42169824782677995,
+      "rps": 0.23018133467161336,
+      "ece": 0.011921467467041088,
+      "ordinal_mae_ci": {
+        "point": 0.33877901977644026,
+        "ci_low": 0.3289767841788478,
+        "ci_high": 0.34772355975924335,
+        "n_resamples": 2000
+      }
+    },
+    "xgboost": {
+      "n": 11630,
+      "accuracy": 0.5641444539982803,
+      "ordinal_mae": 0.45571797076526227,
+      "qwk": 0.28218909122490987,
+      "macro_f1": 0.46604542357888873,
+      "balanced_accuracy": 0.49693658195379653,
+      "within_one_accuracy": 0.9801375752364574,
+      "two_step_error_rate": 0.019862424763542563,
+      "per_class": {
+        "0": {
+          "precision": 0.8102826788085752,
+          "recall": 0.5422115018408024,
+          "f1": 0.6496805597809553,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.36878098820311167,
+          "recall": 0.6530426884650318,
+          "f1": 0.4713723776223776,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.2607843137254902,
+          "recall": 0.29555555555555557,
+          "f1": 0.2770833333333334,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.2607843137254902,
+      "severe_recall": 0.29555555555555557,
+      "severe_f1": 0.2770833333333334,
+      "predicted_distribution": {
+        "0": 0.4532244196044712,
+        "1": 0.5029234737747206,
+        "2": 0.043852106620808254
+      },
+      "predicted_class0_share": 0.4532244196044712,
+      "confusion_matrix": [
+        [
+          4271,
+          3428,
+          178
+        ],
+        [
+          947,
+          2157,
+          199
+        ],
+        [
+          53,
+          264,
+          133
+        ]
+      ],
+      "kind": "candidate",
+      "note": "XGBoost (CPU hist); balanced sample_weight applied at fit",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": true,
+      "ordinal_mae_argmax": 0.448323301805675,
+      "accuracy_argmax": 0.5994840928632846,
+      "log_loss": 0.8110837776885103,
+      "brier": 0.4953948341628615,
+      "rps": 0.2932497961296259,
+      "ece": 0.028609859655135315,
+      "ordinal_mae_ci": {
+        "point": 0.45571797076526227,
+        "ci_low": 0.44617368873602753,
+        "ci_high": 0.46560834049871025,
+        "n_resamples": 2000
+      }
+    },
+    "ebm": {
+      "n": 11630,
+      "accuracy": 0.5443680137575236,
+      "ordinal_mae": 0.494067067927773,
+      "qwk": 0.25828168333843704,
+      "macro_f1": 0.43812027746176474,
+      "balanced_accuracy": 0.49077460905411013,
+      "within_one_accuracy": 0.9615649183147034,
+      "two_step_error_rate": 0.03843508168529665,
+      "per_class": {
+        "0": {
+          "precision": 0.8139810426540285,
+          "recall": 0.5232956709407135,
+          "f1": 0.6370450506143266,
+          "support": 7877,
+          "status": "ok"
+        },
+        "1": {
+          "precision": 0.36352422907488985,
+          "recall": 0.6245837117771723,
+          "f1": 0.4595678324793941,
+          "support": 3303,
+          "status": "ok"
+        },
+        "2": {
+          "precision": 0.1638608305274972,
+          "recall": 0.3244444444444444,
+          "f1": 0.21774794929157343,
+          "support": 450,
+          "status": "ok"
+        }
+      },
+      "severe_precision": 0.1638608305274972,
+      "severe_recall": 0.3244444444444444,
+      "severe_f1": 0.21774794929157343,
+      "predicted_distribution": {
+        "0": 0.4354256233877902,
+        "1": 0.48796216680997423,
+        "2": 0.0766122098022356
+      },
+      "predicted_class0_share": 0.4354256233877902,
+      "confusion_matrix": [
+        [
+          4122,
+          3364,
+          391
+        ],
+        [
+          886,
+          2063,
+          354
+        ],
+        [
+          56,
+          248,
+          146
+        ]
+      ],
+      "kind": "exploratory",
+      "note": "Explainable Boosting Machine (final-only EXPLORATORY: excluded from development CV, so it never competes for the primary candidate; reported for interest only) (MODEL-FAMILY-001)",
+      "decision_rule": "posterior_median",
+      "sample_weight_applied": true,
+      "ordinal_mae_argmax": 0.5004299226139295,
+      "accuracy_argmax": 0.5646603611349957,
+      "log_loss": 0.8539403625281813,
+      "brier": 0.5290659296967266,
+      "rps": 0.3146757601353994,
+      "ece": 0.03764467148747713,
+      "ordinal_mae_ci": {
+        "point": 0.494067067927773,
+        "ci_low": 0.484780739466896,
+        "ci_high": 0.5041294067067927,
+        "n_resamples": 2000
+      }
+    }
+  },
+  "paired_difference_vs_baseline": {
+    "ordinal_median": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "excludes_zero": false,
+      "n_resamples": 2000
+    },
+    "prior_probability": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "excludes_zero": false,
+      "n_resamples": 2000
+    },
+    "multinomial_logistic": {
+      "difference": 0.1834909716251074,
+      "ci_low": 0.1682717110920035,
+      "ci_high": 0.19888435081685293,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "proportional_odds": {
+      "difference": 0.17558039552880478,
+      "ci_low": 0.16087704213241621,
+      "ci_high": 0.19028374892519345,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "frank_hall_logistic": {
+      "difference": 0.19200343938091147,
+      "ci_low": 0.17729793637145308,
+      "ci_high": 0.2068830610490111,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "shallow_tree": {
+      "difference": 0.26620808254514183,
+      "ci_low": 0.25029879621668105,
+      "ci_high": 0.28228933791917454,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "decision_tree": {
+      "difference": 0.24256233877901978,
+      "ci_low": 0.22605116079105764,
+      "ci_high": 0.2579535683576957,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "random_forest": {
+      "difference": 0.020292347377472042,
+      "ci_low": 0.009886070507308675,
+      "ci_high": 0.03138435081685298,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "ordinal_random_forest": {
+      "difference": -0.009114359415305251,
+      "ci_low": -0.018058899398108386,
+      "ci_high": -8.598452278590907e-05,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "random_forest_unweighted": {
+      "difference": -0.02261392949269131,
+      "ci_low": -0.0278611349957008,
+      "ci_high": -0.01754084264832334,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "ordinal_random_forest_unweighted": {
+      "difference": -0.02261392949269131,
+      "ci_low": -0.02768916595012898,
+      "ci_high": -0.017196904557179704,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "xgboost": {
+      "difference": 0.0943250214961307,
+      "ci_low": 0.08065133276010318,
+      "ci_high": 0.10842648323301807,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    },
+    "ebm": {
+      "difference": 0.13267411865864143,
+      "ci_low": 0.11865434221840068,
+      "ci_high": 0.1464316423043852,
+      "excludes_zero": true,
+      "n_resamples": 2000
+    }
+  },
+  "calibration": {
+    "majority": {
+      "calibrated": true,
+      "method": "sigmoid (temporal rolling-origin folds)",
+      "ece_raw": 0.32269991401547726,
+      "ece_calibrated": 0.013092842178361597,
+      "log_loss_calibrated": 0.7476317043571837,
+      "reliability_severe": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "mean_predicted": 0.03688337342868536,
+          "empirical_frequency": 0.03869303525365434,
+          "count": 11630
+        }
+      ]
+    },
+    "ordinal_random_forest": {
+      "calibrated": true,
+      "method": "sigmoid (temporal rolling-origin folds)",
+      "ece_raw": 0.06663571225958297,
+      "ece_calibrated": 0.029529720485326927,
+      "log_loss_calibrated": 0.6934554152347217,
+      "reliability_severe": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "mean_predicted": 0.027211247944133585,
+          "empirical_frequency": 0.030488353269178883,
+          "count": 11119
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "mean_predicted": 0.1315483703775295,
+          "empirical_frequency": 0.13125,
+          "count": 320
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.30000000000000004,
+          "mean_predicted": 0.24200186082343808,
+          "empirical_frequency": 0.313953488372093,
+          "count": 86
+        },
+        {
+          "bin_low": 0.30000000000000004,
+          "bin_high": 0.4,
+          "mean_predicted": 0.346871446809085,
+          "empirical_frequency": 0.2826086956521739,
+          "count": 46
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "mean_predicted": 0.44537740715171037,
+          "empirical_frequency": 0.34375,
+          "count": 32
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6000000000000001,
+          "mean_predicted": 0.5353101275481524,
+          "empirical_frequency": 0.5625,
+          "count": 16
+        },
+        {
+          "bin_low": 0.6000000000000001,
+          "bin_high": 0.7000000000000001,
+          "mean_predicted": 0.6295747792655376,
+          "empirical_frequency": 0.6666666666666666,
+          "count": 6
+        },
+        {
+          "bin_low": 0.7000000000000001,
+          "bin_high": 0.8,
+          "mean_predicted": 0.7207417898052328,
+          "empirical_frequency": 1.0,
+          "count": 5
+        }
+      ]
+    }
+  },
+  "model_availability": {
+    "xgboost": true,
+    "ebm": true
+  }
+}

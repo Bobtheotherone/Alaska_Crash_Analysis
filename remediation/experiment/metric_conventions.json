@@ -1,0 +1,52 @@
+{
+  "applies_to": "experiment/final_results.json results.*.{rps,log_loss,brier,ece} and every probability metric derived from the frozen predictions",
+  "n_classes": 3,
+  "rps_definition": "mean unnormalized sum of squared cumulative errors over K-1 thresholds",
+  "rps_normalization": "none",
+  "alternative_normalized_divisor": 2,
+  "rps_source": "crashsev/metrics.py::ranked_probability_score \u2014 mean_i sum_{k=0}^{K-2} (F_ik - O_ik)^2 with no division by K-1; for K=3 these values are twice the K-1-normalized alternative",
+  "log_loss_probability_clipping": "probabilities clipped to [1e-15, 1-1e-15] and then row-renormalized before taking the log",
+  "log_loss_epsilon": 1e-15,
+  "log_loss_source": "crashsev/metrics.py::multiclass_log_loss (eps keyword default)",
+  "hard_one_hot_unclipped_behavior": "infinite when an observed class has probability zero",
+  "ece_definition": "top-label ECE: bin the maximum predicted probability (confidence); count-weighted mean of |mean confidence - accuracy| over non-empty bins",
+  "ece_n_bins": 10,
+  "ece_bin_edges": "numpy.linspace(0, 1, n_bins+1) equal-width edges; first bin closed [0, 1/n_bins], later bins half-open (lo, hi]; empty bins skipped",
+  "ece_source": "crashsev/calibration.py::expected_calibration_error (n_bins keyword default)",
+  "brier_definition": "multiclass Brier score: mean over rows of the sum over classes of squared (predicted probability - one-hot outcome) error",
+  "brier_source": "crashsev/metrics.py::multiclass_brier",
+  "f1_reporting_convention": {
+    "id": "F1-CONV-001",
+    "reporting": "count-based zero_division='zero': precision undefined (em dash) when TP+FP=0; recall a measured 0 when TP=0 with positive support; F1 = 2TP/(2TP+FP+FN), a measured 0 for a never-predicted class with positive support; macro-F1 averages class F1 values INCLUDING zeros",
+    "storage": "frozen run bundles store zero_division='nan' (METRIC-001): F1 and macro-F1 are flagged NaN whenever a class is never predicted; preserved byte-for-byte so a pipeline rerun reproduces the frozen artifacts",
+    "pipeline_default": "nan",
+    "source": "crashsev/metrics.py::per_class_prf_from_cm / macro_f1_from_cm (zero_division keyword)",
+    "conversion_rule": "reporting values derive deterministically from the stored confusion matrices / per-class counts; no frozen artifact is modified"
+  },
+  "paired_bootstrap": {
+    "id": "BOOT-CONV-001",
+    "interval_type": "percentile (numpy.nanpercentile at 100*alpha/2 and 100*(1-alpha/2); default linear quantile interpolation)",
+    "confidence_level": 0.95,
+    "alpha": 0.05,
+    "n_resamples": 2000,
+    "seed": 42,
+    "rng": "numpy.random.default_rng(seed) (PCG64)",
+    "resampling_unit": "crash (one row per crash; crash-level and row-level coincide)",
+    "pairing": "the SAME resampled index set is applied to both models' stored predictions",
+    "models_refit_within_resamples": false,
+    "conditions_on": "fitted models, frozen protocol, observed cohort, working target definition (case-sampling variation only)",
+    "degenerate_resamples": "impossible: every replicate concatenates exactly n single-row groups",
+    "source": "crashsev/uncertainty.py::paired_difference_ci / bootstrap_metric_ci; seed and resample count from the frozen run configuration"
+  },
+  "frank_hall_probability_construction": {
+    "id": "FH-CONV-001",
+    "decomposition": "K-1 binary classifiers estimate exceedance probabilities P(Y>k|x), k=0..K-2",
+    "monotonicity": "NOT guaranteed by the separate binary fits; ENFORCED by a running cumulative minimum over k (np.minimum.accumulate) plus clipping to [0,1]",
+    "class_recovery": "differencing: p_0 = 1 - g_0; p_k = g_{k-1} - g_k; p_{K-1} = g_{K-2} (nonnegative after the repair)",
+    "negative_probabilities": "impossible after the repair; a 1e-9 floor is applied before renormalization",
+    "row_renormalization": true,
+    "degenerate_training_fold": "a threshold whose training rows are single-sided is replaced by the constant empirical exceedance rate",
+    "applies_to": "frank_hall_logistic AND ordinal_random_forest (weighted and unweighted) \u2014 one shared implementation",
+    "source": "crashsev/models.py::FrankHallOrdinalClassifier (_cum_gt/predict_proba)"
+  }
+}

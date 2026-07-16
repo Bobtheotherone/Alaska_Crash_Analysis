@@ -1,0 +1,734 @@
+{
+  "phase": "develop",
+  "protocol_version": "v4-structural-isolation",
+  "generated_utc": "2026-07-12T01:24:44Z",
+  "config": {
+    "use_case": "post_crash_triage",
+    "year_col": "Year",
+    "group_col": "Crash Number",
+    "row_id_col": "Crash Number",
+    "final_test_years": [
+      2012
+    ],
+    "min_frequency": 0.01,
+    "primary_metric": "ordinal_mae",
+    "baseline_set": [
+      "majority",
+      "ordinal_median",
+      "prior_probability",
+      "multinomial_logistic",
+      "proportional_odds",
+      "frank_hall_logistic",
+      "shallow_tree"
+    ],
+    "bootstrap_resamples": 2000,
+    "seed": 42,
+    "cv_strategy": "rolling",
+    "cv_seeds": [
+      1,
+      2,
+      3
+    ],
+    "cv_n_splits": 3,
+    "cv_models": null,
+    "include_optional_models": true,
+    "categorical_max_cardinality": 100,
+    "calibrate": true,
+    "calibration_method": "sigmoid",
+    "calibration_folds": "temporal",
+    "exclude_high_coupling": false,
+    "feature_tier": "broad",
+    "decision_rule": "posterior_median",
+    "n_classes": 3
+  },
+  "config_sha256": "0e4805d46ef67c81ccff945ae3b0deff817ab7d01f6e888a0a852cc461f94e19",
+  "contract_sha256": {
+    "schema_sha256": "fe7d8b1caf5c49ec810ac43f987b26ee1ceb189cb59576828c3be2e5c37c8e85",
+    "target_mapping_sha256": "806d02652e348d1462c9f650e25f762df05a8bc50b9d3a480d61d7df454f3301",
+    "feature_ledger_sha256": "a6293c81f4b0c9ae7650bc48d6f22a40dca65404215a5344b0d492aff2a68231"
+  },
+  "data_sha256": "059559cd7a9c40a37f7f60e12e6a82137dc8c70d12817246c2a19d59ea3e097b",
+  "target_audit_dev_only": {
+    "n_total": 38003,
+    "n_mapped": 35214,
+    "n_quarantined": 2789,
+    "blank_maps_to": "O",
+    "raw_value_counts": {
+      "<NA>": 24169,
+      "Non-Incapacitating": 5807,
+      "Possible": 3937,
+      "Unknown": 1450,
+      "Not Reported": 1305,
+      "Incapacitating": 1125,
+      "Fatal": 176,
+      "Null value": 34
+    },
+    "mapped_counts": {
+      "0": 24169,
+      "1": 9744,
+      "2": 1301
+    },
+    "quarantined_value_counts": {
+      "Unknown": 1450,
+      "Not Reported": 1305,
+      "Null value": 34
+    },
+    "kabco_to_ordinal": {
+      "O": 0,
+      "C": 1,
+      "B": 1,
+      "A": 2,
+      "K": 2
+    },
+    "reconciles": true
+  },
+  "split": {
+    "strategy": "chronological_final_test_with_crash_grouping (v4 develop: year-partition BEFORE any target interpretation)",
+    "development_years": [
+      2009,
+      2010,
+      2011
+    ],
+    "final_test_years": [
+      2012
+    ],
+    "n_dev_year_rows": 38003,
+    "n_development": 35214,
+    "n_dev_quarantined": 2789,
+    "n_final_test_rows_raw": 12540,
+    "n_excluded_year": 0,
+    "group_overlap_count": 0,
+    "dev_assignment_sha256": "b7fd83f52bc869abfed3891a4fcb05f81ad9ce7f51dbe6439f181cb61d65d8c1",
+    "class_prevalence": {
+      "development": {
+        "0": 0.6863463395240529,
+        "1": 0.27670812744930995,
+        "2": 0.03694553302663713
+      }
+    },
+    "reconciles": true,
+    "notes": "v4 GOV-001: the develop phase partitions by YEAR before any target interpretation; final-year outcome values are never validated, mapped, audited, or serialized here. The final side contributes only its raw row count and its group-id set (identifiers, for the zero-overlap check)."
+  },
+  "sentinel_flagged": {
+    "AADT": 11356,
+    "Distance From Intersection": 2372,
+    "Temperature": 7480
+  },
+  "feature_tier": "broad",
+  "decision_rule": "posterior_median",
+  "allowed_feature_columns": [
+    "AADT",
+    "AHS System",
+    "At Intersection",
+    "Borough",
+    "Census Area",
+    "City",
+    "Day of Month",
+    "Day of the Week",
+    "Direction",
+    "Distance From Intersection",
+    "Election District",
+    "First Sequence Event",
+    "First Sequence Location",
+    "Functional Class",
+    "Hit and Run",
+    "Lighting",
+    "Maintenance Category",
+    "Maintenance Responsibility",
+    "Month",
+    "NHS System",
+    "Non Vehicle Damage",
+    "Number of Commercial Vehicles Involved",
+    "Number of Pedestrians Involved",
+    "Number of Persons Involved",
+    "Number of Units Involved",
+    "Pavement",
+    "Posted Speed",
+    "Region",
+    "Road Surface",
+    "Roadway Characteristics",
+    "Roadway Junction",
+    "Temperature",
+    "Temperature Range",
+    "Time of Day",
+    "Unit 1 Action",
+    "Unit 1 CV Configuration",
+    "Unit 1 CV Haz-Mat Released",
+    "Unit 1 CV Issuing Authority",
+    "Unit 1 CV Placard",
+    "Unit 1 Commercial Vehicle (CV)",
+    "Unit 1 Direction of Travel",
+    "Unit 1 License Plate State",
+    "Unit 1 Model Year",
+    "Unit 1 Non-CV Configuration",
+    "Unit 1 Occupants",
+    "Unit 1 Person 1 Age Range",
+    "Unit 1 Person 1 Alcohol or Drug Use Suspected",
+    "Unit 1 Person 1 Circumstance",
+    "Unit 1 Person 1 Ejected",
+    "Unit 1 Person 1 Environment Circumstance",
+    "Unit 1 Person 1 Gender",
+    "Unit 1 Person 1 Insurance Coverage",
+    "Unit 1 Person 1 Raw Age",
+    "Unit 1 Person 1 Residence State",
+    "Unit 1 Person 1 Restraint",
+    "Unit 1 Person 1 Seat Location",
+    "Unit 1 Person 1 Test Given",
+    "Unit 1 Person 1 Type",
+    "Unit 1 Primary Contributing Circumstance",
+    "Unit 1 Primary Damage Location",
+    "Unit 1 Road Circumstance",
+    "Unit 1 Secondary Sequence of Events",
+    "Unit 1 Traffic Control",
+    "Weather",
+    "Week of the Year"
+  ],
+  "dropped_invariant_features": [
+    "Rural Urban"
+  ],
+  "numeric_features": [
+    "AADT",
+    "Day of Month",
+    "Distance From Intersection",
+    "Number of Commercial Vehicles Involved",
+    "Number of Pedestrians Involved",
+    "Temperature",
+    "Week of the Year"
+  ],
+  "categorical_features": [
+    "AHS System",
+    "At Intersection",
+    "Borough",
+    "Census Area",
+    "City",
+    "Day of the Week",
+    "Direction",
+    "Election District",
+    "First Sequence Event",
+    "First Sequence Location",
+    "Functional Class",
+    "Hit and Run",
+    "Lighting",
+    "Maintenance Category",
+    "Maintenance Responsibility",
+    "Month",
+    "NHS System",
+    "Non Vehicle Damage",
+    "Number of Persons Involved",
+    "Number of Units Involved",
+    "Pavement",
+    "Posted Speed",
+    "Region",
+    "Road Surface",
+    "Roadway Characteristics",
+    "Roadway Junction",
+    "Temperature Range",
+    "Time of Day",
+    "Unit 1 Action",
+    "Unit 1 CV Configuration",
+    "Unit 1 CV Haz-Mat Released",
+    "Unit 1 CV Issuing Authority",
+    "Unit 1 CV Placard",
+    "Unit 1 Commercial Vehicle (CV)",
+    "Unit 1 Direction of Travel",
+    "Unit 1 License Plate State",
+    "Unit 1 Model Year",
+    "Unit 1 Non-CV Configuration",
+    "Unit 1 Occupants",
+    "Unit 1 Person 1 Age Range",
+    "Unit 1 Person 1 Alcohol or Drug Use Suspected",
+    "Unit 1 Person 1 Circumstance",
+    "Unit 1 Person 1 Ejected",
+    "Unit 1 Person 1 Environment Circumstance",
+    "Unit 1 Person 1 Gender",
+    "Unit 1 Person 1 Insurance Coverage",
+    "Unit 1 Person 1 Raw Age",
+    "Unit 1 Person 1 Residence State",
+    "Unit 1 Person 1 Restraint",
+    "Unit 1 Person 1 Seat Location",
+    "Unit 1 Person 1 Test Given",
+    "Unit 1 Person 1 Type",
+    "Unit 1 Primary Contributing Circumstance",
+    "Unit 1 Primary Damage Location",
+    "Unit 1 Road Circumstance",
+    "Unit 1 Secondary Sequence of Events",
+    "Unit 1 Traffic Control",
+    "Weather"
+  ],
+  "dropped_high_cardinality": [],
+  "dev_cv": {
+    "strategy": "rolling",
+    "n_folds": 2,
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "per_trial": [
+      {
+        "model": "majority",
+        "seed": 42,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.356427955133736,
+        "within_one": 0.9617773943054357
+      },
+      {
+        "model": "majority",
+        "seed": 42,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.3365516062884484,
+        "within_one": 0.9644565960355435
+      },
+      {
+        "model": "ordinal_median",
+        "seed": 42,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.356427955133736,
+        "within_one": 0.9617773943054357
+      },
+      {
+        "model": "ordinal_median",
+        "seed": 42,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.3365516062884484,
+        "within_one": 0.9644565960355435
+      },
+      {
+        "model": "prior_probability",
+        "seed": 42,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.356427955133736,
+        "within_one": 0.9617773943054357
+      },
+      {
+        "model": "prior_probability",
+        "seed": 42,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.3365516062884484,
+        "within_one": 0.9644565960355435
+      },
+      {
+        "model": "multinomial_logistic",
+        "seed": 42,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.503451251078516,
+        "within_one": 0.9554788610871441
+      },
+      {
+        "model": "multinomial_logistic",
+        "seed": 42,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.4648838004101162,
+        "within_one": 0.9731715652768285
+      },
+      {
+        "model": "proportional_odds",
+        "seed": 42,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.5022433132010353,
+        "within_one": 0.9721311475409836
+      },
+      {
+        "model": "proportional_odds",
+        "seed": 42,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.515123034859877,
+        "within_one": 0.9677033492822966
+      },
+      {
+        "model": "frank_hall_logistic",
+        "seed": 42,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.4827437446074202,
+        "within_one": 0.9327868852459016
+      },
+      {
+        "model": "frank_hall_logistic",
+        "seed": 42,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.42421394395078604,
+        "within_one": 0.9493335611756665
+      },
+      {
+        "model": "shallow_tree",
+        "seed": 1,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.5981018119068162,
+        "within_one": 0.9960310612597066
+      },
+      {
+        "model": "shallow_tree",
+        "seed": 1,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.6070574162679426,
+        "within_one": 0.9962406015037594
+      },
+      {
+        "model": "shallow_tree",
+        "seed": 2,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.5981880931837791,
+        "within_one": 0.9960310612597066
+      },
+      {
+        "model": "shallow_tree",
+        "seed": 2,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.6071428571428571,
+        "within_one": 0.9962406015037594
+      },
+      {
+        "model": "shallow_tree",
+        "seed": 3,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.5981018119068162,
+        "within_one": 0.9960310612597066
+      },
+      {
+        "model": "shallow_tree",
+        "seed": 3,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.6070574162679426,
+        "within_one": 0.9962406015037594
+      },
+      {
+        "model": "decision_tree",
+        "seed": 1,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.5559965487489215,
+        "within_one": 0.9725625539257982
+      },
+      {
+        "model": "decision_tree",
+        "seed": 1,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.595352016404648,
+        "within_one": 0.9378844839371155
+      },
+      {
+        "model": "decision_tree",
+        "seed": 2,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.5556514236410699,
+        "within_one": 0.9729939603106126
+      },
+      {
+        "model": "decision_tree",
+        "seed": 2,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.6002221462747779,
+        "within_one": 0.9384825700615175
+      },
+      {
+        "model": "decision_tree",
+        "seed": 3,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.5557377049180328,
+        "within_one": 0.972648835202761
+      },
+      {
+        "model": "decision_tree",
+        "seed": 3,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.5946684894053315,
+        "within_one": 0.9378844839371155
+      },
+      {
+        "model": "random_forest",
+        "seed": 1,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3539257981018119,
+        "within_one": 0.9937014667817083
+      },
+      {
+        "model": "random_forest",
+        "seed": 1,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.40541695146958306,
+        "within_one": 0.9956425153793574
+      },
+      {
+        "model": "random_forest",
+        "seed": 2,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.35677308024158755,
+        "within_one": 0.99404659188956
+      },
+      {
+        "model": "random_forest",
+        "seed": 2,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.410457963089542,
+        "within_one": 0.9951298701298701
+      },
+      {
+        "model": "random_forest",
+        "seed": 3,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.352113891285591,
+        "within_one": 0.9933563416738568
+      },
+      {
+        "model": "random_forest",
+        "seed": 3,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.40584415584415584,
+        "within_one": 0.9950444292549556
+      },
+      {
+        "model": "ordinal_random_forest",
+        "seed": 1,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3191544434857636,
+        "within_one": 0.9894736842105263
+      },
+      {
+        "model": "ordinal_random_forest",
+        "seed": 1,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.338174982911825,
+        "within_one": 0.9910287081339713
+      },
+      {
+        "model": "ordinal_random_forest",
+        "seed": 2,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3176876617773943,
+        "within_one": 0.9899050905953408
+      },
+      {
+        "model": "ordinal_random_forest",
+        "seed": 2,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.33433014354066987,
+        "within_one": 0.9904306220095693
+      },
+      {
+        "model": "ordinal_random_forest",
+        "seed": 3,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3177739430543572,
+        "within_one": 0.9899913718723037
+      },
+      {
+        "model": "ordinal_random_forest",
+        "seed": 3,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.3329630895420369,
+        "within_one": 0.9904306220095693
+      },
+      {
+        "model": "random_forest_unweighted",
+        "seed": 1,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.30621225194132873,
+        "within_one": 0.9824849007765315
+      },
+      {
+        "model": "random_forest_unweighted",
+        "seed": 1,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.31510594668489406,
+        "within_one": 0.9829972658920028
+      },
+      {
+        "model": "random_forest_unweighted",
+        "seed": 2,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3088006902502157,
+        "within_one": 0.9818809318377912
+      },
+      {
+        "model": "random_forest_unweighted",
+        "seed": 2,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.31390977443609025,
+        "within_one": 0.9832535885167464
+      },
+      {
+        "model": "random_forest_unweighted",
+        "seed": 3,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3081967213114754,
+        "within_one": 0.9819672131147541
+      },
+      {
+        "model": "random_forest_unweighted",
+        "seed": 3,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.3133971291866029,
+        "within_one": 0.9835099111414901
+      },
+      {
+        "model": "ordinal_random_forest_unweighted",
+        "seed": 1,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.30647109577221743,
+        "within_one": 0.9823986194995686
+      },
+      {
+        "model": "ordinal_random_forest_unweighted",
+        "seed": 1,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.31527682843472316,
+        "within_one": 0.9838516746411483
+      },
+      {
+        "model": "ordinal_random_forest_unweighted",
+        "seed": 2,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3075927523727351,
+        "within_one": 0.9823123382226057
+      },
+      {
+        "model": "ordinal_random_forest_unweighted",
+        "seed": 2,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.31322624743677374,
+        "within_one": 0.9838516746411483
+      },
+      {
+        "model": "ordinal_random_forest_unweighted",
+        "seed": 3,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3097497842968076,
+        "within_one": 0.9827437446074202
+      },
+      {
+        "model": "ordinal_random_forest_unweighted",
+        "seed": 3,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.315704032809296,
+        "within_one": 0.9829118250170882
+      },
+      {
+        "model": "xgboost",
+        "seed": 1,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3882657463330457,
+        "within_one": 0.9918032786885246
+      },
+      {
+        "model": "xgboost",
+        "seed": 1,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.46496924128503075,
+        "within_one": 0.9900888585099111
+      },
+      {
+        "model": "xgboost",
+        "seed": 2,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.3859361518550475,
+        "within_one": 0.9911993097497843
+      },
+      {
+        "model": "xgboost",
+        "seed": 2,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.4601845522898155,
+        "within_one": 0.9900034176349966
+      },
+      {
+        "model": "xgboost",
+        "seed": 3,
+        "fold": "train<=2009|val=2010",
+        "ordinal_mae": 0.38783433994823124,
+        "within_one": 0.9908541846419328
+      },
+      {
+        "model": "xgboost",
+        "seed": 3,
+        "fold": "train<=2010|val=2011",
+        "ordinal_mae": 0.44788106630211894,
+        "within_one": 0.9906869446343131
+      }
+    ],
+    "aggregate": {
+      "majority": {
+        "mean_ordinal_mae": 0.34648978071109215,
+        "std_ordinal_mae": 0.009938174422643803,
+        "n_trials": 2
+      },
+      "ordinal_median": {
+        "mean_ordinal_mae": 0.34648978071109215,
+        "std_ordinal_mae": 0.009938174422643803,
+        "n_trials": 2
+      },
+      "prior_probability": {
+        "mean_ordinal_mae": 0.34648978071109215,
+        "std_ordinal_mae": 0.009938174422643803,
+        "n_trials": 2
+      },
+      "multinomial_logistic": {
+        "mean_ordinal_mae": 0.4841675257443161,
+        "std_ordinal_mae": 0.01928372533419989,
+        "n_trials": 2
+      },
+      "proportional_odds": {
+        "mean_ordinal_mae": 0.5086831740304562,
+        "std_ordinal_mae": 0.006439860829420829,
+        "n_trials": 2
+      },
+      "frank_hall_logistic": {
+        "mean_ordinal_mae": 0.4534788442791031,
+        "std_ordinal_mae": 0.02926490032831708,
+        "n_trials": 2
+      },
+      "shallow_tree": {
+        "mean_ordinal_mae": 0.6026082344460256,
+        "std_ordinal_mae": 0.004477845050050604,
+        "n_trials": 6
+      },
+      "decision_tree": {
+        "mean_ordinal_mae": 0.5762713882321303,
+        "std_ordinal_mae": 0.02055093963830056,
+        "n_trials": 6
+      },
+      "random_forest": {
+        "mean_ordinal_mae": 0.3807553066720452,
+        "std_ordinal_mae": 0.02656813650841325,
+        "n_trials": 6
+      },
+      "ordinal_random_forest": {
+        "mean_ordinal_mae": 0.32668071071867444,
+        "std_ordinal_mae": 0.008630860688794434,
+        "n_trials": 6
+      },
+      "random_forest_unweighted": {
+        "mean_ordinal_mae": 0.3109370856351012,
+        "std_ordinal_mae": 0.003333314935012377,
+        "n_trials": 6
+      },
+      "ordinal_random_forest_unweighted": {
+        "mean_ordinal_mae": 0.31133679018709215,
+        "std_ordinal_mae": 0.0036142806384867206,
+        "n_trials": 6
+      },
+      "xgboost": {
+        "mean_ordinal_mae": 0.4225118496688816,
+        "std_ordinal_mae": 0.035540040149292546,
+        "n_trials": 6
+      }
+    }
+  },
+  "primary_baseline": "majority",
+  "git": {
+    "commit": "f2f73ed178f8fca07d2348f5bb1deceb75850809",
+    "branch": "portfolio-research-finalization-v4",
+    "dirty": true,
+    "source_dirty": false
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "libraries": {
+      "python": "3.13.13",
+      "numpy": "2.4.4",
+      "pandas": "3.0.3",
+      "scikit-learn": "1.9.0",
+      "scipy": "1.17.1",
+      "xgboost": "3.3.0",
+      "interpret": "0.7.8"
+    }
+  }
+}

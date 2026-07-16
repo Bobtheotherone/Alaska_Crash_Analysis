@@ -1,0 +1,179 @@
+{
+  "description": "Fixed model configurations of the governed benchmark, extracted from crashsev.models.build_registry with the frozen run seed. No hyperparameter search was run in the corrected protocol; development CV selected among these fixed configurations only.",
+  "run_id": "final_8af9d5bc23d8",
+  "config_sha256": "f174006aa81b68b786ef3d300f1c99275880790981aea2b12b84b61219fd3b83",
+  "shared_protocol_constants": {
+    "seed": 42,
+    "n_classes": 3,
+    "decision_rule": "posterior_median",
+    "primary_metric": "ordinal_mae",
+    "feature_tier": "strict",
+    "bootstrap_resamples": 2000,
+    "one_hot_min_frequency": 0.01,
+    "categorical_max_cardinality": 100,
+    "calibration": {
+      "enabled": true,
+      "method": "sigmoid",
+      "folds": "temporal"
+    },
+    "cv_strategy": "rolling",
+    "cv_seeds": [
+      1,
+      2,
+      3
+    ],
+    "log_loss_probability_clip": 1e-15
+  },
+  "hyperparameter_search": "none (fixed configurations; see description)",
+  "models": {
+    "majority": {
+      "kind": "baseline",
+      "class_weight_mode": "none",
+      "scale_numeric": false,
+      "estimator": "DummyClassifier",
+      "strategy": "most_frequent"
+    },
+    "ordinal_median": {
+      "kind": "baseline",
+      "class_weight_mode": "none",
+      "scale_numeric": false,
+      "estimator": "OrdinalMedianClassifier"
+    },
+    "prior_probability": {
+      "kind": "baseline",
+      "class_weight_mode": "none",
+      "scale_numeric": false,
+      "estimator": "DummyClassifier",
+      "strategy": "prior"
+    },
+    "multinomial_logistic": {
+      "kind": "baseline",
+      "class_weight_mode": "builtin",
+      "scale_numeric": true,
+      "estimator": "LogisticRegression",
+      "max_iter": 2000,
+      "C": 1.0,
+      "class_weight": "balanced",
+      "solver": "lbfgs",
+      "random_state": 42
+    },
+    "proportional_odds": {
+      "kind": "baseline",
+      "class_weight_mode": "builtin",
+      "scale_numeric": true,
+      "estimator": "ProportionalOddsClassifier",
+      "max_iter": 200,
+      "l2": 0.0001,
+      "class_weight": "balanced"
+    },
+    "frank_hall_logistic": {
+      "kind": "baseline",
+      "class_weight_mode": "builtin",
+      "scale_numeric": true,
+      "estimator": "FrankHallOrdinalClassifier",
+      "structure": "K-1 cumulative binary classifiers P(y>k); base estimator below",
+      "base": {
+        "estimator": "LogisticRegression",
+        "max_iter": 2000,
+        "C": 1.0,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      }
+    },
+    "shallow_tree": {
+      "kind": "baseline",
+      "class_weight_mode": "builtin",
+      "scale_numeric": false,
+      "estimator": "DecisionTreeClassifier",
+      "criterion": "gini",
+      "max_depth": 4,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "class_weight": "balanced",
+      "random_state": 42
+    },
+    "decision_tree": {
+      "kind": "candidate",
+      "class_weight_mode": "builtin",
+      "scale_numeric": false,
+      "estimator": "DecisionTreeClassifier",
+      "criterion": "entropy",
+      "max_depth": 10,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "class_weight": "balanced",
+      "random_state": 42
+    },
+    "random_forest": {
+      "kind": "candidate",
+      "class_weight_mode": "builtin",
+      "scale_numeric": false,
+      "estimator": "RandomForestClassifier",
+      "n_estimators": 300,
+      "max_depth": null,
+      "class_weight": "balanced",
+      "random_state": 42
+    },
+    "ordinal_random_forest": {
+      "kind": "candidate",
+      "class_weight_mode": "builtin",
+      "scale_numeric": false,
+      "estimator": "FrankHallOrdinalClassifier",
+      "structure": "K-1 cumulative binary classifiers P(y>k); base estimator below",
+      "base": {
+        "estimator": "RandomForestClassifier",
+        "n_estimators": 300,
+        "max_depth": null,
+        "class_weight": "balanced",
+        "random_state": 42
+      }
+    },
+    "random_forest_unweighted": {
+      "kind": "ablation",
+      "class_weight_mode": "none",
+      "scale_numeric": false,
+      "estimator": "RandomForestClassifier",
+      "n_estimators": 300,
+      "max_depth": null,
+      "class_weight": null,
+      "random_state": 42
+    },
+    "ordinal_random_forest_unweighted": {
+      "kind": "ablation",
+      "class_weight_mode": "none",
+      "scale_numeric": false,
+      "estimator": "FrankHallOrdinalClassifier",
+      "structure": "K-1 cumulative binary classifiers P(y>k); base estimator below",
+      "base": {
+        "estimator": "RandomForestClassifier",
+        "n_estimators": 300,
+        "max_depth": null,
+        "class_weight": null,
+        "random_state": 42
+      }
+    },
+    "xgboost": {
+      "kind": "candidate",
+      "class_weight_mode": "sample_weight",
+      "scale_numeric": false,
+      "estimator": "XGBClassifier",
+      "n_estimators": 400,
+      "learning_rate": 0.05,
+      "max_depth": 6,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "objective": "multi:softprob",
+      "tree_method": "hist",
+      "eval_metric": "mlogloss",
+      "random_state": 42
+    },
+    "ebm": {
+      "kind": "exploratory",
+      "class_weight_mode": "sample_weight",
+      "scale_numeric": false,
+      "estimator": "ExplainableBoostingClassifier",
+      "random_state": 42
+    }
+  }
+}

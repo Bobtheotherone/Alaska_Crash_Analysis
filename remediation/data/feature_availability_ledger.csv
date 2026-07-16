@@ -1,0 +1,101 @@
+column,availability,allowed_post_crash_triage,high_coupling,strict_scene_tier,rationale
+AADT,pre_event,True,False,True,annual average daily traffic (numeric; sentinel-cleaned)
+AHS System,pre_event,True,False,True,Alaska Highway System class
+Arrest,post_outcome,False,False,False,post-crash enforcement
+At Intersection,pre_event,True,False,True,intersection-related location
+Borough,pre_event,True,False,True,coarse administrative geography
+CDS Number,identifier,False,False,False,location/segment id
+Census Area,pre_event,True,False,True,coarse administrative geography
+City,pre_event,True,False,True,city/place
+Crash Number,identifier,False,False,False,crash id — row id AND group key (one row per crash)
+Crash Severity,target,False,False,False,3-level ordinal outcome
+Date,identifier,False,False,False,"timestamp — used to derive the split, not a feature"
+DateTime,identifier,False,False,False,"timestamp — split ordering key, not a feature"
+Day of Month,temporal,True,False,True,"day-of-month — weak; retained, no strong mechanism"
+Day of the Week,temporal,True,False,True,weekday/weekend pattern
+Detachment,identifier,False,False,False,agency detachment id
+Direction,at_event,True,False,True,travel direction context
+Distance From Intersection,pre_event,True,False,True,distance to nearest intersection (numeric)
+Election District,pre_event,True,False,True,administrative polygon (not a point)
+First Sequence Event,at_event,True,False,False,first harmful event / manner ; STRICT-EXCLUDED: crash-sequence reconstruction (report-stage coding)
+First Sequence Location,at_event,True,False,False,location of first event (roadway/shoulder/…) ; STRICT-EXCLUDED: crash-sequence reconstruction (report-stage coding)
+Functional Class,pre_event,True,False,True,roadway functional class
+Hit and Run,at_event,True,False,True,hit-and-run flag (scene fact)
+Intersecting Street,identifier,False,False,False,"free-text cross street — fine location, re-identifying"
+Latitude,identifier,False,False,False,point coordinate — restricted (privacy)
+Lighting,at_event,True,False,True,lighting condition
+Location Type,constant,False,False,False,single-valued in extract — dropped
+Longitude,identifier,False,False,False,point coordinate — restricted (privacy)
+Maintenance Category,pre_event,True,False,True,roadway maintenance category
+Maintenance Responsibility,pre_event,True,False,True,maintenance responsibility
+Maintenance Station,identifier,False,False,False,operational station id (location proxy)
+Milepoint,identifier,False,False,False,continuous location along route — re-identifying
+Month,temporal,True,False,True,calendar month — seasonality
+NHS System,pre_event,True,False,True,National Highway System indicator
+Non Vehicle Damage,at_event,True,False,False,struck non-vehicle property (collision configuration) ; STRICT-EXCLUDED: damage assessment (co-determined with outcome severity)
+Number of Commercial Vehicles Involved,at_event,True,False,True,count of CVs involved
+Number of Fatalities,post_outcome,False,False,False,injury/fatality count — defines K; direct leak
+Number of Injuries with Fatalities,post_outcome,False,False,False,injury count — direct leak
+Number of Injuries without Fatailites,post_outcome,False,False,False,injury count (sic) — direct leak
+Number of Pedestrians Involved,at_event,True,False,True,count of pedestrians involved
+Number of Persons Involved,at_event,True,False,True,crash size (persons)
+Number of Units Involved,at_event,True,False,True,count of units (vehicles) involved
+Officer Agency,identifier,False,False,False,reporting agency id
+Officer ID,identifier,False,False,False,reporting-officer id (PII)
+Pavement,at_event,True,False,True,pavement type/condition
+Posted Speed,pre_event,True,False,True,posted speed limit
+Region,pre_event,True,False,True,DOT region (coarse geography)
+Report ID,identifier,False,False,False,report id
+Reporting Agency,identifier,False,False,False,reporting agency id
+Road Surface,at_event,True,False,True,road surface condition (snow/ice/wet…)
+Roadway Characteristics,pre_event,True,False,True,roadway geometry/character
+Roadway Junction,pre_event,True,False,True,junction type
+Route,identifier,False,False,False,"route id — fine location, re-identifying"
+Rural Urban,pre_event,True,False,True,rural/urban context
+Street,identifier,False,False,False,"free-text street — fine location, re-identifying"
+Temperature,at_event,True,False,True,ambient temperature at crash time
+Temperature Range,at_event,True,False,True,binned temperature at crash time
+Time of Day,temporal,True,False,True,hour band — lighting/traffic-exposure proxy
+Unit 1 Action,at_event,True,False,True,primary unit's action/maneuver
+Unit 1 CV Configuration,at_event,True,False,True,CV configuration
+Unit 1 CV Haz-Mat Released,at_event,True,False,False,"haz-mat release flag ; STRICT-EXCLUDED: event-consequence flag, recorded during/after response"
+Unit 1 CV Issuing Authority,at_event,True,False,True,CV issuing authority
+Unit 1 CV Placard,at_event,True,False,True,CV placard
+Unit 1 Commercial Vehicle (CV),at_event,True,False,True,is unit a commercial vehicle
+Unit 1 Damage,post_outcome,False,False,False,vehicle damage extent — co-measurement of harm
+Unit 1 Direction of Travel,at_event,True,False,True,unit direction of travel
+Unit 1 License Plate State,at_event,True,False,True,plate state (local vs out-of-state)
+Unit 1 Make,constant,False,False,False,single-valued in extract — dropped
+Unit 1 Model Year,at_event,True,False,True,vehicle model year (age proxy)
+Unit 1 Non-CV Configuration,at_event,True,False,True,non-CV body configuration
+Unit 1 Occupants,at_event,True,False,True,number of occupants in unit
+Unit 1 Person 1 Age Range,at_event,True,False,True,driver age band
+Unit 1 Person 1 Alcohol or Drug Use Suspected,at_event,True,False,False,impairment suspected at scene ; STRICT-EXCLUDED: investigation judgment (94% missing; recording stage unevidenced)
+Unit 1 Person 1 Circumstance,at_event,True,False,False,person contributing circumstance (behavior) ; STRICT-EXCLUDED: contributing-circumstance judgment (report-stage coding)
+Unit 1 Person 1 Ejected,at_event,True,True,False,ejection (kinematics) — HIGH-COUPLING with injury ; STRICT-EXCLUDED: HIGH-COUPLING with injury (kinematics)
+Unit 1 Person 1 Environment Circumstance,at_event,True,False,False,environmental circumstance ; STRICT-EXCLUDED: contributing-circumstance judgment (report-stage coding)
+Unit 1 Person 1 Extricated,post_outcome,False,False,False,extrication — post-crash response to entrapment/injury
+Unit 1 Person 1 Gender,at_event,True,False,True,driver gender
+Unit 1 Person 1 Injury,post_outcome,False,False,False,the person's injury code — IS the outcome
+Unit 1 Person 1 Insurance Coverage,at_event,True,False,False,insurance coverage (scene fact) ; STRICT-EXCLUDED: document exchange/verification (plausibly report-stage)
+Unit 1 Person 1 NFR,post_outcome,False,False,False,ambiguous post-report field — excluded conservatively
+Unit 1 Person 1 Raw Age,at_event,True,False,True,driver age (raw)
+Unit 1 Person 1 Residence State,at_event,True,False,True,resident vs visitor (scene fact)
+Unit 1 Person 1 Restraint,at_event,True,True,False,restraint use — HIGH-COUPLING with injury ; STRICT-EXCLUDED: HIGH-COUPLING with injury
+Unit 1 Person 1 Seat Location,at_event,True,True,False,seat position — HIGH-COUPLING with injury ; STRICT-EXCLUDED: HIGH-COUPLING with injury
+Unit 1 Person 1 Test Given,at_event,True,False,False,impairment test administered at scene ; STRICT-EXCLUDED: test administration can follow injury/impairment assessment
+Unit 1 Person 1 Transported,post_outcome,False,False,False,EMS transport — post-crash response to injury
+Unit 1 Person 1 Transported By,post_outcome,False,False,False,EMS transport mode — post-crash response
+Unit 1 Person 1 Transported To,post_outcome,False,False,False,destination facility — post-crash response
+Unit 1 Person 1 Type,at_event,True,False,True,person type (driver/…)
+Unit 1 Person 1 Violations,post_outcome,False,False,False,post-crash adjudication
+Unit 1 Primary Contributing Circumstance,at_event,True,False,False,primary contributing circumstance (cause) ; STRICT-EXCLUDED: contributing-circumstance judgment (report-stage coding)
+Unit 1 Primary Damage Location,at_event,True,False,False,impact location on vehicle (collision config) ; STRICT-EXCLUDED: damage assessment (co-determined with outcome severity)
+Unit 1 Road Circumstance,at_event,True,False,False,road circumstance contributing ; STRICT-EXCLUDED: contributing-circumstance judgment (report-stage coding)
+Unit 1 Secondary Sequence of Events,at_event,True,False,False,secondary events in the crash sequence ; STRICT-EXCLUDED: crash-sequence reconstruction (report-stage coding)
+Unit 1 Towed,post_outcome,False,False,False,tow disposition — post-crash outcome of damage
+Unit 1 Traffic Control,at_event,True,False,True,traffic control present
+Unit 1 Undercarriage Damage,post_outcome,False,False,False,rollover/undercarriage damage extent — co-measurement of harm
+Weather,at_event,True,False,True,weather condition
+Week of the Year,temporal,True,False,True,week-of-year — seasonality (correlated with Month)
+Year,temporal,False,False,False,split axis / source-version proxy — WITHHELD as a feature

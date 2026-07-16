@@ -1,0 +1,709 @@
+{
+  "schema_version": "1.0",
+  "source_extract": "Crash Level 09-12",
+  "unit": "crash",
+  "row_id_col": "Crash Number",
+  "group_col": "Crash Number",
+  "year_col": "Year",
+  "datetime_col": "DateTime",
+  "target_col": "Crash Severity",
+  "n_documented_columns": 100,
+  "required_columns": [
+    "AADT",
+    "AHS System",
+    "At Intersection",
+    "Borough",
+    "Census Area",
+    "City",
+    "Crash Number",
+    "Crash Severity",
+    "DateTime",
+    "Day of Month",
+    "Day of the Week",
+    "Direction",
+    "Distance From Intersection",
+    "Election District",
+    "First Sequence Event",
+    "First Sequence Location",
+    "Functional Class",
+    "Hit and Run",
+    "Lighting",
+    "Maintenance Category",
+    "Maintenance Responsibility",
+    "Month",
+    "NHS System",
+    "Non Vehicle Damage",
+    "Number of Commercial Vehicles Involved",
+    "Number of Pedestrians Involved",
+    "Number of Persons Involved",
+    "Number of Units Involved",
+    "Pavement",
+    "Posted Speed",
+    "Region",
+    "Road Surface",
+    "Roadway Characteristics",
+    "Roadway Junction",
+    "Rural Urban",
+    "Temperature",
+    "Temperature Range",
+    "Time of Day",
+    "Unit 1 Action",
+    "Unit 1 CV Configuration",
+    "Unit 1 CV Haz-Mat Released",
+    "Unit 1 CV Issuing Authority",
+    "Unit 1 CV Placard",
+    "Unit 1 Commercial Vehicle (CV)",
+    "Unit 1 Direction of Travel",
+    "Unit 1 License Plate State",
+    "Unit 1 Model Year",
+    "Unit 1 Non-CV Configuration",
+    "Unit 1 Occupants",
+    "Unit 1 Person 1 Age Range",
+    "Unit 1 Person 1 Alcohol or Drug Use Suspected",
+    "Unit 1 Person 1 Circumstance",
+    "Unit 1 Person 1 Ejected",
+    "Unit 1 Person 1 Environment Circumstance",
+    "Unit 1 Person 1 Gender",
+    "Unit 1 Person 1 Insurance Coverage",
+    "Unit 1 Person 1 Raw Age",
+    "Unit 1 Person 1 Residence State",
+    "Unit 1 Person 1 Restraint",
+    "Unit 1 Person 1 Seat Location",
+    "Unit 1 Person 1 Test Given",
+    "Unit 1 Person 1 Type",
+    "Unit 1 Primary Contributing Circumstance",
+    "Unit 1 Primary Damage Location",
+    "Unit 1 Road Circumstance",
+    "Unit 1 Secondary Sequence of Events",
+    "Unit 1 Traffic Control",
+    "Weather",
+    "Week of the Year",
+    "Year"
+  ],
+  "allowed_feature_columns": [
+    "AADT",
+    "AHS System",
+    "At Intersection",
+    "Borough",
+    "Census Area",
+    "City",
+    "Day of Month",
+    "Day of the Week",
+    "Direction",
+    "Distance From Intersection",
+    "Election District",
+    "First Sequence Event",
+    "First Sequence Location",
+    "Functional Class",
+    "Hit and Run",
+    "Lighting",
+    "Maintenance Category",
+    "Maintenance Responsibility",
+    "Month",
+    "NHS System",
+    "Non Vehicle Damage",
+    "Number of Commercial Vehicles Involved",
+    "Number of Pedestrians Involved",
+    "Number of Persons Involved",
+    "Number of Units Involved",
+    "Pavement",
+    "Posted Speed",
+    "Region",
+    "Road Surface",
+    "Roadway Characteristics",
+    "Roadway Junction",
+    "Rural Urban",
+    "Temperature",
+    "Temperature Range",
+    "Time of Day",
+    "Unit 1 Action",
+    "Unit 1 CV Configuration",
+    "Unit 1 CV Haz-Mat Released",
+    "Unit 1 CV Issuing Authority",
+    "Unit 1 CV Placard",
+    "Unit 1 Commercial Vehicle (CV)",
+    "Unit 1 Direction of Travel",
+    "Unit 1 License Plate State",
+    "Unit 1 Model Year",
+    "Unit 1 Non-CV Configuration",
+    "Unit 1 Occupants",
+    "Unit 1 Person 1 Age Range",
+    "Unit 1 Person 1 Alcohol or Drug Use Suspected",
+    "Unit 1 Person 1 Circumstance",
+    "Unit 1 Person 1 Ejected",
+    "Unit 1 Person 1 Environment Circumstance",
+    "Unit 1 Person 1 Gender",
+    "Unit 1 Person 1 Insurance Coverage",
+    "Unit 1 Person 1 Raw Age",
+    "Unit 1 Person 1 Residence State",
+    "Unit 1 Person 1 Restraint",
+    "Unit 1 Person 1 Seat Location",
+    "Unit 1 Person 1 Test Given",
+    "Unit 1 Person 1 Type",
+    "Unit 1 Primary Contributing Circumstance",
+    "Unit 1 Primary Damage Location",
+    "Unit 1 Road Circumstance",
+    "Unit 1 Secondary Sequence of Events",
+    "Unit 1 Traffic Control",
+    "Weather",
+    "Week of the Year"
+  ],
+  "columns": {
+    "AHS System": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Arrest": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "At Intersection": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Borough": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Census Area": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "City": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Crash Severity": {
+      "dtype_family": "string",
+      "tier": "target",
+      "allowed_feature": false
+    },
+    "Date": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Day of Month": {
+      "dtype_family": "numeric",
+      "tier": "temporal",
+      "allowed_feature": true
+    },
+    "Day of the Week": {
+      "dtype_family": "string",
+      "tier": "temporal",
+      "allowed_feature": true
+    },
+    "Detachment": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Direction": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Election District": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "First Sequence Event": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "First Sequence Location": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Functional Class": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Hit and Run": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Lighting": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Location Type": {
+      "dtype_family": "string",
+      "tier": "constant",
+      "allowed_feature": false
+    },
+    "Maintenance Category": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Maintenance Responsibility": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Maintenance Station": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Month": {
+      "dtype_family": "string",
+      "tier": "temporal",
+      "allowed_feature": true
+    },
+    "NHS System": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Non Vehicle Damage": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Number of Commercial Vehicles Involved": {
+      "dtype_family": "numeric",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Number of Fatalities": {
+      "dtype_family": "numeric",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Number of Injuries with Fatalities": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Number of Injuries without Fatailites": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Number of Pedestrians Involved": {
+      "dtype_family": "numeric",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Number of Persons Involved": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Number of Units Involved": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Officer Agency": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Officer ID": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Pavement": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Posted Speed": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Region": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Reporting Agency": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Road Surface": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Roadway Characteristics": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Roadway Junction": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Rural Urban": {
+      "dtype_family": "string",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Temperature Range": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Time of Day": {
+      "dtype_family": "string",
+      "tier": "temporal",
+      "allowed_feature": true
+    },
+    "Unit 1 Action": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Commercial Vehicle (CV)": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 CV Configuration": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 CV Haz-Mat Released": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 CV Issuing Authority": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 CV Placard": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Damage": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Direction of Travel": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 License Plate State": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Make": {
+      "dtype_family": "string",
+      "tier": "constant",
+      "allowed_feature": false
+    },
+    "Unit 1 Model Year": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Non-CV Configuration": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Occupants": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Age Range": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Alcohol or Drug Use Suspected": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Circumstance": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Ejected": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Environment Circumstance": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Extricated": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Person 1 Gender": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Injury": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Person 1 Insurance Coverage": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 NFR": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Person 1 Raw Age": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Residence State": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Restraint": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Seat Location": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Test Given": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Transported": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Person 1 Transported By": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Person 1 Transported To": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Person 1 Type": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Person 1 Violations": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Primary Contributing Circumstance": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Primary Damage Location": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Road Circumstance": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Secondary Sequence of Events": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Towed": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Unit 1 Traffic Control": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Unit 1 Undercarriage Damage": {
+      "dtype_family": "string",
+      "tier": "post_outcome",
+      "allowed_feature": false
+    },
+    "Weather": {
+      "dtype_family": "string",
+      "tier": "at_event",
+      "allowed_feature": true
+    },
+    "Week of the Year": {
+      "dtype_family": "numeric",
+      "tier": "temporal",
+      "allowed_feature": true
+    },
+    "Year": {
+      "dtype_family": "numeric",
+      "tier": "temporal",
+      "allowed_feature": false
+    },
+    "AADT": {
+      "dtype_family": "numeric",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "CDS Number": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Crash Number": {
+      "dtype_family": "numeric",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "DateTime": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Distance From Intersection": {
+      "dtype_family": "numeric",
+      "tier": "pre_event",
+      "allowed_feature": true
+    },
+    "Intersecting Street": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Latitude": {
+      "dtype_family": "numeric",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Longitude": {
+      "dtype_family": "numeric",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Milepoint": {
+      "dtype_family": "numeric",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Report ID": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Route": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Street": {
+      "dtype_family": "string",
+      "tier": "identifier",
+      "allowed_feature": false
+    },
+    "Temperature": {
+      "dtype_family": "numeric",
+      "tier": "at_event",
+      "allowed_feature": true
+    }
+  },
+  "numeric_sentinels": {
+    "AADT": {
+      "null_values": [
+        -2147483648
+      ],
+      "valid_min": 1,
+      "n_flagged": 17060,
+      "observed_min": -2147483648.0,
+      "observed_max": 60880.0
+    },
+    "Distance From Intersection": {
+      "null_values": [],
+      "valid_min": 0,
+      "valid_max": 52800,
+      "n_flagged": 4110,
+      "observed_min": -1.0,
+      "observed_max": 7370880.0
+    },
+    "Temperature": {
+      "null_values": [],
+      "valid_min": -80,
+      "valid_max": 120,
+      "n_flagged": 11239,
+      "observed_min": -460.0,
+      "observed_max": 999.0
+    }
+  },
+  "string_missing_tokens": [
+    "",
+    "null value",
+    "no data",
+    "missing",
+    "not reported",
+    "not available",
+    "not applicable",
+    "unknown",
+    "n/a",
+    "na",
+    "none given",
+    "not stated"
+  ],
+  "target_domain": {
+    "mappable_labels": [
+      "Fatal",
+      "Incapacitating",
+      "Non-Incapacitating",
+      "Possible"
+    ],
+    "blank_maps_to": "O",
+    "quarantine_labels": [
+      "Unknown",
+      "Not Reported",
+      "Null value"
+    ],
+    "note": "Any target value outside mappable \u222a quarantine \u222a blank is UNDOCUMENTED and aborts the run."
+  }
+}

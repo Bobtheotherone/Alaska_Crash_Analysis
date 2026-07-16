@@ -1,0 +1,1596 @@
+\documentclass[11pt,letterpaper]{article}
+%DIF LATEXDIFF DIFFERENCE FILE
+%DIF DEL /tmp/r3latex/remediation/paper/latex/main.tex   Wed Jul 15 23:32:16 2026
+%DIF ADD main.tex                                        Thu Jul 16 02:14:44 2026
+
+% -----------------------------------------------------------------
+% UAA-informed student research-paper layout
+% -----------------------------------------------------------------
+\usepackage[letterpaper,margin=1in,footskip=0.30in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{indentfirst}
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{0pt}
+\emergencystretch=2.5em
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\raggedbottom
+
+% -----------------------------------------------------------------
+% Headings: restrained, black, and consistent with the body typeface
+% -----------------------------------------------------------------
+\usepackage{titlesec}
+\titleformat{\section}{\bfseries\large}{\thesection}{0.75em}{}
+\titleformat{\subsection}{\bfseries\normalsize}{\thesubsection}{0.65em}{}
+\titleformat{\subsubsection}{\itshape\normalsize}{\thesubsubsection}{0.60em}{}
+\titlespacing*{\section}{0pt}{18pt plus 3pt minus 2pt}{7pt}
+\titlespacing*{\subsection}{0pt}{13pt plus 2pt minus 1pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{10pt plus 2pt minus 1pt}{3pt}
+
+% -----------------------------------------------------------------
+%DIF 34c34
+%DIF < % Figures, placeholders, tables, and captions
+%DIF -------
+% Figures, missing-figure stand-in boxes, tables, and captions %DIF > 
+%DIF -------
+% -----------------------------------------------------------------
+\usepackage{xcolor}
+%DIF 37-38c37-38
+%DIF < \definecolor{PlaceholderRule}{gray}{0.55}
+%DIF < \definecolor{PlaceholderText}{gray}{0.32}
+%DIF -------
+\definecolor{MissingFigRule}{gray}{0.55} %DIF > 
+\definecolor{MissingFigText}{gray}{0.32} %DIF > 
+%DIF -------
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{threeparttable}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{siunitx}
+\sisetup{detect-all,table-number-alignment=center}
+\usepackage{caption}
+\captionsetup{
+  font=small,
+  labelfont=bf,
+  textfont=normalfont,
+  justification=raggedright,
+  singlelinecheck=false,
+  skip=6pt
+}
+\captionsetup[table]{position=top}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{etoolbox}
+\renewcommand{\arraystretch}{1.12}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\AtBeginEnvironment{table}{\singlespacing\small}
+\AtBeginEnvironment{longtable}{\singlespacing\small}
+% Figures and tables use normal scholarly float placement; explicit barriers are used only at major boundaries.{}
+
+% Drop a replacement PDF/PNG with the exact filename into figures/user/.
+%DIF 72c72
+%DIF < % Until then, the manuscript displays a clean, dimensionally accurate placeholder.
+%DIF -------
+% Until then, the manuscript displays a clean, dimensionally accurate stand-in box. %DIF > 
+%DIF -------
+\newcommand{\paperfigure}[5]{%
+  \begin{figure}[htbp]
+  \centering
+  \IfFileExists{figures/user/#1}{%
+    \includegraphics[width=\textwidth,height=#5,keepaspectratio]{figures/user/#1}%
+  }{%
+    \begingroup
+    \setlength{\fboxsep}{0pt}%
+%DIF 81c81
+%DIF <     \fcolorbox{PlaceholderRule}{white}{%
+%DIF -------
+    \fcolorbox{MissingFigRule}{white}{% %DIF > 
+%DIF -------
+      \begin{minipage}[c][#5][c]{0.965\textwidth}
+%DIF 83c83
+%DIF <       \centering\singlespacing\color{PlaceholderText}
+%DIF -------
+      \centering\singlespacing\color{MissingFigText} %DIF > 
+%DIF -------
+      {\small\itshape Figure image reserved for final insertion}\par
+      \vspace{7pt}
+      {\footnotesize\ttfamily\detokenize{#1}}\par
+      \vspace{7pt}
+      {\footnotesize Place the replacement in \texttt{figures/user/}; the source will fit it to this frame automatically.}
+      \end{minipage}%
+    }
+    \endgroup
+  }
+  \caption[#3]{#3. #4}
+  \label{#2}
+  \end{figure}%
+}
+
+% -----------------------------------------------------------------
+% Lists, equations, code, references, and navigation
+% -----------------------------------------------------------------
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=0.32in,itemsep=1pt,topsep=4pt}
+\setlist[enumerate]{leftmargin=0.38in,itemsep=2pt,topsep=4pt}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{xurl}
+\urlstyle{same}
+% forbid a line break right after the scheme colon, so "https:" never ends a line
+\makeatletter
+\def\UrlBigBreaks{\do@url@hyp}
+\makeatother
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,frame=single}
+\usepackage[round,authoryear]{natbib}
+\setlength{\bibhang}{0.5in}
+\setlength{\bibsep}{5pt plus 1pt}
+\renewcommand{\bibfont}{\small\singlespacing}
+\renewcommand{\bibsection}{\section*{References}\addcontentsline{toc}{section}{References}}
+\bibliographystyle{plainnat}
+\usepackage{hyperref}
+\hypersetup{
+  hidelinks,
+  pdflang={en-US},
+  bookmarksnumbered=true,
+  bookmarksopen=true,
+  bookmarksopenlevel=1,
+  pdftitle={Leakage-Controlled Ordinal Classification of a Researcher-Defined Alaska Crash-Severity Outcome: A Governed, Self-Reproduced Retrospective Out-of-Time Study Across Four Project Iterations},
+  pdfauthor={Radames Naythan Mercado-Barbosa},
+  pdfsubject={Graduate research portfolio manuscript; University of Alaska Anchorage},
+  pdfkeywords={crash severity, ordinal classification, leakage, temporal validation, reproducibility, Alaska}
+}
+\usepackage[nameinlink,capitalise,noabbrev]{cleveref}
+\usepackage{tocloft}
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\cfttoctitlefont}{\hfill\bfseries\normalsize}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftloftitlefont}{\hfill\bfseries\normalsize}
+\renewcommand{\cftafterloftitle}{\hfill}
+\renewcommand{\cftlottitlefont}{\hfill\bfseries\normalsize}
+\renewcommand{\cftafterlottitle}{\hfill}
+\setlength{\cftbeforesecskip}{1pt}
+\setlength{\cftbeforesubsecskip}{0pt}
+\setcounter{tocdepth}{2}
+
+% -----------------------------------------------------------------
+% Pagination and helpers
+% -----------------------------------------------------------------
+\pagestyle{plain}
+\newcommand{\frontheading}[1]{%
+  \begin{center}\bfseries #1\end{center}\vspace{8pt}%
+}
+\newenvironment{researchquestion}{%
+  \begin{quote}\singlespacing\noindent\textbf{Primary research question. }\itshape
+}{%
+  \end{quote}
+}
+\newcommand{\artifact}[1]{\begingroup\urlstyle{tt}\path{#1}\endgroup}
+\newcommand{\om}{\mathrm{oMAE}}
+\newcommand{\RF}{random forest}
+\newcommand{\ORF}{ordinal random forest}
+\newcommand{\CI}{95\% CI}
+\newcommand{\tightdash}{\nobreakdash--}
+\newcommand{\projectname}{Alaska Car Crash Analysis}
+\newcommand{\tabnote}[1]{\par\vspace{3pt}{\footnotesize\singlespacing\itshape #1\par}}
+%DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
+%DIF UNDERLINE PREAMBLE %DIF PREAMBLE
+\RequirePackage[normalem]{ulem} %DIF PREAMBLE
+\RequirePackage{color}\definecolor{RED}{rgb}{1,0,0}\definecolor{BLUE}{rgb}{0,0,1} %DIF PREAMBLE
+\providecommand{\DIFaddtex}[1]{{\protect\color{blue}\uwave{#1}}} %DIF PREAMBLE
+\providecommand{\DIFdeltex}[1]{{\protect\color{red}\sout{#1}}} %DIF PREAMBLE
+%DIF SAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddbegin}{} %DIF PREAMBLE
+\providecommand{\DIFaddend}{} %DIF PREAMBLE
+\providecommand{\DIFdelbegin}{} %DIF PREAMBLE
+\providecommand{\DIFdelend}{} %DIF PREAMBLE
+\providecommand{\DIFmodbegin}{} %DIF PREAMBLE
+\providecommand{\DIFmodend}{} %DIF PREAMBLE
+%DIF FLOATSAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddFL}[1]{\DIFadd{#1}} %DIF PREAMBLE
+\providecommand{\DIFdelFL}[1]{\DIFdel{#1}} %DIF PREAMBLE
+\providecommand{\DIFaddbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFaddendFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelendFL}{} %DIF PREAMBLE
+%DIF HYPERREF PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFadd}[1]{\texorpdfstring{\DIFaddtex{#1}}{#1}} %DIF PREAMBLE
+\providecommand{\DIFdel}[1]{\texorpdfstring{\DIFdeltex{#1}}{}} %DIF PREAMBLE
+\providecommand{\DIFscaledelfig}{0.5}
+%DIF HIGHLIGHTGRAPHICS PREAMBLE %DIF PREAMBLE
+\RequirePackage{settobox} %DIF PREAMBLE
+\RequirePackage{letltxmacro} %DIF PREAMBLE
+\newsavebox{\DIFdelgraphicsbox} %DIF PREAMBLE
+\newlength{\DIFdelgraphicswidth} %DIF PREAMBLE
+\newlength{\DIFdelgraphicsheight} %DIF PREAMBLE
+% store original definition of \includegraphics %DIF PREAMBLE
+\LetLtxMacro{\DIFOincludegraphics}{\includegraphics} %DIF PREAMBLE
+\providecommand{\DIFaddincludegraphics}[2][]{{\color{blue}\fbox{\DIFOincludegraphics[#1]{#2}}}} %DIF PREAMBLE
+\providecommand{\DIFdelincludegraphics}[2][]{% %DIF PREAMBLE
+\sbox{\DIFdelgraphicsbox}{\DIFOincludegraphics[#1]{#2}}% %DIF PREAMBLE
+\settoboxwidth{\DIFdelgraphicswidth}{\DIFdelgraphicsbox} %DIF PREAMBLE
+\settoboxtotalheight{\DIFdelgraphicsheight}{\DIFdelgraphicsbox} %DIF PREAMBLE
+\scalebox{\DIFscaledelfig}{% %DIF PREAMBLE
+\parbox[b]{\DIFdelgraphicswidth}{\usebox{\DIFdelgraphicsbox}\\[-\baselineskip] \rule{\DIFdelgraphicswidth}{0em}}\llap{\resizebox{\DIFdelgraphicswidth}{\DIFdelgraphicsheight}{% %DIF PREAMBLE
+\setlength{\unitlength}{\DIFdelgraphicswidth}% %DIF PREAMBLE
+\begin{picture}(1,1)% %DIF PREAMBLE
+\thicklines\linethickness{2pt} %DIF PREAMBLE
+{\color[rgb]{1,0,0}\put(0,0){\framebox(1,1){}}}% %DIF PREAMBLE
+{\color[rgb]{1,0,0}\put(0,0){\line( 1,1){1}}}% %DIF PREAMBLE
+{\color[rgb]{1,0,0}\put(0,1){\line(1,-1){1}}}% %DIF PREAMBLE
+\end{picture}% %DIF PREAMBLE
+}\hspace*{3pt}}} %DIF PREAMBLE
+} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddbegin}{\DIFaddbegin} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddend}{\DIFaddend} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelbegin}{\DIFdelbegin} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelend}{\DIFdelend} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddbegin}{\DIFOaddbegin \let\includegraphics\DIFaddincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddend}{\DIFOaddend \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelbegin}{\DIFOdelbegin \let\includegraphics\DIFdelincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelend}{\DIFOaddend \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddbeginFL}{\DIFaddbeginFL} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddendFL}{\DIFaddendFL} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelbeginFL}{\DIFdelbeginFL} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelendFL}{\DIFdelendFL} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddbeginFL}{\DIFOaddbeginFL \let\includegraphics\DIFaddincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddendFL}{\DIFOaddendFL \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelbeginFL}{\DIFOdelbeginFL \let\includegraphics\DIFdelincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelendFL}{\DIFOaddendFL \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+%DIF AMSMATHULEM PREAMBLE %DIF PREAMBLE
+\makeatletter %DIF PREAMBLE
+\let\sout@orig\sout %DIF PREAMBLE
+\renewcommand{\sout}[1]{\ifmmode\text{\sout@orig{\ensuremath{#1}}}\else\sout@orig{#1}\fi} %DIF PREAMBLE
+\makeatother %DIF PREAMBLE
+%DIF COLORLISTINGS PREAMBLE %DIF PREAMBLE
+\RequirePackage{listings} %DIF PREAMBLE
+\RequirePackage{color} %DIF PREAMBLE
+\lstdefinelanguage{DIFcode}{ %DIF PREAMBLE
+%DIF DIFCODE_UNDERLINE %DIF PREAMBLE
+  moredelim=[il][\color{red}\sout]{\%DIF\ <\ }, %DIF PREAMBLE
+  moredelim=[il][\color{blue}\uwave]{\%DIF\ >\ } %DIF PREAMBLE
+} %DIF PREAMBLE
+\lstdefinestyle{DIFverbatimstyle}{ %DIF PREAMBLE
+	language=DIFcode, %DIF PREAMBLE
+	basicstyle=\ttfamily, %DIF PREAMBLE
+	columns=fullflexible, %DIF PREAMBLE
+	keepspaces=true %DIF PREAMBLE
+} %DIF PREAMBLE
+\lstnewenvironment{DIFverbatim}[1][]{\lstset{style=DIFverbatimstyle}}{} %DIF PREAMBLE
+\lstnewenvironment{DIFverbatim*}[1][]{\lstset{style=DIFverbatimstyle,showspaces=true}}{} %DIF PREAMBLE
+\lstset{extendedchars=\true,inputencoding=utf8}
+
+%DIF END PREAMBLE EXTENSION ADDED BY LATEXDIFF
+
+\begin{document}
+\pagenumbering{roman}
+\setcounter{page}{1}
+\hypersetup{pageanchor=false}
+
+% ================================================================
+% Title page - intentionally plain and UAA-student-paper aligned
+% ================================================================
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+\singlespacing
+UNIVERSITY OF ALASKA ANCHORAGE\par
+\vspace{5pt}
+COLLEGE OF ENGINEERING\par
+\vspace{5pt}
+DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING\par
+
+\vspace{1.10in}
+\begin{minipage}{0.86\textwidth}
+\centering\doublespacing
+LEAKAGE-CONTROLLED ORDINAL CLASSIFICATION\\
+OF A RESEARCHER-DEFINED ALASKA\\
+CRASH-SEVERITY OUTCOME:\\
+A GOVERNED, SELF-REPRODUCED RETROSPECTIVE\\
+OUT-OF-TIME STUDY ACROSS FOUR PROJECT ITERATIONS
+\end{minipage}
+
+\vspace{0.70in}
+By\par
+\vspace{0.22in}
+Radames Naythan Mercado-Barbosa\par
+
+\vfill
+A Graduate Research Portfolio Manuscript\par
+
+\vspace{0.55in}
+University of Alaska Anchorage\par
+Anchorage, Alaska\par
+July 2026\par
+\end{center}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+\setcounter{page}{2}
+
+% ================================================================
+% Project roles and attribution
+% ================================================================
+\clearpage
+\frontheading{Project Roles and Historical Attribution}
+\addcontentsline{toc}{section}{Project Roles and Historical Attribution}
+
+\begin{list}{}{\setlength{\leftmargin}{0.32in}\setlength{\itemsep}{4pt}\singlespacing}
+\item \textbf{Radames Naythan Mercado-Barbosa} --- sole author of the Iteration IV manuscript; conceptualization; methodology; software and evaluation governance; formal analysis; validation; visualization; reproducibility packaging; writing.
+\item \textbf{Peyton Ratzer} --- historical Iteration III capstone collaborator; contributions limited to the earlier project iteration as described in \cref{sec:lineage}.
+\item \textbf{Vinod Vasudevan, Ph.D., P.E.} --- project client.
+\item \textbf{Osama Abaza, Ph.D.} --- current faculty mentor.
+\end{list}
+
+The project-client and faculty-mentor designations provide historical and academic context and do not imply endorsement of every claim. The current manuscript's analysis, interpretation, and conclusions are the sole author's responsibility.
+
+\vspace{0.20in}
+\noindent\textbf{Affiliation.} University of Alaska Anchorage, College of Engineering, Department of Computer Science and Engineering.
+
+\noindent\textbf{Study type.} Predictive, non-causal, retrospective evaluation of police-reported Alaska crashes from 2009--2012.
+
+\vspace{0.20in}
+\noindent\textbf{Claim boundary.} This study's claims are bounded once, here, and the boundary governs every later section. The evaluation is retrospective and \emph{historically exposed}: the 2012 records were in the licensed archive before the current protocol existed, so no prospective, preregistered, or outcome-blind confirmation is claimed. The target is a researcher-defined recorded-severity outcome whose blank-to-PDO mapping survives an internal consistency check but lacks official source semantics. The recording time of each retained predictor is author judged, not custodian verified, and no operational prediction timestamp has been validated. The results are predictive and non-causal; they concern police-reported Alaska crashes from 2009--2012 only; the primary model is not a severe-crash detector and no operating threshold is defined; reproduction to date is computational self-reproduction by the project, not independent replication; and no deployment is endorsed.
+
+% ================================================================
+% Abstract and preliminary lists
+% ================================================================
+\clearpage
+\frontheading{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+Police-reported crash severity is ordered, strongly imbalanced, and temporally structured, and its natural loss is ordinal, so a shuffled train/test split, outcome-derived predictors, and an accuracy headline can overstate how a model will perform on later periods. This paper reports the fourth iteration of the University of Alaska Anchorage \projectname{} project, which replaces the evaluation practices inherited from three earlier student generations with a governed, leakage-controlled, chronological, and reproducible protocol; here ``leakage-controlled'' means structural final-outcome isolation, train-only learned transformations, and an explicit exclusion ledger for outcome-derived fields, not custodian-verified recording times.
+
+From a licensed extract of 50,543 police-reported Alaska crashes (2009--2012), a target audit mapped 46,844 crashes to a researcher-defined three-level ordinal \emph{recorded-severity} outcome, quarantining undocumented labels; blank severity constitutes all of class 0, and its official semantics remain unverified. Development used the 35,214 crashes of 2009--2011; the 11,630 crashes of 2012---historically available to the project, so the evaluation is retrospective and exposed rather than prospective---were then evaluated once under the frozen protocol, with a posterior-median decision rule matched to the ordinal loss applied to raw, uncalibrated probabilities.
+
+The prespecified weighted ordinal random forest modestly reduced average ordinal error relative to the majority baseline---0.3469 versus 0.3614, an observed paired difference of $-0.0144$ with descriptive case-bootstrap interval $[-0.0231,-0.0063]$, about 14 fewer class-step errors per 1,000 crashes---while matched unweighted forest ablations achieved slightly lower ordinal error by almost never assigning the severe class. The prespecified model identified only 5.8\% of severe crashes as severe, so it is not a severe-crash detector. In a matched development-only diagnostic, outcome-derived predictors produced by far the largest apparent performance inflation among the tested protocol perturbations, and correcting the protocol roughly halved the margin over the baseline.
+
+The central contribution is the governed evaluation remediation and its reproducibility evidence, not a novel algorithm or a deployable model. The results are noncausal and retrospective on a historically exposed cohort; blank-severity semantics and per-field operational recording times remain unverified; and reproduction to date is computational self-reproduction by the project, not independent replication.
+
+\clearpage
+\addcontentsline{toc}{section}{Table of Contents}
+\begin{singlespace}
+\tableofcontents
+\end{singlespace}
+
+\clearpage
+\addcontentsline{toc}{section}{List of Figures}
+\begin{singlespace}
+\listoffigures
+\end{singlespace}
+
+\clearpage
+\addcontentsline{toc}{section}{List of Tables}
+\begin{singlespace}
+\listoftables
+\end{singlespace}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\section{Introduction}
+Crash severity is commonly represented on the ordered KABCO scale: fatal (K), serious or incapacitating injury (A), non-incapacitating injury (B), possible injury (C), and no apparent injury or property-damage-only (O; hereafter PDO). Treating these labels as an ordinary nominal classification problem discards an important fact: predicting ``no injury'' for a fatal crash is more consequential, in ordinal distance, than confusing adjacent injury categories. At the same time, the severe categories are rare, the meaning and availability of many police-report fields evolve during investigation, and data-generating processes change across years. Any credible predictive study must therefore align its target, features, decision rule, validation design, and uncertainty statement with the intended use.
+
+The \projectname{} project provides an unusually instructive longitudinal case. Across four student-led generations, the work progressed from exploratory risk-factor analysis to regional data enrichment, then to a secure and flexible software platform, and finally to an independently governed evaluation. Capability increased at each step. Yet the evidentiary claim ultimately became narrower, because stronger engineering does not automatically cure target ambiguity, outcome leakage, or optimistic validation. The project history provides a natural case study of how increasing software capability can coexist with unresolved evaluation validity: each inherited limitation becomes a testable question about what the apparent performance depended on.
+
+The immediate research question is:
+
+\begin{researchquestion}
+Using a conservative predictor set that excludes identified outcome descendants, but whose retained-field recording times remain author judged, how well do models developed on 2009--2011 Alaska crashes predict the researcher-defined ordered outcome for 2012 crashes, and how much do specified protocol perturbations change the apparent result?
+\end{researchquestion}
+
+The practical question sits one level higher. It is not whether the present model is ready for deployment; it is whether the project now has a trustworthy evaluation process that can support the development and testing of future Alaska transportation-safety models. The paper therefore pursues two connected purposes: to measure defensible predictive performance on the later year, and to establish the engineering and evidentiary foundation on which future operational work can build.
+
+The answer to the research question is deliberately retrospective. The project possessed the 2012 records before the current protocol was created. The present software prevents the development pipeline from accessing final-year outcomes, but it cannot transform historically available data into a sealed prospective holdout. The paper consequently uses the language \emph{out-of-time}, \emph{governed}, \emph{exposed}, and \emph{retrospective}; it does not use \emph{prospective}, \emph{preregistered}, or \emph{independent confirmation}. Throughout, \emph{leakage-controlled} refers specifically to structural exclusion of explicitly outcome-derived fields under an explicit exclusion ledger, train-only fitting of learned preprocessing, chronological partitioning, and software isolation of final-year outcomes during development; it does not establish that every retained field is available at a single operational timestamp, does not mean that the recording time of every retained field has been verified by the data custodian, and does not mean that reporting-process patterns cannot carry indirect information about the recorded outcome.
+
+The paper makes three contributions. First, a target and predictor-timing audit: it defines a fail-closed three-level severity target, quantifies why the blank-to-PDO mapping is material, and classifies every source field by its plausible availability at prediction time. Second, a leakage-controlled chronological evaluation: 2012 performance is measured under train-only preprocessing, structural outcome isolation, a posterior-median decision rule matched to the ordinal loss, paired uncertainty intervals, calibration, error analysis, and severe-class score ranking. Third, a reproducible remediation framework: the same machinery measures how much each inherited evaluation defect, and each later correction, changed the apparent conclusion. The documented four-iteration lineage and role attribution frame these contributions, but they are context for the evidence rather than an empirical claim in their own right.
+
+The paper does \emph{not} identify causal crash factors. Prediction and explanation answer different questions \citep{shmueli2010}; a feature that improves out-of-sample ranking is not thereby an intervention target. Nor does one exposed Alaska year establish transportability to other jurisdictions, later decades, or operational decision settings.
+
+% ================================================================
+\section{Project lineage, roles, and the change in evidentiary standard}
+\label{sec:lineage}
+\subsection{Why the lineage matters}
+The project history is relevant to the scientific design because each generation inherited code, data representations, and claims from earlier work. A result can be reproducible within one software snapshot while still measuring the wrong estimand or allowing outcome information into the predictors. The current study therefore separates four forms of contribution: exploratory discovery, data and regional enrichment, system engineering, and evaluation governance.
+
+\paperfigure{fig01_project_lineage.pdf}{fig:lineage}{Project lineage across four iterations}{The public system became more capable through Iterations I--III; Iteration IV narrows the claim and raises the evidentiary standard. The UAA archive dates the first project page to 2023, while its poster itself is dated April 2022.}{3.10in}
+
+\subsection{Iteration I: exploratory risk analysis and a public-facing tool}
+The first public UAA archive entry credits student researchers Lydia Stark and Cale Cornichuck, advised by Vinod Vasudevan and Shawn Butler \citep{uaa2023page}. Their poster combined crash, roadway, environmental, and temporal analysis with a public-facing data tool and reported roughly 62--70\% accuracy across several model families \citep{starkcornichuckposter}. The work was a valuable prototype, but it did not establish a leakage-controlled temporal benchmark, and the public materials do not preserve enough provenance to reconstruct every modeling choice.
+
+\subsection{Iteration II: regional enrichment and database-backed analysis}
+The second public iteration---Moro Bamber, Youji Seto, and Nemed Aleman, advised by Vinod Vasudevan and Frank Witmer---added crash-, driver-, and person-level tables, TIGER and GHSL regional classifications, and urban/suburban/rural analysis, and compared several tree-based and boosted classifiers \citep{uaa2024page,bamber2024}. Its final report, however, included injury-count variables among the predictors of severity---downstream manifestations of the target that create exactly the outcome-leakage risk the present study quantifies.
+
+\subsection{Iteration III: secure, dynamic analysis platform}
+The 2025 CSCE A470 capstone, completed by Radames Naythan Mercado-Barbosa and Peyton Ratzer, rebuilt the system around a locally deployed Django application with PostgreSQL/PostGIS storage, a React interface, authenticated APIs, geospatial querying, and multiple machine-learning back ends \citep{ratzermecado2025}. Mercado-Barbosa led the Django architecture, security, database integration, export and map services, and most of the interface; Ratzer led data engineering, cleaning rules, model implementations, calibration and explainability work, and model reporting. The rebuild was a substantial systems-engineering contribution, but its evaluation still mixed random splits, full-data preprocessing in the integrated path, source-dependent target coercion, and untested feature-availability assumptions. The present study therefore treats the 2025 accuracy table as historical evidence to be re-analyzed, not as a future-year benchmark.
+
+\subsection{Iteration IV: independent evaluation remediation}
+The current work is authored and executed independently by Radames Naythan Mercado-Barbosa; Peyton Ratzer is credited as the historical Iteration III collaborator, Vinod Vasudevan as the continuing project client, and Osama Abaza as the author's current faculty mentor. Iteration IV changes the unit of contribution: rather than adding another model or interface feature, it asks whether the project can make a defensible empirical claim once target semantics, feature timing, temporal validation, loss consistency, uncertainty, and artifact governance are made explicit. Iterations I--III increased analytical and software capability; Iteration IV raised the evidentiary standard.
+
+% ================================================================
+\section{Related work and methodological background}
+\subsection{Prediction is not causal explanation}
+Predictive modeling estimates how well information available under a declared protocol forecasts an outcome. It does not, by itself, identify what would happen under intervention \citep{shmueli2010}. This distinction is especially important in crash records, where many fields are recorded after injury severity is already known or are themselves consequences of the crash. Feature importance in such a model is model-specific evidence about prediction, not a causal ranking of safety interventions.
+
+\subsection{Crash severity as an ordinal problem}
+Crash-injury severity modeling has a long statistical literature emphasizing ordered outcomes, unobserved heterogeneity, reporting mechanisms, and selection effects \citep{savolainen2011}. Ordinal machine-learning formulations can exploit order directly rather than treat every class mismatch equally \citep{frankhall2001,zhu2021}. In the present three-level outcome, a class-0 to class-2 mistake is assigned twice the absolute loss of an adjacent-class error. This makes ordinal mean absolute error (oMAE) a natural primary metric, while quadratic weighted kappa (QWK) provides a chance-corrected ordinal agreement summary \citep{cohen1968}.
+
+\subsection{Temporal transfer and structured validation}
+Temporal validation means testing on a later period rather than randomly mixing years. Random resampling is appropriate only when the validation distribution represents the intended prediction setting. When the goal is transfer to a later period, folds should respect temporal structure; otherwise the validation estimate can exploit near-contemporaneous conditions and understate future error \citep{roberts2017}. Holding out 2012 after development on 2009--2011 is therefore more aligned with the intended estimand than a shuffled split. One year, however, is not evidence of stable transfer over many future periods.
+
+\subsection{Leakage and preprocessing scope}
+Data leakage occurs when training features or transformations contain information that would not be available at the decision point or that belongs to the evaluation data \citep{kaufman2012}. Two forms are distinguished here. \emph{Outcome-derived feature leakage}---using variables that reveal, or are consequences of, the injury outcome---enters directly through injury counts, fatality counts, transport, extrication, damage, or enforcement fields that materialize with or after the severity outcome. \emph{Preprocessing leakage} occurs when imputation, encoding, feature selection, or type inference is learned on the full data before splitting. Scikit-learn pipelines are used to fit every learned transformation on training rows only \citep{pedregosa2011}.
+
+\subsection{Imbalance, proper scoring, and calibration}
+Accuracy can be dominated by the majority class. Precision--recall analysis is often more informative than ROC analysis for rare positive classes \citep{saito2015}. Hard-label metrics also omit probability quality. Log loss and the Brier score are strictly \emph{proper} scores---probability metrics that reward accurate and honestly scaled probabilities---while the ranked probability score respects ordinal cumulative probabilities \citep{gneiting2007,epstein1969}. Calibration is evaluated separately because a model can rank cases well yet produce poorly scaled probabilities \citep{guo2017,vancalster2019}. Expected calibration error (ECE) is treated as descriptive rather than as a sole ranking metric; a constant prior forecast can have excellent aggregate calibration while providing no discrimination.
+
+\subsection{Reproducible research and governance}
+Reproducibility requires more than a saved notebook. It requires versioned code, data identity, environment information, fixed configurations, traceable artifacts, and clear distinction between self-reproduction and independent replication \citep{pineau2021,nasem2019}. The current study adds an executable freeze and structural outcome-isolation boundary.
+
+\subsection{Positioning relative to the inherited model-comparison practice}
+The prior iterations of this project---whose reports and scripts are archived in the project lineage (\cref{sec:lineage}) and re-analyzed in \cref{tab:prior-performance,tab:prior-severe}---compared several classifiers on shuffled within-period splits using nominal accuracy as the headline, with full-data preprocessing in the integrated path and injury-count fields among the predictors. This study differs from that inherited practice in the properties it makes explicit rather than in any claimed algorithmic novelty: an ordinal loss with a matched decision rule instead of nominal accuracy \citep{frankhall2001,cohen1968}; rare-class assessment by ranking (AP/AUROC) rather than by threshold accuracy \citep{saito2015}; a chronological out-of-time design rather than random resampling \citep{roberts2017}; strictly proper scores and separately assessed calibration \citep{gneiting2007,guo2017,vancalster2019}; structural leakage control with an explicit exclusion ledger \citep{kaufman2012}; and artifact-governed self-reproduction \citep{pineau2021,nasem2019}. Ordered-outcome models and unobserved heterogeneity are long-standing themes of the severity literature \citep{savolainen2011,zhu2021}; the contribution here is the governed evaluation protocol around a researcher-defined recorded-severity outcome, not a new severity model. No novelty claim beyond this positioning is made; the review is intentionally focused on work that directly informs the study's target construction, ordinal evaluation, temporal validation, leakage control, probability assessment, and reproducibility protocol.
+
+% ================================================================
+\section{Data, provenance, and target construction}
+\subsection{Source, authority, and analytical unit}
+The source is the raw file \texttt{Crash Level 09-12 (1).xlsx}, containing 50,543 police-reported Alaska crashes, 100 columns, and records spanning 2009--2012. Each row is a crash and is keyed by a unique crash number. The byte identity of the licensed source and the content hash of the derived modeling table are recorded in the evidence package. The data-owner grant authorizes local analysis; it is not a public redistribution license and is not represented as an official source-agency provenance attestation. Coordinates, free-text location, officer/report/agency identifiers, and raw crash rows are not published.
+
+The 2009--2012 file was selected because it is the only raw extract in the licensed archive with an intact temporal axis and fully recorded byte identity. Prior cleaned CSVs were not used for the corrected benchmark: their exact producing scripts are unrecovered, their temporal columns were removed, and their ancestry depends on notebook and drive-based transformations that cannot be reconstructed completely.
+
+\subsection{Target definition and fail-closed mapping}
+The raw \texttt{Crash Severity} field uses an older ABC-style representation and contains many blanks. The study defines a \emph{researcher-defined recorded-severity outcome}---equivalently, the \emph{working ordinal outcome}; wherever this paper says ``target,'' it means this researcher-defined outcome---a mapping of what the report records, not an independent observation of physical injury severity:
+\begin{align*}
+0 &: \text{none / property-damage-only (O)},\\
+1 &: \text{possible or non-incapacitating injury (C/B)},\\
+2 &: \text{incapacitating or fatal injury (A/K)}.
+\end{align*}
+All 32,046 class-0 records originate from blank values in the raw \texttt{Crash Severity} field; the raw field contains no explicit no-injury value, so the blank-to-PDO rule constitutes the entire class. These records are 63.4\% of the 50,543 source rows and 68.4\% of the 46,844 mapped analytical rows. Blank severity is mapped to class 0 only because an internal evidence check found zero positive fatality or injury counts among all 32,046 blank-severity crashes: all three crash-level fatality/injury count fields were explicit recorded zeros---never missing---for every blank-severity record, which disfavors a simple shared-missingness explanation. This is a source-specific internal consistency check, not independent semantic validation. A post-hoc reporting-process audit shows why the count fields cannot carry more weight than that: the quarantined \texttt{Unknown}, \texttt{Not Reported}, and \texttt{Null value} records showed the same all-zero count signature; the person-level injury field was missing for 93.4\% of blank-severity records and carried only \DIFdelbegin \DIFdel{placeholder }\DIFdelend \DIFaddbegin \DIFadd{sentinel }\DIFaddend tokens (\texttt{Unknown}, \texttt{Not Reported}, \texttt{Null value}) for the remainder; and one injury-count field showed a duplication or labeling anomaly at source---\texttt{Number of Injuries with Fatalities} is positive for 1,511 of the 1,512 zero-fatality incapacitating crashes and duplicates the without-fatalities column on most rows. These observations make the count fields unsuitable as independent semantic validation: zero counts alone cannot distinguish ``no injury occurred'' from ``no injury data recorded'' (\artifact{experiment/target_reporting_process_audit.json}). Blank severity is therefore mapped to class 0 under a researcher-defined working contract pending codebook or custodian confirmation. The Alaska crash-report form documents the field inventory but does not by itself establish the operational semantics of blanks or the recording time of every field \citep{alaskaform2001}. Values such as \texttt{Unknown}, \texttt{Not Reported}, and \texttt{Null value} are quarantined and counted rather than silently coerced.
+
+The three-level coarsening groups possible with non-incapacitating injury (C/B) and incapacitating with fatal injury (A/K). The B/C and A/K combinations are analytical coarsenings motivated by the inherited source representation and limited severe-class counts; they are not claims of clinical equivalence. The choice is lineage- and prevalence-driven: it preserves the three-class target used by Iterations I--III, keeping the historical re-analysis directly comparable, and it pools the rarest outcomes (239 fatal and 1,512 incapacitating crashes; 3.7\% of mapped rows combined) into a class large enough to evaluate. The study deliberately coarsens the available A/K and B/C labels---the raw field does distinguish fatal from incapacitating and possible from non-incapacitating injury---so this analytical coarsening is not a claim that the source contains no finer labels or that the grouped outcomes are clinically equivalent. Ordinal MAE treats the two adjacent transitions as equally spaced, so a class-0-to-class-2 error costs exactly twice an adjacent error; this is an analytical convention (\cref{sec:decision-rule}), not a stakeholder-validated utility function. Throughout the paper, ``PDO,'' ``minor,'' and ``severe'' name the working mapped classes 0, 1, and 2 of this researcher-defined outcome, not clinically validated categories.
+
+\begin{table}[htbp]
+\centering
+\caption{Cohort accounting and target construction.}
+\label{tab:cohort}
+\begin{tabularx}{0.91\textwidth}{@{}Y R{0.17\textwidth} Y@{}}
+\toprule
+\textbf{Quantity} & \textbf{Count} & \textbf{Interpretation} \\
+\midrule
+Raw crash rows & 50,543 & Licensed 2009--2012 crash-level extract \\
+Mapped usable rows & 46,844 & Target values mapped to classes 0, 1, or 2 \\
+Quarantined rows & 3,699 & Undocumented/unknown severity labels, never coerced \\
+Class 0 & 32,046 & Blank severity mapped to none/PDO after evidence check \\
+Class 1 & 13,047 & Possible/non-incapacitating injury \\
+Class 2 & 1,751 & Incapacitating/fatal injury \\
+Development cohort & 35,214 & 2009--2011 \\
+Final retrospective cohort & 11,630 & 2012; zero crash-group overlap with development \\
+\bottomrule
+\end{tabularx}
+\tabnote{PDO = property-damage-only. Classes 0/1/2 are the working mapped classes of the researcher-defined recorded-severity outcome. The blank-to-PDO rule constitutes all of class 0 in this extract: the raw field contains no explicit no-injury value (63.4\% of source rows; 68.4\% of mapped rows).}
+\end{table}
+
+\Cref{tab:cohort-year} decomposes the same accounting by year: mapped volume, quarantine volume, and class composition are stable across 2009--2012, with the working class-2 share between 3.6\% and 3.9\% in every year.
+
+% GENERATED FILE — do not edit by hand.
+% Source: tools/gen_cohort_year_table.py (canonical modeling table, reconciled
+% against the frozen target audits).
+\begin{table}[htbp]
+\centering
+\caption{Year-by-year cohort accounting (mapped working classes and quarantine).}
+\label{tab:cohort-year}
+\footnotesize
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}l R{0.0815\textwidth} R{0.0815\textwidth} R{0.107\textwidth} R{0.085\textwidth} R{0.085\textwidth} R{0.075\textwidth} R{0.09\textwidth} Y@{}}
+\toprule
+\textbf{Year} & \textbf{Source rows} & \textbf{Mapped} & \textbf{Quarantined} & \textbf{Class 0} & \textbf{Class 1} & \textbf{Class 2} & \textbf{Class-2 share} & \textbf{Role} \\
+\midrule
+2009 & 12,862 & 11,920 & 942 & 8,086 & 3,392 & 442 & 0.037 & Development \\
+2010 & 12,459 & 11,590 & 869 & 7,902 & 3,245 & 443 & 0.038 & Development \\
+2011 & 12,682 & 11,704 & 978 & 8,181 & 3,107 & 416 & 0.036 & Development \\
+\midrule
+2009--2011 & 38,003 & 35,214 & 2,789 & 24,169 & 9,744 & 1,301 & 0.037 & Development total \\
+\midrule
+2012 & 12,540 & 11,630 & 910 & 7,877 & 3,303 & 450 & 0.039 & Final retrospective \\
+\midrule
+Total & 50,543 & 46,844 & 3,699 & 32,046 & 13,047 & 1,751 & 0.037 & --- \\
+\bottomrule
+\end{tabularx}
+\endgroup
+\tabnote{Counts are computed from the canonical modeling table and reconcile exactly with the frozen target audits (\artifact{experiment/final_results.json}, \artifact{experiment/development_report.json}) and the per-year audit shares (\artifact{experiment/target_reporting_process_audit.json}, q6). Quarantined = \texttt{Unknown}, \texttt{Not Reported}, or \texttt{Null value} severity; never coerced into a class. Class-2 share is of mapped rows. Development rows feed the rolling-origin folds of \cref{sec:selection}; 2012 is the historically exposed final retrospective cohort.}
+\end{table}
+
+
+The final mapped class prevalence is approximately 0.684, 0.279, and 0.037. This resembles the class distribution reported by the prior project, but similarity does not substitute for formal source semantics. The outcome is therefore described throughout as researcher defined, with a source-specific internal consistency check standing in for official semantics.
+
+\subsection{Predictor timing and the restricted feature tier}
+\label{sec:features}
+Each source field was classified by its relationship to the target and its plausible availability at prediction time. Identifiers and constants are excluded. Fourteen fields---including injury/fatality counts, person injury indicators, emergency transport or extrication, damage extent, towing, and enforcement outcomes---are prohibited because they are downstream or outcome-proximal. The year is used only as the split axis.
+
+The broad admissible tier contains 66 fields after removal of explicit leakage and identifiers. The primary \emph{restricted feature tier} further excludes fields whose decision-time availability is uncertain: ejection, restraint, seat position, test-given indicators, insurance coverage, contributing-circumstance and sequence-of-events fields, damage-location fields, hazardous-material release, and alcohol/drug-suspected fields. These exclusions are intentionally conservative. The field ledger records the author's judgments; an official form confirms that fields exist but does not prove when each becomes reliable. No operational prediction timestamp was validated. None of the source fields has custodian-verified recording time in the current evidence package: the per-field timing-evidence ledger accompanying the release (\artifact{paper/FEATURE_TIMING_EVIDENCE.md}) grades no field better than \emph{plausibly early}. The 49 retained fields are author judged as plausibly earlier or less outcome-proximal, not verified as simultaneously available and unrevised before the outcome is known. After an invariant \texttt{Rural Urban} field is dropped, the primary design uses 49 input fields and 376 encoded dimensions. \Cref{app:feature-governance} enumerates all 49 retained fields with their per-year development missingness, the 14 prohibited outcome-derived fields with their leakage rationale, and the disposition of every remaining source column.
+
+% ================================================================
+\section{Study design and governance}
+In plain terms, the design works as follows. All model and preprocessing decisions were made using crashes from 2009--2011. The development pipeline could not inspect or use 2012 severity outcomes. Variables identified as outcome-derived or outcome-proximal were excluded from the primary predictor set; recording times for retained variables remain unverified. Only after the model, features, decision rule, and evaluation procedure were frozen was the 2012 cohort used, once, for the frozen primary evaluation execution; separately versioned secondary, exploratory, sensitivity, and post-hoc analyses later interrogated the historically exposed cohort and are identified, one by one, in the analysis-status ledger (\cref{app:analysis-status}). ``Leakage-controlled'' carries throughout exactly the scope defined in the introduction and the claim boundary: structural isolation, train-only transformations, and the exclusion ledger, without custodian-verified recording times. The subsections below state these guarantees precisely.
+
+\subsection{Estimand and chronological partition}
+Let $x_i$ denote the predictor vector for crash $i$ and $y_i\in\{0,1,2\}$ its ordered severity. The estimand is predictive performance on the natural 2012 class prevalence after model and preprocessing choices are made using 2009--2011 only. Rows are partitioned by year before any target interpretation in the development phase. The split requires a unique crash identifier, assigns each row to exactly one partition, and verifies zero crash-group overlap.
+
+\subsection{Structural outcome isolation}
+In the corrected protocol, the development command sees final-year rows only as an opaque whole-file integrity hash and as outcome-free facts needed to verify row count and group overlap; it cannot validate, map, audit, serialize, fit on, or select using 2012 outcomes. An automated sentinel test enforces the boundary: development must succeed even when every 2012 severity value is replaced with an undocumented poison token, while the final-evaluation command must reject the same altered file. The remaining enforcement mechanics---development-side assignment hashes, refusal to evaluate from a modified source tree or configuration, and overwrite-refusing evidence bundles---are engineering safeguards rather than scientific claims; they are documented with the artifact map in \cref{app:artifacts}.
+
+\paperfigure{fig02_governed_workflow.pdf}{fig:workflow}{Governed workflow and outcome-isolation boundary}{The structural outcome-isolation boundary prevents development artifacts from carrying final-year outcomes. The source file is still loaded and hashed whole, and 2012 was historically available; therefore the design is not a process-level non-access claim or a prospective holdout.}{3.10in}
+
+\subsection{Development, freeze, and the controlled final execution}
+Development uses rolling-origin folds: train on 2009 and validate on 2010; then train on 2009--2010 and validate on 2011. Stochastic models use three development seeds. A machine-readable configuration fixes the feature tier, target contract, models, preprocessing, metric, decision rule, calibration, and uncertainty procedure, and the designated candidate and comparator are frozen before the final command evaluates 2012. ``One run'' means one controlled execution against the frozen v4 configuration, producing one immutable evidence bundle: the 2012 cohort was used once for the frozen primary evaluation execution, which produced the frozen predictions and probability evidence from which the model comparisons, calibration assessment, ranking, and error analyses below are derived. It does not mean one statistical look at an unseen holdout, and it does not mean the project had never seen the historical year; the separately versioned secondary, exploratory, sensitivity, and post-hoc analyses that later interrogated the exposed cohort are each identified in the analysis-status ledger (\cref{app:analysis-status}).
+
+% ================================================================
+\section{Models, decision rule, metrics, and uncertainty}
+\subsection{Preprocessing}
+Numeric features are median-imputed and categorical features are most-frequent-imputed, one-hot encoded with an infrequent-category bucket, and configured to handle categories unseen in training. All transformations reside inside a scikit-learn \texttt{Pipeline}/\texttt{ColumnTransformer} fit on training rows only. Feature typing and cardinality decisions are made inside each development fold.
+
+\subsection{Model registry and declared roles}
+The fixed registry contains:
+\begin{itemize}
+  \item \textbf{Trivial baselines:} majority class, ordinal median, and a deterministic prior-probability forecast equal to the training prevalence vector.
+  \item \textbf{Statistical baselines:} multinomial logistic regression, proportional-odds ordered logit, Frank--Hall cumulative logistic decomposition, and a shallow decision tree.
+  \item \textbf{Candidates:} decision tree, class-weighted random forest, Frank--Hall ordinal random forest, and XGBoost \citep{breiman2001,frankhall2001,chen2016}.
+  \item \textbf{Matched ablations:} unweighted versions of the nominal and ordinal random forests, held out of candidate selection by design so that the cost of weighting can be isolated.
+  \item \textbf{Final-only exploratory model:} an Explainable Boosting Machine (EBM) \citep{nori2019}; because it was absent from development, it is not treated as a primary peer.
+\end{itemize}
+The ordered-logit optimizer did not converge on the restricted-tier design. Its result is retained with an explicit flag and excluded from superlative claims rather than retuned after the final evaluation.
+
+\subsubsection{Cumulative probability construction in the Frank--Hall models}
+\label{sec:fh-construction}
+The two Frank--Hall models---the cumulative logistic decomposition and the ordinal random forest, in both weighted and unweighted forms---share one implementation. For the ordered classes $0,1,2$, two binary base classifiers estimate the exceedance probabilities $g_k(x)=P(Y>k\mid x)$ at the thresholds $k=0$ and $k=1$; the base learner is the balanced logistic regression or the corresponding random forest of \cref{app:hyperparameters}. Because the binary models are fit separately, their raw outputs are not guaranteed to be monotone in $k$, so validity is enforced by construction rather than assumed: the exceedance estimates are made non-increasing by a running cumulative minimum ($\tilde g_1 \le \tilde g_0$) and clipped to $[0,1]$; class probabilities are then recovered by differencing, $p_0 = 1-\tilde g_0$, $p_1 = \tilde g_0-\tilde g_1$, $p_2 = \tilde g_1$, which is nonnegative after the repair; each probability is floored at $10^{-9}$; and each row is renormalized to sum to one. A development fold whose training rows lack one of the three classes is skipped by the cross-validation loop rather than fit on a degenerate target (no such fold occurred in the governed runs), and as defense in depth the implementation replaces any single-sided threshold with the fold's constant empirical exceedance rate. Automated tests verify, over all 162{,}820 stored prediction rows of the frozen 2012 run, that every released probability vector is finite and nonnegative, sums to one within tolerance, has monotone reconstructed cumulative probabilities, and reproduces the stored posterior-median hard labels exactly.
+
+\subsection{Loss-consistent decision rule}
+\label{sec:decision-rule}
+For hard predictions, the primary metric is ordinal mean absolute error,
+\begin{equation}
+\om = \frac{1}{n}\sum_{i=1}^{n}\left|\hat{y}_i-y_i\right|.
+\end{equation}
+Under absolute ordinal loss, the cumulative 0.5 rule---the \emph{posterior median}, the smallest class at which the cumulative predicted probability reaches 50\%, rather than the largest-probability (argmax) class---is Bayes optimal when applied to meaningful posterior probabilities. For class-weighted or miscalibrated models, the rule remains loss matched to the model's stated probability vector, but that vector need not equal a natural-prevalence posterior. Given probabilities $p_k(x)=P(Y=k\mid x)$, the protocol-frozen hard decision is
+\begin{equation}
+\hat{y}(x)=\min\left\{k:\sum_{j=0}^{k}p_j(x)\ge 0.5\right\}.
+\end{equation}
+Argmax predictions are retained as a sensitivity because they optimize 0--1 loss, not the declared ordinal loss. This loss assigns equal cost to class-0$\leftrightarrow$1 and class-1$\leftrightarrow$2 errors and exactly twice that cost to a class-0$\leftrightarrow$2 error; the equal-spacing convention is an evaluation choice, not a stakeholder-validated transportation-safety utility function. No stakeholder cost matrix exists, so the study does not invent an operational severe-alert threshold.
+
+All headline hard predictions and hard-label metrics in this paper are derived from each model's \emph{raw, uncalibrated} probabilities under the posterior-median rule: posterior-median reconstruction from the stored raw probabilities matched all 162,820 stored model labels (14 models $\times$ 11,630 crashes) with zero mismatches under an exact float parser (\artifact{experiment/raw_vs_calibrated_decisions.json}). Development-only calibration (\cref{sec:calib}) is evaluated separately as a probability-quality diagnostic; it is not used to generate the headline hard labels or to select the primary model.
+
+\subsection{Secondary metrics and probability assessment}
+\label{sec:metrics}
+Hard-label reporting includes accuracy, balanced accuracy, macro-F1, quadratic weighted kappa, class-specific precision and recall, within-one-level accuracy, and two-step error; the complete hard-label tables appear in \cref{app:full-results}. Probability reporting includes multiclass log loss, Brier score, ranked probability score, expected calibration error, and reliability data. The severe class is also evaluated one-versus-rest with average precision (AP) and the area under the receiver operating characteristic curve (AUROC), but no threshold is selected on 2012.
+
+Class-specific F1 statistics follow the standard count-based zero-division convention. Precision is undefined when a model never predicts a class ($\mathrm{TP}+\mathrm{FP}=0$) and is shown as an em dash. Recall is a measured zero when $\mathrm{TP}=0$ with positive support. F1 is computed as $2\,\mathrm{TP}/(2\,\mathrm{TP}+\mathrm{FP}+\mathrm{FN})$, so a never-predicted class with positive support has a measured F1 of zero, not an undefined value; and macro-F1 averages the class-specific F1 values, including those zeros. The frozen run bundles \emph{store} undefined statistics as flagged not-a-number entries (a deliberately conservative storage convention that is preserved byte-for-byte); every table in this paper reports them under the count-based convention stated here, which is recorded in \artifact{experiment/metric_conventions.json} and guarded by a regression test.
+
+The reported ranked probability score is the \emph{unnormalized} cumulative sum
+\begin{equation}
+\mathrm{RPS}=\frac{1}{n}\sum_{i=1}^{n}\sum_{k=0}^{K-2}\left(F_{ik}-O_{ik}\right)^{2},
+\end{equation}
+where $F_{ik}$ and $O_{ik}$ are the cumulative predicted and observed class indicators of crash $i$ at threshold $k$. For $K=3$, these values are twice those obtained under the alternative convention that divides by $K-1$. ECE is the reported top-label expected calibration error under the frozen binning rule: the maximum predicted probability is binned into 10 equal-width bins on $[0,1]$, and the count-weighted mean absolute gap between mean confidence and accuracy is reported (first bin closed, later bins half-open, empty bins skipped). The multiclass Brier score is the mean over crashes of the sum of squared class-probability errors. These conventions are recorded, machine-extracted from the implementation, in \artifact{experiment/metric_conventions.json}, and a regression test fails on any silent convention switch.
+
+\subsection{Calibration and uncertainty}
+\label{sec:calib}
+Calibration is fit on development data only using temporal rolling-origin folds and then applied to 2012 for probability-quality assessment only. Paired 95\% \emph{percentile} intervals for differences in ordinal error are calculated from 2,000 crash-level case-bootstrap resamples of the fixed prediction pairs (seed 42, NumPy default generator): each replicate draws the 11,630 evaluation crashes with replacement, applies the same resampled index set to both models' stored predictions, and the interval endpoints are the 2.5th and 97.5th percentiles of the replicate differences under NumPy's default linear quantile interpolation. Models are not refit within resamples; the intervals therefore characterize case-sampling variation conditional on the fitted models, the frozen protocol, the observed cohort, and the working target definition. Because each crash contributes one row and every replicate has exactly 11,630 rows, no degenerate resamples arise, and the procedure rests on an approximation of independence across crashes. It does not model residual dependence by corridor, day, weather event, or reporting batch; those cluster identifiers are unavailable. Five-seed refit addenda separately probe training variability for the four forest variants.
+
+% ================================================================
+\section{Experimental questions and protocol-frozen comparisons}
+\label{sec:questions}
+Under the frozen role registry, development evidence designated the class-weighted \ORF{} as the \emph{protocol-designated weighted candidate}---the protocol-primary weighted \ORF{}, hereafter the \emph{primary ordinal forest}---and the majority predictor as the comparator. The designation came from the frozen role registry, not from ordinal-error (oMAE) leadership: the unweighted forest ablations led ordinal error in both phases---the unweighted ordinal forest in development (0.3233) and the unweighted random forest on 2012 (0.3401)---while the weighted candidate traded some ordinal error for limited severe-class assignment (\cref{sec:dev-selection}).
+
+\subsection{Candidate eligibility and selection rule}
+\label{sec:selection}
+So that the primary designation cannot be mistaken for overall metric leadership, the frozen selection rule is stated here in full; \cref{app:dev-results} reports every underlying score. Only the four models registered with the \emph{candidate} role were eligible for the primary designation: the decision tree, the class-weighted random forest, the class-weighted \ORF{}, and XGBoost. Three groups were excluded from designation by prespecified role, not by performance: the two unweighted forests are matched ablations that exist to isolate the cost of class weighting with model, seeds, features, and folds held fixed, and are therefore not allowed to compete for the role they are meant to explain; the seven trivial and statistical baselines form the comparator pool; and the Explainable Boosting Machine is a final-only exploratory model absent from development by design. Among eligible candidates, the selection metric was development ordinal MAE under the posterior-median rule, aggregated as the unweighted mean over all fold$\times$seed trials: two rolling-origin folds (train on 2009, validate on 2010; train on 2009--2010, validate on 2011), with stochastic models repeated at development seeds 1, 2, and 3 and deterministic models run once. Folds are equally weighted---scores are not weighted by validation-set size and are not pooled at the prediction level. Ties would resolve to the earlier entry in the frozen registry order; no tie occurred among candidates (the weighted \ORF{} led at 0.3358), while the three trivial baselines tied exactly at 0.3465 and the comparator designation fell to the majority predictor, first in the frozen baseline list. The selected configuration---identical hyperparameters, no search (\cref{app:hyperparameters})---was then refit on all 35,214 mapped 2009--2011 rows at the frozen run seed 42 before the governed 2012 evaluation.
+
+\subsection{Protocol-frozen comparisons}
+The primary comparison is the difference in 2012 oMAE under the posterior-median decision rule. Four comparisons were specified and frozen before the governed v4 execution---after historical exposure to the 2012 cohort---and are stated here as hypotheses H1--H4; the H-numbering is an editorial label for this paper, while the underlying commitments (the primary success criterion, the two matched ablations, and the broad-tier sensitivity) are fixed in the committed protocol amendment and configuration:
+
+\begin{enumerate}[label=\textbf{H\arabic*.}]
+  \item The primary ordinal forest has lower 2012 ordinal error than the majority baseline, with a paired case-bootstrap interval excluding zero.
+  \item The Frank--Hall ordinal decomposition improves ordinal error over its matched nominal random forest.
+  \item Balanced class weighting increases severe-class recall at a cost in severe precision and/or ordinal error.
+  \item Removing timing-questionable broad-tier fields reduces severe-class hard assignment relative to the broad tier.
+\end{enumerate}
+
+Only H1 is the frozen headline comparison; other model-versus-baseline intervals are secondary. The study is not preregistered and is not an outcome-blind confirmation: the freeze fixes the analysis within this study after historical exposure to 2012, so no multiplicity correction or confirmatory-trial language is claimed.
+
+% ================================================================
+\section{Results}
+\subsection{Re-analysis of the Iteration III reported confusion matrices}
+\textbf{Historical finding.} Three of the four models reported by Iteration III fall below the trivial majority-accuracy baseline, and no reported model leads on every metric.
+
+The four published confusion matrices were transcribed from the capstone report's result images and recomputed with one metric implementation. The majority-class predictor attains 0.676 accuracy. The highest-accuracy model, the multilevel random forest (MLRF), attains 0.710 accuracy and 0.309 ordinal error while predicting class 0 for 86.7\% of cases; the other three models fall below the majority accuracy. The metrics also disagree about which model looks strongest: the MLRF leads accuracy and ordinal error, XGBoost leads macro-F1, and the EBM leads severe recall but at only 0.158 severe precision.
+
+\paperfigure{fig09_original_reanalysis.pdf}{fig:prior-reanalysis}{Re-analysis of the prior reported confusion matrices}{Left: three models fall below the majority-accuracy baseline, while only the multilevel random forest (MLRF) beats the majority ordinal-error baseline. Right: the same models occupy different severe precision--recall tradeoffs.}{3.20in}
+
+These results are informative about the previous workflow, not about future-year transfer. The underlying scripts use shuffled splits, model-dependent test fractions, and different preprocessing paths; the integrated application preprocesses before splitting. The result screenshots came from standalone scripts rather than the delivered end-to-end pipeline.
+
+\subsection{Development-phase role designation}
+\label{sec:dev-selection}
+\textbf{Role-designation outcome.} Under the frozen role registry, development evidence designates the class-weighted \ORF{} as the protocol-designated weighted candidate---the primary role---and the majority predictor as the comparator.
+
+Rolling-origin development validation ranks the two unweighted forest ablations first (ordinal RF 0.3233; nominal RF 0.3246), followed by the class-weighted \ORF{} at 0.3358. Majority, ordinal median, and the deterministic prior forecast tie at 0.3465 under posterior-median hard decisions. The class-weighted nominal random forest is worse than those trivial baselines at 0.3744; XGBoost is 0.4314; class-weighted linear models are worse still. Because the unweighted models were explicitly assigned an ablation role and excluded from candidacy---weighting was an experimental factor to be measured against matched controls, not a stakeholder-validated utility choice---the designation falls to the class-weighted \ORF{} under the frozen rule of \cref{sec:selection}. It is therefore a role-based designation, not selection of the overall development ordinal-error leader. The EBM is absent from development. \Cref{app:dev-results} reports the complete per-fold, per-seed development record with every model's eligibility status and designation outcome.
+
+\subsection{Corrected retrospective out-of-time 2012 result}
+\textbf{Main finding.} The protocol-designated ordinal forest produced a small observed reduction in ordinal error relative to the majority baseline; the descriptive paired case-bootstrap interval excluded zero under the stated crash-level exchangeability approximation. \textbf{Operational limitation.} The same model identifies only 5.8\% of severe crashes as severe, so it should not be described as a severe-crash detector. In ordinary terms, the models that minimize average ordinal error do so largely by favoring the majority class, while the models that recover more severe crashes produce many more false alarms and worse average error. That tradeoff organizes every comparison below.
+
+The final cohort contains 11,630 crashes with prevalence 0.677, 0.284, and 0.039 for classes 0, 1, and 2; zero crash identifiers overlap development and final evaluation.
+
+\begin{table}[htbp]
+\centering
+\begin{threeparttable}
+\caption{Selected 2012 results under the posterior-median decision rule and restricted feature tier.}
+\label{tab:key-results}
+{\footnotesize\setlength{\tabcolsep}{3.35pt}%
+\begin{tabularx}{\textwidth}{@{}L{0.202\textwidth} S[table-format=1.4] L{0.202\textwidth} S[table-format=1.3] S[table-format=1.3] S[table-format=1.3] L{0.095\textwidth}@{}}
+\toprule
+{\textbf{Model}} & {\textbf{\makecell{Ordinal\\error}}} & {\textbf{$\Delta$ vs majority (\CI{})}} & {\textbf{Accuracy}} & {\textbf{\makecell{Balanced\\accuracy}}} & {\textbf{\makecell{Severe-class\\recall}}} & {\textbf{Role}} \\
+\midrule
+Random forest (unweighted) & 0.3401 & $-0.0213$ [$-0.0261,-0.0166$] & 0.686 & 0.359 & 0.000 & Ablation \\
+Ordinal RF (unweighted) & 0.3423 & $-0.0191$ [$-0.0241,-0.0144$] & 0.683 & 0.359 & 0.002 & Ablation \\
+\textbf{Ordinal RF} & \bfseries 0.3469 & \textbf{$-0.0144$ [$-0.0231,-0.0063$]} & \bfseries 0.670 & \bfseries 0.408 & \bfseries 0.058 & Primary \\
+Majority / ordinal median & 0.3614 & Reference & 0.677 & 0.333 & 0.000 & Baseline \\
+Random forest (weighted) & 0.3764 & $+0.0150$ [$+0.0046,+0.0258$] & 0.634 & 0.409 & 0.018 & Secondary \\
+XGBoost & 0.4442 & $+0.0828$ [$+0.0690,+0.0967$] & 0.574 & 0.490 & 0.267 & Secondary \\
+EBM & 0.4800 & $+0.1186$ [$+0.1047,+0.1324$] & 0.555 & 0.488 & 0.313 & Exploratory \\
+Frank--Hall logit & 0.5194 & $+0.1580$ [$+0.1440,+0.1721$] & 0.576 & 0.535 & 0.624 & Baseline \\
+\bottomrule
+\end{tabularx}}
+\begin{tablenotes}[flushleft]\footnotesize
+\item Ordinal error is the ordinal mean absolute error (oMAE); lower is better. Intervals are paired crash-level case-bootstrap 95\% confidence intervals (CI) under the independence approximation described in the text. RF = random forest; EBM = Explainable Boosting Machine. The complete 14-model table appears in \cref{app:full-results}.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+The primary model's ordinal error is 0.3469 versus 0.3614 for the majority baseline. The observed paired reduction is $-0.0144$, with descriptive paired case-bootstrap \CI{} $[-0.0231,-0.0063]$. The interval excludes zero, so the observed result met the protocol's numerical H1 criterion; because the cohort was historically exposed, this is descriptive rather than confirmatory. In intuitive terms, this is approximately 14 fewer class-step errors per 1,000 crashes, a relative improvement of about 4\%. This observed difference is small and is not tied to a stakeholder-defined threshold of practical importance. The interval is conditional on the fixed predictions, the working target mapping, the model choice, and the crash-level exchangeability approximation, so it addresses case-sampling variability only; it does not incorporate uncertainty from target semantics, feature timing, model-role selection, or future temporal regimes, and it does not establish operational importance.
+
+\paperfigure{fig03_final_ordinal_mae.pdf}{fig:main-omae}{Corrected 2012 ordinal-error comparison}{The primary ordinal forest modestly beats the majority baseline; the two unweighted forest ablations are lower still, while most other learned models are worse on the declared objective. CI = confidence interval.}{3.40in}
+
+The primary model predicts class 0 for 79.0\% of crashes and recovers 26 of 450 severe crashes (5.8\% recall), with 52.0\% severe precision. The unweighted forests achieve the lowest ordinal error by predicting class 0 for approximately 93\% of crashes and recovering essentially no severe cases. Conversely, XGBoost, EBM, and the class-weighted linear models recover more severe crashes only by accepting much worse ordinal error and low precision. The observed tradeoff recurs across the evaluated models and settings, but this study does not establish that no alternative model, target, or tuning strategy could improve it.
+
+\paperfigure{fig04_tradeoff.pdf}{fig:tradeoff}{Severe-class recall versus ordinal error}{The central hard-decision tradeoff (severe = working mapped class 2). Models above and to the right recover more severe crashes but incur greater average ordinal error; the models that beat the majority baseline on ordinal loss assign the severe class rarely.}{3.55in}
+
+To state the leadership question plainly: the unweighted random forest achieved the lowest 2012 oMAE (0.3401, versus 0.3469 for the primary ordinal forest); the weighted ordinal forest retained the primary designation because candidate eligibility and model roles were frozen before the governed final execution (\cref{sec:selection}), not because it led that metric. Metrics also disagree about leadership more broadly: XGBoost leads QWK, and Frank--Hall logistic regression leads balanced accuracy and severe recall---the severe-recall leaders all record materially worse ordinal error than the majority baseline (\cref{tab:key-results,app:full-results}). A model cannot be called ``best'' without naming the objective.
+
+\subsection{Probability quality and development-only calibration}
+\textbf{Probability finding.} Only the four random-forest variants produce better probability forecasts than the deterministic prior baseline on all three proper scores, and development-only calibration improves the primary model's probability scale without using 2012 outcomes.
+
+The deterministic prior-probability forecast provides the trivial probabilistic floor: log loss 0.7474, Brier score 0.4592, and unnormalized ranked probability score (RPS) 0.2558. Exactly the four random-forest variants beat this floor, with the unweighted pair strongest (\cref{fig:prob-scores}); the primary ordinal forest records log loss 0.7075, Brier score 0.4322, and RPS 0.2384. XGBoost, the EBM, the linear models, and the single trees do not consistently beat the prior forecast.
+
+Two boundary cases show why ECE is read descriptively: a hard one-hot majority prediction assigns zero probability to every minority event, so without clipping, assigning zero probability to an observed class gives infinite empirical log loss; for finite display, probabilities were clipped using the implementation's epsilon value ($10^{-15}$, i.e., to $[10^{-15}, 1-10^{-15}]$ with row renormalization; \artifact{experiment/metric_conventions.json}), under which the one-hot majority scores 11.15, while the constant prior forecast has the best top-label ECE (0.009) despite no discrimination. Development-only calibration reduces the primary model's ECE from 0.059 to 0.032 and its log loss from 0.7075 to 0.6924 (\cref{fig:calibration}). A post-hoc re-derivation reproduces these calibration values exactly and records an explicitly post-hoc counterfactual: applying the decision rule to the development-only calibrated probabilities would have changed 1,894 of the primary model's 11,630 labels and changed ordinal error from 0.3469 to 0.3442 while reducing severe hard assignment (severe recall 4.2\% versus the frozen 5.8\%). The counterfactual is deliberately not used---to avoid post-hoc rule selection---and did not replace the frozen headline result (\artifact{experiment/raw_vs_calibrated_decisions.json}); no calibrated probability feeds any hard-label result.
+
+\paperfigure{fig06a_probability_scores.pdf}{fig:prob-scores}{Probability-score comparison on the 2012 evaluation}{Log loss, Brier score, and unnormalized ranked probability score (RPS) for the probabilistic models; lower is better. The dashed line marks the deterministic prior forecast, the trivial probabilistic floor. Filled markers beat the prior on all three proper scores simultaneously---exactly the four forest variants.}{3.05in}
+
+\paperfigure{fig06b_calibration.pdf}{fig:calibration}{Development-only calibration}{Expected calibration error (ECE) before and after calibration fit only on development-year folds. Calibration improves the primary ordinal forest and returns the constant majority model approximately to the prior forecast; no calibrator is fit on 2012 outcomes, and headline hard labels always use the raw probabilities.}{2.60in}
+
+\Cref{fig:reliability} shows the severe-class reliability curves behind these summaries. The primary model's raw severe-class probabilities run above the empirical severe frequency through the sparsely populated mid-range bins, while the development-only calibrated probabilities track the empirical frequency closely in the low-probability bins that contain nearly all crashes (11,148 of the 11,630 fall in the lowest calibrated bin); above a predicted probability of about 0.4, both curves rest on tens of crashes per bin and are correspondingly unstable. The diagram is derived entirely from frozen evidence: the calibrated points are stored in the run artifact, and the raw points are recomputed from the released probabilities under the same binning rule.
+
+\paperfigure{fig06c_reliability.pdf}{fig:reliability}{Severe-class reliability diagram (raw and development-only calibrated)}{Severe-class reliability for the primary ordinal forest under the frozen 10-bin rule (empty bins omitted; annotated numbers are crashes per bin). Calibrated points come from the frozen run artifact; raw points are recomputed from the released probabilities. ECE (\cref{fig:calibration}) summarizes top-label calibration; this diagram shows the severe-class probability scale directly.}{3.30in}
+
+\subsection{Leakage factorial: matched protocol perturbations}
+\textbf{Protocol finding.} In the matched development-only diagnostic, adding outcome-derived fields produced by far the largest apparent performance inflation among the tested protocol perturbations; preprocessing scope and random validation produced smaller apparent gains.
+
+A $2\times2\times2$ development-only diagnostic toggles three defects in a fixed model across five seeds: outcome-derived fields, preprocessing before splitting, and random rather than temporal validation. The first two are matched same-row perturbations. The third changes the validation population and is interpreted as a validation-optimism contrast between estimands, not as an isolated causal effect of ``split type.''
+
+In the fixed development-only perturbation, adding outcome-derived fields produced the largest matched apparent reduction in oMAE ($-0.349$). Preprocessing-before-split and random-validation contrasts were smaller ($-0.021$ and $-0.033$), and the effects interacted: once outcome leakage is present, the two smaller effects nearly disappear because the prediction problem has already been made unrealistically easy. These contrasts are conditional on the fixed model, the tested feature sets, the development years, and the perturbation design; they are conditional diagnostic contrasts, not general causal effect estimates.
+
+\paperfigure{fig07_leakage_factorial.pdf}{fig:factorial}{Matched protocol-perturbation contrasts}{Matched protocol-perturbation contrasts under a fixed model and development cohort. Outcome-derived features produce the largest contrast; preprocessing scope and random validation are smaller but still meaningful when leakage is controlled. Negative values indicate deceptively lower ordinal error. These are conditional diagnostic contrasts, not general causal effect estimates.}{2.95in}
+
+\subsection{Decision rule, weighting, and hypothesis H2}
+\textbf{Decision finding.} The posterior-median rule helps the near-symmetric forests, class weighting buys a small amount of severe recall at an ordinal-error cost, and the ordinal decomposition shows no measurable advantage over its nominal counterpart.
+
+The posterior median improves the near-symmetric forest models relative to argmax: the primary ordinal forest changes from 0.3501 to 0.3469, and the two unweighted controls also improve. The same rule hurts the class-weighted nominal forest (0.3582 argmax versus 0.3764 median) because weighting inflates cumulative probability above class 0 even when class 0 remains the largest individual probability. This is not a contradiction: the median is optimal for the model's own stated probabilities under absolute loss, but those probabilities may be distorted by weighting and miscalibration.
+
+Matched weighting ablations support H3. In the nominal forest, balanced weighting raises severe recall from 0.000 to 0.018 while worsening ordinal error by 0.036. In the ordinal forest, weighting raises severe recall from 0.002 to 0.058 while worsening ordinal error by 0.005 and reducing severe precision. Balanced weighting encoded a modeling preference for greater minority-class influence, but no stakeholder-approved utility function justified that preference; the weighted candidate is therefore a protocol role, not an operationally optimal compromise.
+
+H2 is not supported. The matched unweighted nominal forest has ordinal error 0.3401 versus 0.3423 for the unweighted ordinal forest. Across five refit seeds, both average 0.3397. The ordinal decomposition is conceptually aligned with the ordered target but shows no measurable performance advantage in this cohort.
+
+\subsection{Protocol correction as a measured result}
+\textbf{Correction finding.} Correcting the decision rule and the feature tier roughly halves the headline margin and collapses severe-class hard assignment; the larger inherited numbers depended on protocol defects.
+
+The historical v3 run used the broad feature tier, argmax hard decisions, and weaker outcome isolation during development. It reported a class-weighted ordinal-forest difference of $-0.0304$ versus majority and severe recall 0.278. Under the corrected v4 machinery but the broad tier, the posterior-median result is $-0.0287$ with severe recall 0.171. Under the primary restricted feature tier, the difference falls to $-0.0144$ and severe recall to 0.058.
+
+\paperfigure{fig05_protocol_corrections.pdf}{fig:corrections}{Effect of protocol correction on the headline result}{Correction shrinks both the headline margin and severe-class hard assignment. The decision-rule change reduces severe recall with little change in ordinal error; the restricted feature tier accounts for most of the remaining attenuation. CI = confidence interval.}{3.30in}
+
+This two-step comparison indicates that the rule change accounts for much of the severe-assignment decline from 0.278 to 0.171 at nearly unchanged ordinal error, while excluding timing-questionable fields accounts for the further decline to 0.058 and roughly halves the margin over the baseline. H4 is supported. The stronger broad-tier result is not promoted to primary because its extra fields lack sufficient evidence of decision-time availability.
+
+\subsection{Sensitivity analyses}
+\textbf{Robustness summary.} The direction of the primary result is stable across refit seeds, but part of its small margin depends on two high-missingness administrative fields, and the meaning of blank severity is material to the problem definition itself.
+
+A high-missingness sensitivity removes the two restricted-tier fields with more than 50\% development missingness: residence state and direction. The primary difference remains negative but attenuates to $-0.0091$ with \CI{} $[-0.0181,-0.0001]$, barely excluding zero. The unweighted controls remain robust, and the class-weighted nominal forest remains worse than majority.
+
+A post-hoc probe sharpens the missingness interpretation: a logistic model given only the 49 retained fields' \emph{missingness indicators}---no field values at all---attains 2012 ordinal error 0.3583 versus the majority baseline's 0.3614 (paired difference $-0.0031$, \CI{} $[-0.0047,-0.0015]$); a matched unweighted random forest on the same indicators shows no reliable improvement. Reporting-completeness patterns alone therefore carry a small part of the apparent signal, so part of any retained-field model's margin may reflect how thoroughly a crash was documented rather than crash characteristics (\artifact{experiment/target_reporting_process_audit.json}).
+
+Across five independent refit seeds, each of the four forest variants stays on the same side of the majority baseline as the published result. The primary candidate's per-seed differences range from approximately $-0.0168$ to $-0.0107$ with standard deviation 0.0021. This supports direction-of-effect stability but does not replace evaluation on a genuinely later cohort.
+
+Post-hoc proxy-cluster resampling probes residual dependence that the case bootstrap ignores: resampling whole calendar days (366 clusters) gives \CI{} $[-0.0233,-0.0052]$ for the primary difference and whole calendar weeks (53 clusters) $[-0.0261,-0.0036]$, and every leave-one-region-out (4 regions), leave-one-borough-out (18 boroughs), and leave-one-maintenance-group-out (9 groups) re-evaluation keeps the difference negative (2,000 replicates, seed 42; \artifact{experiment/cluster_bootstrap_sensitivity.json}). These post-hoc proxies widen but do not overturn the interval, so the qualitative conclusion is unchanged; none is a validated dependence model, and none resolves target semantics or transfer to later periods. The licensed raw extract does contain agency-related fields (\texttt{Officer Agency}, \texttt{Reporting Agency}, \texttt{Detachment}); they were removed as identifier-tier columns at de-identification, before the modeling table was built, so agency labels are absent from the released evidence and from the retained local table, not from the source extract, and an agency-cluster sensitivity requires licensed re-supply of those fields (\artifact{experiment/agency_leave_one_out.json}).
+
+The blank-excluded target sensitivity does not produce a comparable three-class problem. It removes almost all class-0 records, leaving development classes 1 and 2 with prevalence approximately 0.88 and 0.12. The official semantics of the blank value are therefore material to construct validity, not a minor preprocessing choice.
+
+\begin{table}[htbp]
+\centering
+\caption{Adjudication of the protocol-frozen comparisons H1--H4 (\cref{sec:questions}).}
+\label{tab:hypotheses}
+\begin{tabularx}{\textwidth}{@{}L{0.11\textwidth}L{0.24\textwidth}Y@{}}
+\toprule
+\textbf{Hypothesis} & \textbf{Verdict} & \textbf{Evidence} \\
+\midrule
+H1 & Met the protocol's numerical criterion (descriptive) & Observed $\Delta\om=-0.0144$; descriptive paired case-bootstrap \CI{} $[-0.0231,-0.0063]$ under the exposed retrospective protocol \\
+H2 & Not supported & Unweighted ordinal RF 0.3423 versus nominal RF 0.3401; both average 0.3397 over five refit seeds \\
+H3 & Supported & Weighting raises severe recall but worsens ordinal error and/or severe precision in matched forests \\
+H4 & Supported & Broad-tier severe recall 0.171 versus restricted-tier 0.058 with rule and governance held fixed \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ================================================================
+\section{Error analysis and severe-class score ranking}
+\label{sec:ranking}
+\textbf{Ranking finding.} Although hard severe recall is only 5.8\%, the frozen scores showed nontrivial severe-case ranking within the exposed 2012 cohort; this within-cohort ordering signal remains unvalidated for later cohorts and for operational use.
+
+The dominant error is class 1 predicted as class 0: the primary candidate assigns 2,256 of 3,303 minor-injury crashes to the PDO class. It misses 424 of the 450 severe crashes, 193 of them by the maximum-distance class-2 to class-0 error, and produces 24 false severe alarms. Among 1,279 predictions with maximum probability at least 0.8, the error rate is 9.8\%. Error decreases monotonically across broad confidence bins, but high confidence is not infallibility.
+
+Low hard-class recall is not the same as absence of predictive ranking. Across all evaluated models, severe one-versus-rest AP ranges from 0.109 to approximately 0.23 against a no-skill prevalence of 0.039, and AUROC from 0.673 to approximately 0.80; excluding the two single-tree models gives the narrower approximate ranges 0.17--0.23 for AP and 0.75--0.80 for AUROC. The class-weighted linear models rank severe cases marginally best even though their posterior-median hard decisions have poor ordinal error. The frozen probabilities therefore contain nontrivial within-cohort ordering information. These ranking metrics are frozen-run point estimates; a post-hoc case bootstrap (crash-level resampling, 2,000 replicates, seed 42, against 450 severe positives) attaches descriptive intervals for the primary model (AP 0.204, \CI{} $[0.169, 0.243]$; AUROC 0.793, \CI{} $[0.772, 0.814]$; severe recall $[0.038, 0.080]$; severe precision $[0.378, 0.658]$; \artifact{experiment/severe_metric_uncertainty.json}). The intervals leave the qualitative reading unchanged---nontrivial within-cohort ranking alongside low hard recall---and, like every post-hoc interval here, they do not resolve target semantics or transfer to later periods.
+
+\paperfigure{fig08_severe_ranking.pdf}{fig:ranking}{Severe-class score ranking: precision--recall curves}{Severe-class precision--recall ranking curves from frozen 2012 probabilities (severe = working mapped class 2); AP = average precision (point estimates from the frozen run). All displayed model families rank severe cases above the 0.039 prevalence within this cohort---the single-tree family least so---but no operating threshold is selected and the curves do not establish operational detection performance.}{3.65in}
+
+Turning ranking into an alert threshold would require a stakeholder utility or cost matrix that prices false reassurance against false alarms. Selecting a threshold after examining 2012 would be post hoc. Accordingly, this paper reports the ranking signal but does not manufacture an operating point or a deployment recommendation.
+
+% ================================================================
+\section{Discussion}
+\subsection{What did the corrected study find?}
+The corrected evidence supports a narrower conclusion than the earlier project narratives. Under the restricted feature tier, train-only transformations, a chronological split, structural outcome isolation, and a loss-consistent decision rule, the primary ordinal forest improves average ordinal error over the majority baseline by about four percent. The interval excludes zero under a paired case bootstrap, the direction persists across five refit seeds and the post-hoc proxy-cluster resamplings, and the forest family improves proper probability scores over a prior forecast. These comparisons are exactly self-reproduced and survive the reported sensitivity analyses; their scope is the researcher-defined recorded-severity target on this historically exposed cohort.
+
+They are also modest: the margin attenuates when two high-missingness administrative fields are removed. The models that minimize ordinal error primarily improve ordering among the common classes and rarely assign the severe class; the models that recover more severe crashes do so with substantial false alarms and average ordinal error worse than the trivial baseline. Within the first group, the unweighted random forest---a prespecified ablation---recorded the lowest 2012 ordinal error of all evaluated models; the weighted ordinal forest kept the primary designation only because candidate eligibility and roles were frozen before the final execution. The absence of an objective-free ``best model,'' established in the results, therefore matters for practice: choosing a model is a stakeholder decision about which errors to tolerate, not a purely technical ranking.
+
+\subsection{Why did the result become smaller?}
+Because the question became harder and better specified. In the matched diagnostic, the original high performance was largely accounted for by outcome-derived features. The intermediate v3 result was itself partly sustained by fields whose availability at decision time was not demonstrated and by an argmax rule inconsistent with the declared ordinal loss. The progression from $-0.0304$ to $-0.0144$ is not a failure of the project; it is the expected consequence of replacing an easy but contaminated question with a defensible one. In this study's comparisons, protocol corrections---more than modeling choices---accounted for the apparent change.
+
+\subsection{What does this mean for Alaska transportation safety?}
+\label{sec:practical}
+The immediate value of this work is not a deployable severe-crash classifier. It is a defensible evaluation process that reduces the risk of mistaking leakage-driven performance for operational capability. The target audit, predictor-timing rules, chronological validation, and frozen evidence package give Alaska transportation-safety research a repeatable benchmark for evaluating newer crash cohorts and for identifying the data-quality and documentation gaps that must be resolved before deployment could responsibly be considered.
+
+The frozen probabilities provide a reason to evaluate ranking prospectively in a later cohort, without establishing an operating threshold or a workflow benefit. Until the requirements below are met, the system should be presented as research and evaluation infrastructure rather than an automated transportation-safety decision tool. This framing also preserves the Iteration III contribution: the secure application, database, APIs, and geospatial tools remain valuable engineering work, and the protocol lets future students evaluate that platform without conflating an attractive interface with trustworthy generalization evidence.
+
+\subsection{What would an operational model require?}
+Four kinds of evidence are still missing: official source semantics for the severity field, especially blanks; documented per-field recording times; performance on a genuinely later cohort, confirmed by independent reproduction; and a stakeholder-approved cost matrix from which an operating threshold could be derived prospectively. \Cref{sec:roadmap} organizes these requirements into a staged roadmap.
+
+\FloatBarrier
+% ================================================================
+\section{Limitations and threats to validity}
+\begin{enumerate}
+  \item \textbf{Exposed retrospective evaluation.} The 2012 outcomes were present in the licensed archive before the current protocol. Structural isolation prevents their use by the development command, but the study is not prospective, externally witnessed, or preregistered.
+  \item \textbf{Single temporal transfer.} One later year does not establish stability across later decades, policy changes, road systems, or data-collection regimes.
+  \item \textbf{Target construct uncertainty.} Blank severity is mapped to property-damage-only under a researcher-defined working contract that survives a source-specific internal consistency check but is not validated by an official codebook. Because the blank mapping constitutes all of class 0 in this extract, this uncertainty is central: the target is recorded severity as mapped by this study.
+  \item \textbf{Feature-timing judgments.} The restricted feature tier is deliberately conservative but author-judged. Some excluded fields may be available early enough to use; some retained fields may be revised later. The per-field ledger (\artifact{paper/FEATURE_TIMING_EVIDENCE.md}) grades no field better than plausibly early, and no operational prediction timestamp has been validated. Workflow-level evidence is needed.
+  \item \textbf{Reporting-process signal.} Missingness of several retained fields is associated with the recorded outcome, and a post-hoc model using only missingness indicators slightly beats the majority baseline (ordinal error 0.3583 versus 0.3614; \artifact{experiment/target_reporting_process_audit.json}). The models may therefore partly exploit reporting completeness, geographic practice, or administrative process rather than crash mechanism; excluding explicit outcome descendants does not eliminate this possibility.
+  \item \textbf{Loss convention.} Ordinal MAE's equal adjacent costs, with a two-step error costing exactly twice an adjacent error, are an evaluation convention rather than an elicited stakeholder utility; model preferences could change under a validated cost matrix.
+  \item \textbf{Residual dependence.} Bootstrap intervals resample crashes independently and do not account for shared corridor, weather, day, agency, or reporting-batch structure. Post-hoc calendar-day, calendar-week, and geographic proxy-cluster resampling widens but does not overturn the primary interval (\artifact{experiment/cluster_bootstrap_sensitivity.json}); no proxy is a validated dependence model. Agency-related fields existed in the licensed raw extract but were removed during de-identification for privacy and identifier control, so agency-cluster dependence remains unquantified: agency labels are absent from the released evidence, not from the source extract.
+  \item \textbf{Rare severe class.} Only 450 severe crashes occur in 2012. Severe precision, recall, subgroup behavior, and ranking curves are correspondingly uncertain; post-hoc case-bootstrap intervals for the primary model's severe metrics are reported in \cref{sec:ranking} and \artifact{experiment/severe_metric_uncertainty.json}.
+  \item \textbf{Model-selection and construct uncertainty.} Reported confidence intervals condition on one frozen candidate and target definition. They do not incorporate the full uncertainty of model selection, feature-tier construction, or source semantics.
+  \item \textbf{Ordered-logit nonconvergence.} The proportional-odds optimizer reached its iteration cap. The result is flagged and not retuned after final evaluation.
+  \item \textbf{Data authority and access.} Raw records cannot be publicly redistributed. Reviewers without licensed access can recompute aggregates from de-identified evidence but cannot rebuild the table from source.
+  \item \textbf{External validity.} Results describe police-reported Alaska crashes from 2009--2012 only. Unreported crashes and other jurisdictions are outside the frame.
+  \item \textbf{No causal identification.} No feature importance, coefficient, or ranking is interpreted as an intervention effect.
+  \item \textbf{Reproduction status.} The end-to-end rerun is self-reproduction by the same project. No independent third party has yet replicated the result.
+\end{enumerate}
+
+% ================================================================
+\section{Reproducibility, ethics, and responsible use}
+\subsection{Evidence chain}
+\label{sec:evidence-chain}
+The release package contains the manuscript source, analysis source code, contracts, a feature-availability ledger, target audit, frozen configurations, tests, the table- and manuscript-verification tools, aggregate results, the hyperparameter and analysis-status ledgers, a correction ledger, de-identified prediction evidence---including a binary-lossless copy whose exact round-trip is machine-verified (\artifact{experiment/prediction_roundtrip_test.json})---figures, and a claim-to-evidence matrix. The primary governed run is identified as \artifact{final_8af9d5bc23d8}; the broad-tier and low-missingness sensitivities have separate frozen run identities, and the historical v3 run is preserved rather than overwritten. Evidence bundles refuse overwrites, so a completed run cannot be silently replaced; \cref{app:artifacts} maps the principal artifacts and details the enforcement mechanics.
+
+Four reproduction tiers are distinguished and never conflated: (i) \emph{metric recomputation}---independent recomputation of released metrics from the de-identified row-level evidence; (ii) \emph{self-reproduction}---a rerun by the same project from the licensed source and frozen code; (iii) \emph{clean-room package verification}---execution of the verification suite from an extracted handoff package; and (iv) \emph{independent replication}---an end-to-end third-party rerun with licensed source access. Metric recomputation is not independent replication, and tier (iv) has not occurred.
+
+A reviewer without the licensed source can recompute released metrics and probability-based analyses from the lossless de-identified parquet, which is the authoritative row-level evidence. A reviewer with the licensed source can additionally rebuild the modeling table and rerun training. The public package cannot independently validate raw-source semantics. The frozen prediction text also round-trips exactly under an exact float parser; the lossless binary copy removes any parser dependence. Direct dependencies are pinned; the environment record is not claimed to be a complete transitive lock. A continuous-integration workflow \DIFdelbegin \DIFdel{is defined and has been run locally, but no hosted green status is claimed}\DIFdelend \DIFaddbegin \DIFadd{for the no-license verification tier is defined in the repository; any hosted execution status is visible on the public repository rather than claimed here}\DIFaddend . The end-to-end rerun performed to date is self-reproduction by the same project, not independent replication.
+
+\subsection{Code, data, and evidence availability}
+\label{sec:availability}
+This manuscript corresponds to repository release tag \texttt{\DIFdelbegin \DIFdel{portfolio-final-r3}\DIFdelend \DIFaddbegin \DIFadd{portfolio-final-r4}\DIFaddend }; the exact release commit, the SHA-256 of every shipped file, and the identity of the accompanying evidence bundle are recorded in the release manifest (\texttt{MANIFEST.json} and \texttt{SHA256SUMS.txt}) \DIFdelbegin \DIFdel{that travels with }\DIFdelend \DIFaddbegin \DIFadd{published as assets of that tagged release alongside }\DIFaddend this PDF, so the pairing of manuscript and evidence is checkable rather than asserted. Every internal path cited in this paper (for example \artifact{experiment/final_results.json}, \artifact{paper/FEATURE_TIMING_EVIDENCE.md}, \artifact{paper/ANALYSIS_STATUS_LEDGER.csv}) resolves inside the repository tree at that tag and inside the handoff package under \texttt{canonical/remediation/}. The analysis and verification source code is released under the MIT License; the manuscript text is the author's.
+
+\DIFdelbegin \textbf{%DIFDELCMD < [%%%
+\DIFdel{AUTHOR ACTION REQUIRED: provide the public repository URL hosting release tag }\texttt{\DIFdel{portfolio-final-r3}}%DIFAUXCMD
+\DIFdel{; the repository currently exists only as a local checkout plus the handoff package's provenance git bundle.}%DIFDELCMD < ]%%%
+} %DIFAUXCMD
+\textbf{%DIFDELCMD < [%%%
+\DIFdel{AUTHOR ACTION REQUIRED: register an archival DOI for the release, or state that none will be issued.}%DIFDELCMD < ]%%%
+}
+%DIFAUXCMD
+\DIFdelend \DIFaddbegin \DIFadd{The manuscript source, verification code, aggregate evidence, and de-identified metric-recomputation package are available from the public repository at }\url{https://github.com/Bobtheotherone/Alaska_Crash_Analysis}\DIFadd{. The release corresponding to this manuscript is tagged }\texttt{\DIFadd{portfolio-final-r4}} \DIFadd{(}\url{https://github.com/Bobtheotherone/Alaska_Crash_Analysis/releases/tag/portfolio-final-r4}\DIFadd{); the exact commit, package SHA-256 values, and per-file identities are recorded in the release manifest. No archival DOI had been issued at the time this submission package was finalized. The tagged public release is dated July 20, 2026.
+}\DIFaddend 
+
+The licensed raw extract (\texttt{Crash Level 09-12 (1).xlsx}) was provided under a data-owner grant that authorizes local analysis only; raw crash rows, exact coordinates, free-text locations, officer/report/agency identifiers, and real crash numbers cannot legally or ethically be redistributed and are absent from every released artifact. What \emph{is} distributed is de-identified: surrogate-keyed per-model prediction evidence in four tiers, a binary-lossless parquet copy whose exact round-trip is machine-verified, the aggregate result artifacts, the contract and governance ledgers, and the complete analysis and verification source. The canonical content hash of the derived modeling table is committed in the evidence chain and re-verified by the acceptance suite. \DIFdelbegin \textbf{%DIFDELCMD < [%%%
+\DIFdel{AUTHOR ACTION REQUIRED: confirm whether the licensed data agreement permits publishing the raw source workbook's SHA-256 in this section; the hash is recorded in the project's reproduction log.}%DIFDELCMD < ]%%%
+}
+%DIFAUXCMD
+\DIFdelend \DIFaddbegin \DIFadd{The SHA-256 of the licensed raw workbook is retained in the restricted reproduction log but is not published because permission to disclose that source identifier has not been confirmed under the NDA and data-use agreement; a licensed holder can nevertheless verify provenance end to end, because rebuilding the modeling table from a lawful copy must reproduce the committed content hash exactly.
+}\DIFaddend 
+
+A reviewer without licensed access can verify the package hashes, re-run the full no-license test and verification suite, regenerate every generated table, recompute every released metric from the lossless parquet, and confirm the identity of the governed run \artifact{final_8af9d5bc23d8} (its committed aggregates, content-addressed bundle skeleton, and per-artifact hashes). Rebuilding the modeling table, re-executing the governed runs, and regenerating the per-year missingness and cohort tables require licensed source access. The exact entry points are:
+\begin{itemize}
+  \item \texttt{python VERIFY\_HANDOFF.py} --- package integrity, forbidden-content scan, and headline ordinal-error recomputation from the de-identified evidence (no dependencies beyond Python);
+  \item the tier-1 suite in \texttt{README\_REPRODUCE.md} --- \texttt{pytest}, every \texttt{tools/gen\_*.py --check} regeneration gate, \texttt{tools/verify\_manuscript\_numbers.py}, and \texttt{tools/verify\_frozen\_and\_locked.py}.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\caption{Reproducibility manifest.}
+\label{tab:repro-manifest}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.185\textwidth}L{0.36\textwidth}L{0.115\textwidth}Y@{}}
+\toprule
+\textbf{Item} & \textbf{Identifier / location} & \textbf{Public?} & \textbf{What it permits} \\
+\midrule
+Manuscript source & \texttt{remediation/paper/latex/} at the release tag; source archive in the handoff & Yes (handoff) & Rebuild of this PDF \\
+Analysis source & \texttt{remediation/crashsev/}, \texttt{tools/}, \texttt{tests/} (MIT License) & Yes & Full no-license verification suite \\
+Governed run & \artifact{final_8af9d5bc23d8}: committed aggregates + content-addressed bundle skeleton; full per-crash bundle local-only & Aggregates yes; row bundle no & Identity and hash verification of the frozen run \\
+De-identified predictions & \artifact{experiment/predictions_lossless.parquet} + four surrogate-keyed CSV tiers & Yes & Exact metric recomputation for all 14 models \\
+Aggregate results & \artifact{experiment/final_results.json}, \artifact{experiment/development_report.json}, sensitivity artifacts & Yes & Positional verification of every table \\
+Feature-timing ledger & \artifact{paper/FEATURE_TIMING_EVIDENCE.md}; \artifact{data/feature_availability_ledger.csv} & Yes & Tier and timing-grade audit (\cref{app:feature-governance}) \\
+Target audit & \artifact{experiment/target_reporting_process_audit.json}; target audit in the run manifest & Yes & Blank-mapping and quarantine audit \\
+Environment specification & \texttt{requirements-lock.txt}; library versions in the run manifest & Yes & Environment reconstruction (direct pins) \\
+Licensed raw source & \texttt{Crash Level 09-12 (1).xlsx} (data-owner grant) & No & Modeling-table rebuild and governed rerun \\
+Verification command & \texttt{python VERIFY\_HANDOFF.py}; tier-1 suite per \texttt{README\_REPRODUCE.md} & Yes & End-to-end package and claim verification \\
+\bottomrule
+\end{tabularx}
+\DIFdelbeginFL %DIFDELCMD < \tabnote{``Handoff'' = the self-contained verification package accompanying this manuscript; its own SHA-256 and file manifest are stamped at packaging time in \texttt{SHA256SUMS.txt}.}
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \tabnote{``Handoff'' = the self-contained verification package available as an asset of the tagged public release, and also supplied alongside this PDF when the receiving system permits multiple files; its own SHA-256 and file manifest are stamped at packaging time in \texttt{SHA256SUMS.txt}.}
+\DIFaddendFL \end{table}
+
+\DIFdelbegin \textbf{%DIFDELCMD < [%%%
+\DIFdel{AUTHOR ACTION REQUIRED: state the preferred contact or institutional procedure for authorized reproduction requests (licensed raw-data access is controlled by the data owner, not the author).}%DIFDELCMD < ]%%%
+}
+%DIFAUXCMD
+\DIFdelend \DIFaddbegin \DIFadd{Questions concerning the released manuscript, code, or verification package may be directed to Radames Naythan Mercado-Barbosa at }\url{rnmercado@alaska.edu}\DIFadd{. Access to the licensed source records remains controlled by the data owner; the author cannot grant source-data access independently.
+}\DIFaddend 
+
+\subsection{Privacy and ethics}
+Raw crash rows, exact coordinates, free-text locations, and officer/report/agency identifiers are not committed or distributed. Public evidence is aggregate or de-identified. The analysis is descriptive and predictive; it does not rank neighborhoods, drivers, or demographic groups for enforcement. False severe alerts and false reassurance both have costs, and geographic patterns can stigmatize communities. No deployment is endorsed.
+
+\subsection{Authorship and AI assistance}
+Radames Naythan Mercado-Barbosa is the sole author and responsible investigator for the current study. Generative-AI tools were used, materially and under the author's direction, for code scaffolding and editing, debugging suggestions, statistical and editorial critique, documentation assistance, figure and typesetting support, and reproducibility-package review. The intellectual ownership remains the author's: the author set the research questions, the target and feature-tier contracts, and the frozen protocol; made the methodological and interpretive decisions; directed and executed the governed analyses; inspected the generated artifacts; and ran the machine-verification suites that pin every reported numerical claim to its frozen artifact. The author accepts responsibility for the complete manuscript, and no AI system is listed as an author. An accompanying record (\artifact{paper/AI_USE_AND_PRIVACY.md}) itemizes the assisted activities.
+
+Release-side privacy is machine-checked rather than asserted: the handoff verifier's forbidden-content scan confirms that no raw crash rows, exact coordinates, free-text locations, officer/report/agency identifiers, or real crash numbers appear in any released artifact. \DIFdelbegin \textbf{%DIFDELCMD < [%%%
+\DIFdel{AUTHOR ACTION REQUIRED: document in }%DIFDELCMD < \artifact{paper/AI_USE_AND_PRIVACY.md} %%%
+\DIFdel{exactly what project material, if any, was supplied to external generative-AI services during development, and add the corresponding privacy attestation here; this statement cannot be reconstructed from the repository.}%DIFDELCMD < ]%%%
+} %DIFAUXCMD
+\DIFdelend \DIFaddbegin \DIFadd{The author additionally attests to the development-side boundary: all licensed Alaska DMV crash records were handled under the applicable NDA and data-use restrictions, and sensitive source records were processed only in local computing environments by locally executed models and analysis code. No raw crash rows, real crash identifiers, exact coordinates, free-text locations, officer or agency identifiers, or other NDA-protected source data were transmitted to or processed by nonlocal language models or external generative-AI services. External AI assistance was limited to source code and documentation excerpts, synthetic examples, aggregate statistics, manuscript text, and de-identified artifacts that had passed the release-side privacy controls (the full attestation is recorded in }\artifact{paper/AI_USE_AND_PRIVACY.md}\DIFadd{). }\DIFaddend Roles and historical credit, including Peyton Ratzer's Iteration III contributions, are stated on the Project Roles and Historical Attribution page and in \cref{sec:lineage}.
+
+% ================================================================
+\clearpage
+\section{Recommendations: a staged pathway toward operational use}
+\label{sec:roadmap}
+The five recommendations below are more than generic future work: together they define a staged pathway from retrospective research infrastructure to a candidate operational decision-support model for Alaska. Phase 1 turns author judgments into documented facts, Phase 2 turns a retrospective result into validated evidence, and Phase 3 turns validated evidence into an accountable operational decision.
+
+\subsection*{Phase 1: data readiness}
+\begin{enumerate}[series=roadmap]
+  \item \textbf{Resolve source semantics first.} Obtain the applicable Alaska codebook or custodian attestation for blank crash severity. Because the mapping constitutes class 0, this single document is more valuable than adding another algorithm.
+  \item \textbf{Document field timing.} Replace author-judged feature tiers with per-field evidence about who records each value, at what stage, and whether it is later revised.
+\end{enumerate}
+
+\subsection*{Phase 2: model validation}
+\begin{enumerate}[resume=roadmap]
+  \item \textbf{Acquire a genuinely later cohort.} Evaluate a future Alaska year once under the frozen protocol, ideally with an external timestamp or witness before outcome access.
+  \item \textbf{Seek independent reproduction.} Have a third party execute the evidence package end to end, report discrepancies, and document the exact software and data identities used.
+\end{enumerate}
+
+\subsection*{Phase 3: operational evaluation}
+\begin{enumerate}[resume=roadmap]
+  \item \textbf{Define utility before thresholds.} Establish a stakeholder-approved cost matrix, select any severe-class alert threshold prospectively rather than on historical outcomes, and then assess whether the resulting system improves a real Alaska safety workflow.
+\end{enumerate}
+
+% ================================================================
+\clearpage
+\section{Conclusion}
+Across four project generations, the \projectname{} effort moved from exploratory modeling to regional enrichment, then to a secure analysis platform, and finally to governed evidence. The corrected Iteration IV result is intentionally less dramatic than its predecessors. On the exposed retrospective 2012 cohort, the primary ordinal forest modestly improves ordinal error over a majority predictor, but it rarely assigns the severe class. Unweighted forests achieve still lower average ordinal error by concentrating even more heavily on the majority class. Forest probabilities carry useful but unvalidated severe-class ranking signal, and development-only calibration improves their scale.
+
+The strongest empirical lesson is that evaluation design determines the apparent capability. In the matched diagnostic, outcome-derived fields generated the largest apparent inflation; preprocessing before splitting and random validation added smaller optimism; predictor-timing and decision-rule corrections roughly halved the later headline and collapsed severe hard assignment. Each tightening of the protocol makes the result smaller and more defensible.
+
+The project therefore supports a precise claim: within this licensed 2009--2012 extract and the working target contract, the frozen evaluation showed a small, computationally self-reproduced reduction in cohort-specific ordinal error relative to the majority predictor, produced by the protocol-designated weighted candidate, which at the same time failed to function as a severe-crash detector. The result has not been independently replicated and does not establish validated physical injury severity, operational feature availability, later-period transportability, or deployment utility; nor does the evidence support a causal account of crash factors, a general U.S. model, official target semantics, or prospective validation.
+
+The project's engineering significance lies in converting an inherited analysis platform into a trustworthy pathway toward future decision support. The present model is not operational, but the frozen protocol identifies the data, validation, reproducibility, and stakeholder requirements (organized in \cref{sec:roadmap}) that a later Alaska model must satisfy before transportation-safety practice could consider it. The author identified that the inherited system's apparent performance depended materially on outcome-derived predictors and weaker evaluation practices, replaced those practices with a governed temporal and ordinal protocol, reproduced the corrected evidence, and narrowed the claim when the defensible result proved modest. That methodological judgment, not an inflated performance number, is what this manuscript offers as evidence of readiness for graduate research in artificial intelligence; the smaller corrected result is not the end of the project but a foundation it can defend and build on.
+
+\clearpage
+\begin{thebibliography}{24}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bamber et~al.(2024)Bamber, Seto, and Aleman]{bamber2024}
+Moro Bamber, Youji Seto, and Nemed Aleman.
+\newblock Alaska car crash analysis: {CSCE A470} final report.
+\newblock Technical report, University of Alaska Anchorage, December 2024.
+\newblock URL
+  \url{https://coeng.uaa.alaska.edu/uploads/DR%20Uploads/CarCrashAnalysis/AKCrashAnalysisFinalReport_anonymous.pdf}.
+\newblock Accessed 2026-07-12.
+
+\bibitem[Breiman(2001)]{breiman2001}
+Leo Breiman.
+\newblock Random forests.
+\newblock \emph{Machine Learning}, 45:\penalty0 5--32, 2001.
+\newblock \doi{10.1023/A:1010933404324}.
+
+\bibitem[Chen and Guestrin(2016)]{chen2016}
+Tianqi Chen and Carlos Guestrin.
+\newblock {XGBoost}: A scalable tree boosting system.
+\newblock In \emph{Proceedings of the 22nd ACM SIGKDD International Conference
+  on Knowledge Discovery and Data Mining}, pages 785--794, 2016.
+\newblock \doi{10.1145/2939672.2939785}.
+
+\bibitem[Cohen(1968)]{cohen1968}
+Jacob Cohen.
+\newblock Weighted kappa: Nominal scale agreement with provision for scaled
+  disagreement or partial credit.
+\newblock \emph{Psychological Bulletin}, 70\penalty0 (4):\penalty0 213--220,
+  1968.
+\newblock \doi{10.1037/h0026256}.
+
+\bibitem[Epstein(1969)]{epstein1969}
+Edward~S. Epstein.
+\newblock A scoring system for probability forecasts of ranked categories.
+\newblock \emph{Journal of Applied Meteorology}, 8\penalty0 (6):\penalty0
+  985--987, 1969.
+\newblock \doi{10.1175/1520-0450(1969)008<0985:ASSFPF>2.0.CO;2}.
+
+\bibitem[Frank and Hall(2001)]{frankhall2001}
+Eibe Frank and Mark Hall.
+\newblock A simple approach to ordinal classification.
+\newblock In \emph{Machine Learning: ECML 2001}, volume 2167 of \emph{Lecture
+  Notes in Computer Science}, pages 145--156. Springer, 2001.
+\newblock \doi{10.1007/3-540-44795-4_13}.
+
+\bibitem[Gneiting and Raftery(2007)]{gneiting2007}
+Tilmann Gneiting and Adrian~E. Raftery.
+\newblock Strictly proper scoring rules, prediction, and estimation.
+\newblock \emph{Journal of the American Statistical Association}, 102\penalty0
+  (477):\penalty0 359--378, 2007.
+\newblock \doi{10.1198/016214506000001437}.
+
+\bibitem[Guo et~al.(2017)Guo, Pleiss, Sun, and Weinberger]{guo2017}
+Chuan Guo, Geoff Pleiss, Yu~Sun, and Kilian~Q. Weinberger.
+\newblock On calibration of modern neural networks.
+\newblock In \emph{Proceedings of the 34th International Conference on Machine
+  Learning}, volume~70 of \emph{Proceedings of Machine Learning Research},
+  pages 1321--1330, 2017.
+
+\bibitem[Kaufman et~al.(2012)Kaufman, Rosset, Perlich, and
+  Stitelman]{kaufman2012}
+Shachar Kaufman, Saharon Rosset, Claudia Perlich, and Ori Stitelman.
+\newblock Leakage in data mining: Formulation, detection, and avoidance.
+\newblock \emph{ACM Transactions on Knowledge Discovery from Data}, 6\penalty0
+  (4):\penalty0 15:1--15:21, 2012.
+\newblock \doi{10.1145/2382577.2382579}.
+
+\bibitem[{National Academies of Sciences, Engineering, and
+  Medicine}(2019)]{nasem2019}
+{National Academies of Sciences, Engineering, and Medicine}.
+\newblock \emph{Reproducibility and Replicability in Science}.
+\newblock The National Academies Press, Washington, DC, 2019.
+\newblock \doi{10.17226/25303}.
+
+\bibitem[Nori et~al.(2019)Nori, Jenkins, Koch, and Caruana]{nori2019}
+Harsha Nori, Samuel Jenkins, Paul Koch, and Rich Caruana.
+\newblock {InterpretML}: A unified framework for machine learning
+  interpretability.
+\newblock \emph{arXiv preprint arXiv:1909.09223}, 2019.
+
+\bibitem[Pedregosa et~al.(2011)Pedregosa, Varoquaux, Gramfort, Michel, Thirion,
+  Grisel, Blondel, Prettenhofer, Weiss, Dubourg, Vanderplas, Passos,
+  Cournapeau, Brucher, Perrot, and Duchesnay]{pedregosa2011}
+Fabian Pedregosa, Ga\"{e}l Varoquaux, Alexandre Gramfort, Vincent Michel,
+  Bertrand Thirion, Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron
+  Weiss, Vincent Dubourg, Jake Vanderplas, Alexandre Passos, David Cournapeau,
+  Matthieu Brucher, Mathieu Perrot, and \'{E}douard Duchesnay.
+\newblock Scikit-learn: Machine learning in {Python}.
+\newblock \emph{Journal of Machine Learning Research}, 12:\penalty0 2825--2830,
+  2011.
+
+\bibitem[Pineau et~al.(2021)Pineau, Vincent-Lamarre, Sinha, Larivi\`{e}re,
+  Beygelzimer, d'Alch\'{e} Buc, Fox, and Larochelle]{pineau2021}
+Joelle Pineau, Philippe Vincent-Lamarre, Koustuv Sinha, Vincent Larivi\`{e}re,
+  Alina Beygelzimer, Florence d'Alch\'{e} Buc, Emily Fox, and Hugo Larochelle.
+\newblock Improving reproducibility in machine learning research: A report from
+  the {NeurIPS} 2019 reproducibility program.
+\newblock \emph{Journal of Machine Learning Research}, 22\penalty0
+  (164):\penalty0 1--20, 2021.
+
+\bibitem[Ratzer and Mercado-Barbosa(2025)]{ratzermecado2025}
+Peyton Ratzer and Radames~Naythan Mercado-Barbosa.
+\newblock Alaska car crash analysis: {CSCE A470} final report.
+\newblock University of Alaska Anchorage capstone report; project archive
+  supplied by the authors, December 2025.
+
+\bibitem[Roberts et~al.(2017)Roberts, Bahn, Ciuti, Boyce, Elith,
+  Guillera-Arroita, Hauenstein, Lahoz-Monfort, Schr\"{o}der, Thuiller, Warton,
+  Wintle, Hartig, and Dormann]{roberts2017}
+David~R. Roberts, Volker Bahn, Simone Ciuti, Mark~S. Boyce, Jane Elith,
+  Gurutzeta Guillera-Arroita, Severin Hauenstein, Jos\'{e}~J. Lahoz-Monfort,
+  Boris Schr\"{o}der, Wilfried Thuiller, David~I. Warton, Brendan~A. Wintle,
+  Florian Hartig, and Carsten~F. Dormann.
+\newblock Cross-validation strategies for data with temporal, spatial,
+  hierarchical, or phylogenetic structure.
+\newblock \emph{Ecography}, 40\penalty0 (8):\penalty0 913--929, 2017.
+\newblock \doi{10.1111/ecog.02881}.
+
+\bibitem[Saito and Rehmsmeier(2015)]{saito2015}
+Takaya Saito and Marc Rehmsmeier.
+\newblock The precision-recall plot is more informative than the {ROC} plot
+  when evaluating binary classifiers on imbalanced datasets.
+\newblock \emph{PLOS ONE}, 10\penalty0 (3):\penalty0 e0118432, 2015.
+\newblock \doi{10.1371/journal.pone.0118432}.
+
+\bibitem[Savolainen et~al.(2011)Savolainen, Mannering, Lord, and
+  Quddus]{savolainen2011}
+Peter~T. Savolainen, Fred~L. Mannering, Dominique Lord, and Mohammed~A. Quddus.
+\newblock The statistical analysis of highway crash-injury severities: A review
+  and assessment of methodological alternatives.
+\newblock \emph{Accident Analysis \& Prevention}, 43\penalty0 (5):\penalty0
+  1666--1676, 2011.
+\newblock \doi{10.1016/j.aap.2011.03.025}.
+
+\bibitem[Shmueli(2010)]{shmueli2010}
+Galit Shmueli.
+\newblock To explain or to predict?
+\newblock \emph{Statistical Science}, 25\penalty0 (3):\penalty0 289--310, 2010.
+\newblock \doi{10.1214/10-STS330}.
+
+\bibitem[Stark and Cornichuck(2022)]{starkcornichuckposter}
+Lydia Stark and Cale Cornichuck.
+\newblock Alaskan car crash analysis: Capstone poster, 2022.
+\newblock URL
+  \url{https://coeng.uaa.alaska.edu/uploads/Spring2023/CSCE_S23_Crash%20Analysis.pdf}.
+\newblock Poster dated 2022-04-23 and archived by UAA under Spring 2023.
+  Accessed 2026-07-12.
+
+\bibitem[{State of Alaska}(2001)]{alaskaform2001}
+{State of Alaska}.
+\newblock Alaska motor vehicle collision report, {Form 12-200}.
+\newblock Revised September 12, 2001; NHTSA-hosted copy, 2001.
+\newblock URL
+  \url{https://www.nhtsa.gov/sites/nhtsa.gov/files/documents/ak_12-200_par_rev9_12_2001.pdf}.
+\newblock Accessed 2026-07-12.
+
+\bibitem[{University of Alaska Anchorage College of
+  Engineering}(2023)]{uaa2023page}
+{University of Alaska Anchorage College of Engineering}.
+\newblock Alaskan car crash analysis, May 2023.
+\newblock URL \url{https://coeng.uaa.alaska.edu/innovation/?p=2527}.
+\newblock UAA Innovation archive. Accessed 2026-07-12.
+
+\bibitem[{University of Alaska Anchorage College of
+  Engineering}(2024)]{uaa2024page}
+{University of Alaska Anchorage College of Engineering}.
+\newblock Alaska car crash analysis -- 2024, December 2024.
+\newblock URL \url{https://coeng.uaa.alaska.edu/innovation/?p=2759}.
+\newblock UAA Innovation archive. Accessed 2026-07-12.
+
+\bibitem[Van~Calster et~al.(2019)Van~Calster, McLernon, van Smeden, Wynants,
+  and Steyerberg]{vancalster2019}
+Ben Van~Calster, David~J. McLernon, Maarten van Smeden, Laure Wynants, and
+  Ewout~W. Steyerberg.
+\newblock Calibration: The {Achilles} heel of predictive analytics.
+\newblock \emph{BMC Medicine}, 17:\penalty0 230, 2019.
+\newblock \doi{10.1186/s12916-019-1466-7}.
+
+\bibitem[Zhu et~al.(2021)Zhu, Wang, and Li]{zhu2021}
+Shengxue Zhu, Ke~Wang, and Chongyi Li.
+\newblock Crash injury severity prediction using an ordinal classification
+  machine learning approach.
+\newblock \emph{International Journal of Environmental Research and Public
+  Health}, 18\penalty0 (21):\penalty0 11564, 2021.
+\newblock \doi{10.3390/ijerph182111564}.
+
+\end{thebibliography}
+
+
+% ================================================================
+
+% ================================================================
+\appendix
+\crefalias{section}{appendix}
+\clearpage
+\section{Complete final-model results}
+\label{app:full-results}
+The three tables below report all evaluated models in the frozen 2012 run and together contain every hard-label metric declared in \cref{sec:metrics}: ordinal error with its paired interval, accuracy, balanced accuracy, QWK, macro-F1, within-one-level accuracy, two-step error, per-class precision and recall, and the severe-class summary with each model's declared role. Hard decisions use the posterior median and the restricted feature tier. All values derive from the frozen run artifact under the count-based F1 convention of \cref{sec:metrics}; an em dash marks precision that is undefined because the model never predicts that class, while the corresponding recall and F1 are measured zeros. The tables are generated from \artifact{experiment/final_results.json} and verified cell-by-cell; they are never edited by hand. The proportional-odds result is retained despite nonconvergence and is not used for a best-model claim.
+
+% GENERATED FILE — do not edit by hand.
+% Source: tools/gen_full_results_tables.py, derived from the frozen
+% experiment/final_results.json under the F1-CONV-001 reporting convention.
+\begin{longtable}{@{}L{0.25\textwidth}R{0.09\textwidth}L{0.26\textwidth}R{0.08\textwidth}R{0.09\textwidth}R{0.08\textwidth}@{}}
+\caption{Complete corrected 2012 performance and agreement metrics.}\label{tab:full-results-a}\\
+\toprule
+\textbf{Model} & \textbf{oMAE} & \textbf{$\Delta$ vs majority (\CI{})} & \textbf{Acc.} & \textbf{Bal. acc.} & \textbf{QWK} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{l}{\footnotesize\itshape Table \thetable\ continued from previous page}\\
+\toprule
+\textbf{Model} & \textbf{oMAE} & \textbf{$\Delta$ vs majority (\CI{})} & \textbf{Acc.} & \textbf{Bal. acc.} & \textbf{QWK} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{\footnotesize Continued on next page}\\
+\endfoot
+\bottomrule
+\multicolumn{6}{@{}p{0.97\textwidth}@{}}{\rule{0pt}{11pt}\footnotesize\itshape oMAE = ordinal mean absolute error; $\Delta$ = paired difference versus the majority baseline; CI = confidence interval (paired percentile case bootstrap, \cref{sec:calib}); Acc. = accuracy; Bal. acc. = balanced accuracy; QWK = quadratic weighted kappa; RF = random forest; EBM = Explainable Boosting Machine.}\\
+\endlastfoot
+Random forest (unweighted) & 0.3401 & $-0.0213$ [$-0.0261,-0.0166$] & 0.686 & 0.359 & 0.143 \\
+Ordinal RF (unweighted) & 0.3423 & $-0.0191$ [$-0.0241,-0.0144$] & 0.683 & 0.359 & 0.141 \\
+\textbf{Ordinal RF} & \textbf{0.3469} & \textbf{$-0.0144$ [$-0.0231,-0.0063$]} & \textbf{0.670} & \textbf{0.408} & \textbf{0.249} \\
+Majority / ordinal median & 0.3614 & Reference & 0.677 & 0.333 & 0.000 \\
+Prior probability & 0.3614 & $+0.0000$ [$+0.0000,+0.0000$] & 0.677 & 0.333 & 0.000 \\
+Random forest (weighted) & 0.3764 & $+0.0150$ [$+0.0046,+0.0258$] & 0.634 & 0.409 & 0.257 \\
+XGBoost & 0.4442 & $+0.0828$ [$+0.0690,+0.0967$] & 0.574 & 0.490 & 0.285 \\
+EBM & 0.4800 & $+0.1186$ [$+0.1047,+0.1324$] & 0.555 & 0.488 & 0.264 \\
+Proportional-odds logit & 0.5118 & $+0.1504$ [$+0.1361,+0.1650$] & 0.523 & 0.509 & 0.263 \\
+Frank--Hall logit & 0.5194 & $+0.1580$ [$+0.1440,+0.1721$] & 0.576 & 0.535 & 0.268 \\
+Multinomial logit & 0.5208 & $+0.1594$ [$+0.1446,+0.1743$] & 0.526 & 0.519 & 0.262 \\
+Decision tree & 0.6040 & $+0.2426$ [$+0.2267,+0.2585$] & 0.455 & 0.458 & 0.172 \\
+Shallow tree & 0.6272 & $+0.2658$ [$+0.2499,+0.2819$] & 0.386 & 0.416 & 0.129 \\
+\end{longtable}
+
+\newpage
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}L{0.185\textwidth}R{0.078\textwidth}R{0.072\textwidth}R{0.078\textwidth}R{0.062\textwidth}R{0.062\textwidth}R{0.062\textwidth}R{0.062\textwidth}R{0.062\textwidth}R{0.062\textwidth}@{}}
+\caption{Complete corrected 2012 hard-label detail: macro-F1, ordinal tolerance, and per-class precision and recall.}\label{tab:full-results-detail}\\
+\toprule
+\textbf{Model} & \textbf{Macro-F1} & \textbf{Within-1} & \textbf{Two-step} & \textbf{Prec.~0} & \textbf{Rec.~0} & \textbf{Prec.~1} & \textbf{Rec.~1} & \textbf{Prec.~2} & \textbf{Rec.~2} \\
+\midrule
+\endfirsthead
+\multicolumn{10}{l}{\footnotesize\itshape Table \thetable\ continued from previous page}\\
+\toprule
+\textbf{Model} & \textbf{Macro-F1} & \textbf{Within-1} & \textbf{Two-step} & \textbf{Prec.~0} & \textbf{Rec.~0} & \textbf{Prec.~1} & \textbf{Rec.~1} & \textbf{Prec.~2} & \textbf{Rec.~2} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{10}{r}{\footnotesize Continued on next page}\\
+\endfoot
+\bottomrule
+\multicolumn{10}{@{}p{0.97\textwidth}@{}}{\rule{0pt}{11pt}\footnotesize\itshape Within-1 = within-one-level accuracy; Two-step = fraction of maximum-distance (two-step) errors; Prec.\ $k$ / Rec.\ $k$ = precision and recall of working mapped class $k$. All F1 values follow the count-based convention of \cref{sec:metrics}: an em dash marks precision that is undefined because the class is never predicted; the corresponding recall and F1 are measured zeros, and macro-F1 averages the class F1 values including those zeros.}\\
+\endlastfoot
+Random forest (unweighted) & 0.330 & 0.974 & 0.026 & 0.701 & 0.967 & 0.468 & 0.109 & --- & 0.000 \\
+Ordinal RF (unweighted) & 0.332 & 0.974 & 0.026 & 0.701 & 0.962 & 0.453 & 0.113 & 1.000 & 0.002 \\
+\textbf{Ordinal RF} & \textbf{0.418} & \textbf{0.983} & \textbf{0.017} & \textbf{0.733} & \textbf{0.856} & \textbf{0.429} & \textbf{0.311} & \textbf{0.520} & \textbf{0.058} \\
+Majority / ordinal median & 0.269 & 0.961 & 0.039 & 0.677 & 1.000 & --- & 0.000 & --- & 0.000 \\
+Prior probability & 0.269 & 0.961 & 0.039 & 0.677 & 1.000 & --- & 0.000 & --- & 0.000 \\
+Random forest (weighted) & 0.404 & 0.989 & 0.011 & 0.757 & 0.737 & 0.395 & 0.472 & 0.800 & 0.018 \\
+XGBoost & 0.467 & 0.982 & 0.018 & 0.805 & 0.565 & 0.373 & 0.639 & 0.265 & 0.267 \\
+EBM & 0.444 & 0.965 & 0.035 & 0.805 & 0.548 & 0.365 & 0.604 & 0.175 & 0.313 \\
+Proportional-odds logit & 0.441 & 0.965 & 0.035 & 0.805 & 0.494 & 0.342 & 0.605 & 0.201 & 0.429 \\
+Frank--Hall logit & 0.426 & 0.905 & 0.095 & 0.775 & 0.695 & 0.391 & 0.286 & 0.130 & 0.624 \\
+Multinomial logit & 0.438 & 0.954 & 0.046 & 0.820 & 0.493 & 0.354 & 0.613 & 0.174 & 0.451 \\
+Decision tree & 0.375 & 0.941 & 0.059 & 0.807 & 0.373 & 0.325 & 0.665 & 0.122 & 0.336 \\
+Shallow tree & 0.314 & 0.987 & 0.013 & 0.889 & 0.183 & 0.309 & 0.902 & 0.197 & 0.164 \\
+\end{longtable}
+\endgroup
+
+\newpage
+\begin{longtable}{@{}L{0.24\textwidth}R{0.09\textwidth}R{0.09\textwidth}R{0.09\textwidth}R{0.09\textwidth}L{0.24\textwidth}@{}}
+\caption{Complete corrected 2012 severe-class behavior and declared model role.}\label{tab:full-results-b}\\
+\toprule
+\textbf{Model} & \textbf{Sev. rec.} & \textbf{Sev. prec.} & \textbf{Sev. F1} & \textbf{Pred. 0} & \textbf{Role} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{l}{\footnotesize\itshape Table \thetable\ continued from previous page}\\
+\toprule
+\textbf{Model} & \textbf{Sev. rec.} & \textbf{Sev. prec.} & \textbf{Sev. F1} & \textbf{Pred. 0} & \textbf{Role} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{\footnotesize Continued on next page}\\
+\endfoot
+\bottomrule
+\multicolumn{6}{@{}p{0.97\textwidth}@{}}{\rule{0pt}{11pt}\footnotesize\itshape Sev. rec./prec./F1 = severe-class recall, precision, and F1 (count-based convention, \cref{sec:metrics}); Pred. 0 = fraction of crashes predicted as class 0. \textsuperscript{a} Precision 1.000 rests on approximately one severe prediction and is not substantively meaningful. \textsuperscript{b} The optimizer did not converge on the restricted-tier design.}\\
+\endlastfoot
+Random forest (unweighted) & 0.000 & --- & 0.000 & 0.934 & Ablation \\
+Ordinal RF (unweighted) & 0.002 & 1.000\textsuperscript{a} & 0.004 & 0.929 & Ablation \\
+\textbf{Ordinal RF} & \textbf{0.058} & \textbf{0.520} & \textbf{0.104} & \textbf{0.790} & \textbf{Primary} \\
+Majority / ordinal median & 0.000 & --- & 0.000 & 1.000 & Baseline \\
+Prior probability & 0.000 & --- & 0.000 & 1.000 & Baseline (probabilistic) \\
+Random forest (weighted) & 0.018 & 0.800 & 0.035 & 0.660 & Secondary \\
+XGBoost & 0.267 & 0.265 & 0.266 & 0.475 & Secondary \\
+EBM & 0.313 & 0.175 & 0.225 & 0.461 & Exploratory (final-only) \\
+Proportional-odds logit\textsuperscript{b} & 0.429 & 0.201 & 0.274 & 0.416 & Baseline (nonconverged) \\
+Frank--Hall logit & 0.624 & 0.130 & 0.216 & 0.607 & Baseline \\
+Multinomial logit & 0.451 & 0.174 & 0.251 & 0.407 & Baseline \\
+Decision tree & 0.336 & 0.122 & 0.179 & 0.313 & Secondary \\
+Shallow tree & 0.164 & 0.197 & 0.179 & 0.139 & Baseline \\
+\end{longtable}
+
+
+\clearpage
+\section{Re-analysis of the prior confusion matrices}
+\begin{table}[H]
+\centering
+\caption{Performance and agreement metrics recomputed from the four Iteration III result matrices ($N=10{,}936$).}
+\label{tab:prior-performance}
+\begin{tabularx}{\textwidth}{@{}Yrrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{Acc.} & \textbf{oMAE} & \textbf{QWK} & \textbf{Macro-F1} & \textbf{Bal. acc.} \\
+\midrule
+Majority baseline & 0.676 & 0.359 & 0.000 & 0.269 & 0.333 \\
+Decision tree & 0.580 & 0.451 & 0.221 & 0.451 & 0.472 \\
+XGBoost & 0.627 & 0.401 & 0.367 & 0.514 & 0.578 \\
+MLRF / random forest & 0.710 & 0.309 & 0.365 & 0.506 & 0.509 \\
+EBM & 0.578 & 0.490 & 0.311 & 0.460 & 0.583 \\
+\bottomrule
+\end{tabularx}
+\tabnote{Acc. = accuracy; oMAE = ordinal mean absolute error; QWK = quadratic weighted kappa; Bal. acc. = balanced accuracy; MLRF = multilevel random forest; EBM = Explainable Boosting Machine. All F1 values follow the count-based convention stated in \cref{sec:metrics}: the majority baseline's macro-F1 of 0.269 averages its class-0 F1 (0.807) with the measured zero F1 of the two classes it never predicts.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Severe-class and prediction-distribution metrics recomputed from the Iteration III result matrices.}
+\label{tab:prior-severe}
+\begin{tabularx}{\textwidth}{@{}Yrrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{Sev. P} & \textbf{Sev. R} & \textbf{Sev. F1} & \textbf{Pred. 0} & \textbf{2-step} \\
+\midrule
+Majority baseline & --- & 0.000 & 0.000 & 1.000 & 0.036 \\
+Decision tree & 0.234 & 0.339 & 0.277 & 0.609 & 0.031 \\
+XGBoost & 0.252 & 0.542 & 0.344 & 0.574 & 0.029 \\
+MLRF / random forest & 0.403 & 0.383 & 0.393 & 0.867 & 0.019 \\
+EBM & 0.158 & 0.681 & 0.257 & 0.534 & 0.069 \\
+\bottomrule
+\end{tabularx}
+\tabnote{Sev. P/R/F1 = severe-class precision, recall, and F1; Pred. 0 = fraction of crashes predicted as class 0; 2-step = fraction of maximum-distance (two-step) errors. The majority predictor never predicts the severe class, so its severe precision is undefined (em dash) while its severe recall and severe F1 are measured zeros under the count-based convention of \cref{sec:metrics}.}
+\end{table}
+
+\clearpage
+\section{Artifact map, enforcement mechanics, and reproducibility scope}
+\label{app:artifacts}
+\begin{table}[H]
+\centering
+\caption[Principal machine evidence used by the manuscript]{Principal machine evidence used by the manuscript, part 1 of 2: frozen-protocol artifacts.}
+\label{tab:artifact-map}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.52\textwidth}Y@{}}
+\toprule
+\textbf{Artifact} & \textbf{Purpose} \\
+\midrule
+\artifact{experiment/final_results.json} & Primary 2012 cohort, metrics, intervals, calibration, target audit, and run metadata \\
+\artifact{experiment/development_report.json} & Rolling-origin model selection and roles \\
+\artifact{experiment/leakage_factorial.json} & Matched $2\times2\times2$ protocol-defect diagnostic \\
+\artifact{experiment/decision_rule_sensitivity.md} & Posterior-median versus argmax hard decisions \\
+\artifact{experiment/error_analysis.md} & Confusion counts, severe misses, false alarms, and confidence bins \\
+\artifact{experiment/severe_ranking.md} & One-versus-rest severe AP and AUROC \\
+\artifact{experiment/seed_robustness.md} & Five-seed forest refit sensitivity \\
+\artifact{experiment/target_sensitivity.md} & Blank-to-PDO versus blank-excluded target consequences \\
+\artifact{experiment/broad_sensitivity/final_results.json} & Broad feature-tier frozen sensitivity \\
+\artifact{experiment/lowmiss_sensitivity/final_results.json} & High-missingness-field removal sensitivity \\
+\artifact{reanalysis/reanalysis_metrics.csv} & Recomputed metrics from prior confusion matrices \\
+\artifact{paper/CLAIM_EVIDENCE_MATRIX.md} & Claim-to-artifact traceability and support classification \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\DIFaddbeginFL \ContinuedFloat
+\DIFaddendFL \centering
+\captionsetup{list=no}\caption{Principal machine evidence used by the manuscript, part 2 of 2 \DIFaddbeginFL \DIFaddFL{(continued)}\DIFaddendFL : post-hoc addenda artifacts.}
+\label{tab:artifact-map-b}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.52\textwidth}Y@{}}
+\toprule
+\textbf{Artifact} & \textbf{Purpose} \\
+\midrule
+\artifact{experiment/target_reporting_process_audit.json} & Post-hoc target and reporting-process audit: class-0 provenance, count-field zero signatures, quarantine comparison, and the missingness-indicator-only probe \\
+\artifact{experiment/raw_vs_calibrated_decisions.json} & Post-hoc verification that headline hard labels use raw probabilities; exact re-derivation of the frozen calibration values \\
+\artifact{experiment/severe_metric_uncertainty.json} & Post-hoc case-bootstrap intervals for the primary model's severe recall, precision, AP, and AUROC \\
+\artifact{experiment/cluster_bootstrap_sensitivity.json} & Post-hoc calendar and geographic proxy-cluster dependence sensitivity (with \artifact{experiment/agency_leave_one_out.json}) \\
+\artifact{experiment/prediction_roundtrip_test.json} & Exact round-trip verification of the de-identified prediction evidence and its lossless binary copy \\
+\artifact{paper/FEATURE_TIMING_EVIDENCE.md} & Per-field timing-evidence ledger (author-judged grades; no field custodian-verified) \\
+\artifact{experiment/hyperparameter_ledger.json} & Fixed model configurations extracted from the registry code and frozen configuration (\cref{app:hyperparameters}) \\
+\artifact{experiment/metric_conventions.json} & Machine-extracted metric conventions: unnormalized RPS, log-loss clipping epsilon, ECE binning rule, F1 zero-division reporting convention, paired-bootstrap interval mechanics, Frank--Hall probability construction (guarded by convention-switch regression tests) \\
+\artifact{paper/ANALYSIS_STATUS_LEDGER.csv} & Machine-readable status ledger for every analysis involving the 2012 cohort (protocol-primary / protocol-secondary / exploratory-final-only / post-hoc; rendered in \cref{app:analysis-status}) \\
+\artifact{experiment/full_results_table_cells.json} & Structured cells behind the complete Appendix A tables, derived from the frozen run under the stated F1 convention (\cref{app:full-results}) \\
+\artifact{experiment/dev_results_table_cells.json} & Structured cells behind the complete development-results appendix (\cref{app:dev-results}) \\
+\artifact{experiment/feature_governance_cells.json} & Structured cells behind the retained/prohibited/excluded field tables (\cref{app:feature-governance}) \\
+\artifact{experiment/cohort_year_table.json} & Year-by-year cohort accounting, reconciled against the frozen target audits (\cref{tab:cohort-year}) \\
+\artifact{paper/AI_USE_AND_PRIVACY.md} & AI-assistance and privacy record accompanying the disclosure in \cref{sec:availability} and the authorship subsection \\
+\bottomrule
+\end{tabularx}
+\tabnote{Every artifact in this second table is a post-hoc addendum of the 2026-07 revision passes: created after the governed runs, labeled post hoc in its own metadata, and purely additive---no frozen bundle or governed number changed. Every generated table ships with a \texttt{tools/gen\_*.py --check} regeneration gate.}
+\end{table}
+
+\subsection*{Enforcement mechanics}
+The freeze records an outcome-free development-side assignment hash, so the exact development/final partition is fixed before evaluation. The final command refuses to run from a modified source tree or configuration. The run writer creates content-addressed, overwrite-refusing bundles with per-artifact hashes, source and configuration identities, software versions, encoded dimensions, timing, and memory use. Generator, run bundle, artifact commit, and release commit are recorded as distinct objects, and the release includes content-addressed bundle skeletons for the governed runs.
+
+\subsection*{Scope of reproducibility}
+A reviewer with the licensed source can rebuild the modeling table and governed runs. A reviewer without the source can verify aggregate claims and recompute metrics from de-identified evidence but cannot independently validate the raw source semantics.
+
+\clearpage
+\section{Frozen model configurations}
+\label{app:hyperparameters}
+Every model ran with a fixed configuration; the corrected protocol ran no hyperparameter search, and development cross-validation selected among the fixed configurations below. The ledger \artifact{experiment/hyperparameter_ledger.json} is generated from the registry code and the frozen run configuration. Shared protocol constants: seed 42 in every stochastic estimator; one-hot encoding with minimum category frequency 0.01; numeric standardization for the linear models only; posterior-median decision rule; 2,000 bootstrap resamples; sigmoid calibration fit on temporal development folds; log-loss probabilities clipped to $[10^{-15}, 1-10^{-15}]$.
+
+\begin{table}[H]
+\centering
+\caption{Fixed model configurations of the governed benchmark.}
+\label{tab:hyperparameters}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.26\textwidth}L{0.24\textwidth}Y@{}}
+\toprule
+\textbf{Model} & \textbf{Estimator} & \textbf{Fixed configuration} \\
+\midrule
+Majority; ordinal median; prior probability & constant predictors & most-frequent class; median class; training-prevalence forecast \\
+Multinomial logit & LogisticRegression & lbfgs, $C=1.0$, max.\ iterations 2000, balanced class weights \\
+Proportional-odds logit & ordered logit (MLE) & max.\ iterations 200, $L_2=10^{-4}$, balanced likelihood weights \\
+Frank--Hall logit & $K{-}1$ cumulative logits & base: lbfgs, $C=1.0$, max.\ iterations 2000, balanced class weights \\
+Shallow tree & DecisionTreeClassifier & Gini, depth 4, balanced class weights \\
+Decision tree & DecisionTreeClassifier & entropy, depth 10, min.\ split 2, min.\ leaf 1, balanced class weights \\
+Random forest (weighted; unweighted) & RandomForestClassifier & 300 trees, unlimited depth, balanced class weights; unweighted ablation identical with no class weights \\
+Ordinal RF (weighted; unweighted) & Frank--Hall over the same forest & identical forest configuration under the $K{-}1$ cumulative decomposition \\
+XGBoost & XGBClassifier & 400 trees, learning rate 0.05, depth 6, subsample 0.8, column subsample 0.8, histogram method, balanced sample weights \\
+EBM & ExplainableBoostingClassifier & library defaults, seed 42, balanced sample weights (final-only exploratory) \\
+\bottomrule
+\end{tabularx}
+\tabnote{RF = random forest; EBM = Explainable Boosting Machine; MLE = maximum-likelihood estimation. ``Balanced'' weights follow the inverse-prevalence convention of scikit-learn. The machine-readable ledger records the complete parameter set per registry entry.}
+\end{table}
+
+\clearpage
+\section{Status ledger of the 2012-cohort analyses}
+\label{app:analysis-status}
+Every analysis that involves the 2012 cohort carries exactly one of four statuses: \emph{protocol-primary} and \emph{protocol-secondary} analyses were declared in the frozen protocol or its committed pre-execution amendment; \emph{exploratory-final-only} marks the model absent from development by design; \emph{post-hoc} marks everything specified after the frozen primary evaluation. No analysis of any status modified a frozen governed output. The machine-readable ledger---with full descriptions and per-analysis commit and run identities pulled from the artifacts themselves---is \artifact{paper/ANALYSIS_STATUS_LEDGER.csv}; the table below is generated from the same source and is never edited by hand.
+
+% GENERATED by tools/gen_analysis_status_ledger.py -- do not edit by hand.
+% Full detail (descriptions, commit/run identities): paper/ANALYSIS_STATUS_LEDGER.csv
+% (two non-splitting single-page parts: 26 rows exceed one page, and a page-split
+%  longtable trips a pdfTeX 'infinite glue shrinkage' warning under this preamble)
+\begin{table}[H]
+\centering
+\caption[Status ledger of the 2012-cohort analyses]{Status ledger of every analysis involving the 2012 cohort, part 1 of 2 (generated from the machine-readable ledger \texttt{paper/ANALYSIS\_STATUS\_LEDGER.csv}).}\label{tab:analysis-status}
+\footnotesize
+\renewcommand{\arraystretch}{1.06}
+\begin{tabular}{@{}L{0.21\textwidth}L{0.17\textwidth}C{0.07\textwidth}L{0.16\textwidth}L{0.22\textwidth}@{}}
+\toprule
+\textbf{Analysis} & \textbf{Status} & \textbf{2012 labels} & \textbf{Run} & \textbf{Reported} \\
+\midrule
+development selection & protocol-primary & no & --- & \S7; \S8.2 \\
+primary benchmark & protocol-primary (creates) & yes & \artifact{final_8af9d5bc23d8} & \S8.3; Appendix A \\
+secondary model comparisons & protocol-secondary & yes & \artifact{final_8af9d5bc23d8} & \S8.3; Appendix A \\
+probability and calibration & protocol-secondary & yes & \artifact{final_8af9d5bc23d8} & \S8.4 \\
+decision rule sensitivity & protocol-secondary & yes & \artifact{final_8af9d5bc23d8} & \S6.3; \S8.6 \\
+error analysis & protocol-secondary & yes & \artifact{final_8af9d5bc23d8} & \S9 \\
+severe ranking & protocol-secondary & yes & \artifact{final_8af9d5bc23d8} & \S9 \\
+broad tier sensitivity & protocol-secondary & yes & \artifact{final_10517423399d} & \S8.7-8.8 \\
+lowmiss sensitivity & post-hoc & yes & \artifact{final_d612d030bc51} & \S8.8 \\
+seed robustness & post-hoc & yes & refits & \S8.8 \\
+blank excluded target sensitivity & post-hoc & yes & refit & \S8.8 \\
+ebm exploratory & exploratory-final-only & yes & \artifact{final_8af9d5bc23d8} & \S6.2; \S8.3; Appendix A \\
+leakage factorial & protocol-secondary & no & --- & \S8.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[H]
+\centering
+\DIFaddbeginFL \ContinuedFloat
+\DIFaddendFL \captionsetup{list=no}\caption{Status ledger of the 2012-cohort analyses, part 2 of 2 (continued).}\label{tab:analysis-status-b}
+\footnotesize
+\renewcommand{\arraystretch}{1.06}
+\begin{tabular}{@{}L{0.21\textwidth}L{0.17\textwidth}C{0.07\textwidth}L{0.16\textwidth}L{0.22\textwidth}@{}}
+\toprule
+\textbf{Analysis} & \textbf{Status} & \textbf{2012 labels} & \textbf{Run} & \textbf{Reported} \\
+\midrule
+target reporting audit & post-hoc & yes & audit & \S4.2; \S8.8; \S11(5) \\
+calibrated label counterfactual & post-hoc & yes & \artifact{final_8af9d5bc23d8} & \S6.3; \S8.4 \\
+severe metric uncertainty & post-hoc & yes & \artifact{final_8af9d5bc23d8} & \S9 \\
+proxy cluster dependence & post-hoc & yes & \artifact{final_8af9d5bc23d8} & \S8.8; \S11(7) \\
+agency cluster deferred & post-hoc & no (no analysis executed) & deferred & \S8.8; \S11(7) \\
+prediction roundtrip & post-hoc & yes & \artifact{final_8af9d5bc23d8} & \S12.1 \\
+iteration3 reanalysis & post-hoc & yes & --- & \S8.1; Appendix B \\
+v3 comparison & post-hoc & yes & v3 frozen runs & \S8.7 \\
+feature timing ledger & post-hoc & no & --- & \S4.3; \S11(4) \\
+hyperparameter ledger & post-hoc & no & --- & Appendix D \\
+metric conventions & post-hoc & no & --- & \S6.2; \S6.4; \S6.5; \S8.4 \\
+complete result tables & post-hoc & yes & \artifact{final_8af9d5bc23d8} & \S6.4; Appendix A; Appendix F \\
+severe reliability diagram & post-hoc & yes & \artifact{final_8af9d5bc23d8} & \S8.4 \\
+\bottomrule
+\end{tabular}
+\tabnote{Status values: \emph{protocol-primary} and \emph{protocol-secondary} were declared in the frozen protocol or its committed pre-execution amendment; \emph{exploratory-final-only} was absent from development by design; \emph{post-hoc} was specified after the frozen primary evaluation. ``creates'' marks the one execution that produced the frozen governed outputs; every other analysis changed no governed output. Run --- = no separate 2012 evaluation execution.}
+\end{table}
+
+
+\clearpage
+\section{Complete development-phase results and designation record}
+\label{app:dev-results}
+The table below reports every model of the frozen development report: both rolling-origin fold scores, seed variability where the model is stochastic, the trial-mean aggregate that drove designation, each model's eligibility status under the frozen role registry, and the designation outcome. It is generated from \artifact{experiment/development_report.json} and never edited by hand; the selection semantics of \cref{sec:selection} are re-executed and asserted against the artifact at generation time.
+
+% GENERATED FILE — do not edit by hand.
+% Source: tools/gen_dev_results_table.py, derived from the frozen
+% experiment/development_report.json.
+% \newpage: the 14 double-line rows plus caption and note fill most of a page;
+% starting mid-page would strand the last row on a lone continuation page.
+\newpage
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}L{0.18\textwidth}L{0.10\textwidth}R{0.115\textwidth}R{0.115\textwidth}L{0.07\textwidth}R{0.135\textwidth}L{0.075\textwidth}L{0.115\textwidth}@{}}
+\caption{Complete development-phase results, eligibility, and designation record.}\label{tab:dev-results}\\
+\toprule
+\textbf{Model} & \textbf{Role} & \textbf{Val.~2010} & \textbf{Val.~2011} & \textbf{Seeds} & \textbf{Aggregate oMAE} & \textbf{Eligible} & \textbf{Outcome} \\
+\midrule
+\endfirsthead
+\multicolumn{8}{l}{\footnotesize\itshape Table \thetable\ continued from previous page}\\
+\toprule
+\textbf{Model} & \textbf{Role} & \textbf{Val.~2010} & \textbf{Val.~2011} & \textbf{Seeds} & \textbf{Aggregate oMAE} & \textbf{Eligible} & \textbf{Outcome} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{8}{r}{\footnotesize Continued on next page}\\
+\endfoot
+\bottomrule
+\multicolumn{8}{@{}p{0.97\textwidth}@{}}{\rule{0pt}{11pt}\footnotesize\itshape Rolling-origin development validation of the frozen registry (\artifact{experiment/development_report.json}). Val.\ 2010 / Val.\ 2011 = ordinal MAE on the fold validating on that year (train on 2009, and on 2009--2010, respectively); stochastic models show the mean $\pm$ SD over development seeds 1--3, deterministic models run once (their seed column shows the configured run seed, which does not influence their fit). Aggregate = unweighted mean $\pm$ SD over all fold$\times$seed trials --- folds are equally weighted, not pooled at prediction level. Eligible = registered \emph{candidate} role; ablations, baselines, and the final-only EBM are excluded from designation by prespecified role. The three trivial baselines tie exactly; the comparator designation falls to the majority predictor, first in the frozen baseline list. No candidate tie occurred; a tie would resolve to the earlier frozen-registry entry. RF = random forest; EBM = Explainable Boosting Machine.}\\
+\endlastfoot
+Ordinal RF (unweighted) & Ablation & 0.3244 $\pm$ 0.0004 & 0.3221 $\pm$ 0.0011 & 1,2,3 & 0.3233 $\pm$ 0.0014 & No & --- \\
+Random forest (unweighted) & Ablation & 0.3263 $\pm$ 0.0011 & 0.3229 $\pm$ 0.0004 & 1,2,3 & 0.3246 $\pm$ 0.0019 & No & --- \\
+\textbf{Ordinal RF (weighted)} & \textbf{Candidate} & \textbf{0.3401 $\pm$ 0.0010} & \textbf{0.3316 $\pm$ 0.0010} & \textbf{1,2,3} & \textbf{0.3358 $\pm$ 0.0043} & \textbf{Yes} & \textbf{Designated primary} \\
+Majority & Baseline & 0.3564 & 0.3366 & 42 & 0.3465 $\pm$ 0.0099 & No & Designated comparator \\
+Ordinal median & Baseline & 0.3564 & 0.3366 & 42 & 0.3465 $\pm$ 0.0099 & No & Tied comparator score \\
+Prior probability & Baseline & 0.3564 & 0.3366 & 42 & 0.3465 $\pm$ 0.0099 & No & Tied comparator score \\
+Random forest (weighted) & Candidate & 0.3781 $\pm$ 0.0009 & 0.3708 $\pm$ 0.0007 & 1,2,3 & 0.3744 $\pm$ 0.0037 & Yes & --- \\
+XGBoost & Candidate & 0.4320 $\pm$ 0.0009 & 0.4307 $\pm$ 0.0037 & 1,2,3 & 0.4314 $\pm$ 0.0028 & Yes & --- \\
+Frank--Hall logit & Baseline & 0.5784 & 0.4844 & 42 & 0.5314 $\pm$ 0.0470 & No & --- \\
+Shallow tree & Baseline & 0.6026 $\pm$ 0.0000 & 0.6239 $\pm$ 0.0000 & 1,2,3 & 0.6132 $\pm$ 0.0107 & No & --- \\
+Decision tree & Candidate & 0.5960 $\pm$ 0.0003 & 0.6327 $\pm$ 0.0004 & 1,2,3 & 0.6144 $\pm$ 0.0184 & Yes & --- \\
+Multinomial logit & Baseline & 0.5919 & 0.6652 & 42 & 0.6286 $\pm$ 0.0367 & No & --- \\
+Proportional-odds logit & Baseline & 0.5786 & 0.7187 & 42 & 0.6487 $\pm$ 0.0701 & No & --- \\
+EBM & Exploratory (final-only) & --- & --- & --- & --- & No & --- \\
+\end{longtable}
+\endgroup
+
+
+\clearpage
+\section{Feature-tier governance: retained, prohibited, and excluded fields}
+\label{app:feature-governance}
+The restricted feature tier is central to the scientific claim, so its complete composition is reproduced here rather than left to external files. \Cref{tab:retained-fields} lists all 49 retained source fields with their model representation, per-development-year missingness, and reporting-thoroughness flag; every retained field carries the author-judged grade \emph{plausibly early}, and none is custodian-verified (\cref{sec:features}). \Cref{tab:prohibited-fields} lists the 14 outcome-derived fields that are prohibited in every tier, and \cref{tab:exclusion-summary} accounts for every remaining source column. The tables are generated from the contract ledger, the frozen retained-column list, and the licensed modeling table; they are never edited by hand.
+
+% GENERATED FILE — do not edit by hand.
+% Source: tools/gen_feature_governance_tables.py (contract ledger + frozen
+% retained-column list + licensed local modeling-table missingness).
+% Two single-page [H] parts: a page-split longtable trips a pdfTeX
+% 'infinite glue shrinkage' warning under this preamble.
+\begin{table}[H]
+\centering
+\caption[The 49 retained restricted-tier source fields]{The 49 retained restricted-tier source fields, part 1 of 2 (all author-judged \emph{plausibly early}; none custodian-verified).}\label{tab:retained-fields}
+\footnotesize
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{0.235\textwidth}L{0.115\textwidth}R{0.055\textwidth}R{0.055\textwidth}R{0.055\textwidth}L{0.08\textwidth}L{0.295\textwidth}@{}}
+\toprule
+\textbf{Source field} & \textbf{Type} & \textbf{Miss.\ 2009} & \textbf{Miss.\ 2010} & \textbf{Miss.\ 2011} & \textbf{Thoro.\ risk} & \textbf{Contract-ledger rationale} \\
+\midrule
+AADT & numeric & 0.330 & 0.333 & 0.304 & low & annual average daily traffic (numeric; sentinel-cleaned) \\
+AHS System & categorical & 0.001 & 0.006 & 0.007 & low & Alaska Highway System class \\
+At Intersection & categorical & 0.000 & 0.000 & 0.000 & low & intersection-related location \\
+Borough & categorical & 0.001 & 0.006 & 0.007 & low & coarse administrative geography \\
+Census Area & categorical & 0.001 & 0.006 & 0.007 & low & coarse administrative geography \\
+City & categorical & 0.001 & 0.006 & 0.007 & low & city/place \\
+Day of Month & numeric & 0.000 & 0.000 & 0.000 & low & day-of-month — weak; retained, no strong mechanism \\
+Day of the Week & categorical & 0.000 & 0.000 & 0.000 & low & weekday/weekend pattern \\
+Direction & categorical & 0.651 & 0.637 & 0.629 & elevated & travel direction context \\
+Distance From Intersection & numeric & 0.030 & 0.070 & 0.103 & low & distance to nearest intersection (numeric) \\
+Election District & categorical & 0.001 & 0.006 & 0.007 & low & administrative polygon (not a point) \\
+Functional Class & categorical & 0.001 & 0.006 & 0.007 & low & roadway functional class \\
+Hit and Run & categorical & 0.000 & 0.000 & 0.000 & low & hit-and-run flag (scene fact) \\
+Lighting & categorical & 0.011 & 0.009 & 0.008 & low & lighting condition \\
+Maintenance Category & categorical & 0.001 & 0.006 & 0.007 & low & roadway maintenance category \\
+Maintenance Responsibility & categorical & 0.001 & 0.006 & 0.007 & low & maintenance responsibility \\
+Month & categorical & 0.000 & 0.000 & 0.000 & low & calendar month — seasonality \\
+NHS System & categorical & 0.001 & 0.006 & 0.007 & low & National Highway System indicator \\
+Number of Commercial Vehicles Involved & numeric & 0.000 & 0.000 & 0.000 & low & count of CVs involved \\
+Number of Pedestrians Involved & numeric & 0.000 & 0.000 & 0.000 & low & count of pedestrians involved \\
+Number of Persons Involved & categorical & 0.000 & 0.000 & 0.000 & low & crash size (persons) \\
+Number of Units Involved & categorical & 0.000 & 0.000 & 0.000 & low & count of units (vehicles) involved \\
+Pavement & categorical & 0.001 & 0.006 & 0.007 & low & pavement type/condition \\
+Posted Speed & categorical & 0.322 & 0.298 & 0.296 & elevated & posted speed limit \\
+Region & categorical & 0.001 & 0.006 & 0.007 & low & DOT region (coarse geography) \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+\begin{table}[H]
+\centering
+\DIFaddbeginFL \ContinuedFloat
+\DIFaddendFL \captionsetup{list=no}\caption{The 49 retained restricted-tier source fields, part 2 of 2 (continued).}\label{tab:retained-fields-b}
+\footnotesize
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{0.235\textwidth}L{0.115\textwidth}R{0.055\textwidth}R{0.055\textwidth}R{0.055\textwidth}L{0.08\textwidth}L{0.295\textwidth}@{}}
+\toprule
+\textbf{Source field} & \textbf{Type} & \textbf{Miss.\ 2009} & \textbf{Miss.\ 2010} & \textbf{Miss.\ 2011} & \textbf{Thoro.\ risk} & \textbf{Contract-ledger rationale} \\
+\midrule
+Road Surface & categorical & 0.003 & 0.002 & 0.003 & low & road surface condition (snow/ice/wet…) \\
+Roadway Characteristics & categorical & 0.218 & 0.189 & 0.186 & elevated & roadway geometry/character \\
+Roadway Junction & categorical & 0.031 & 0.026 & 0.021 & low & junction type \\
+Temperature & numeric & 0.232 & 0.201 & 0.204 & elevated & ambient temperature at crash time \\
+Temperature Range & categorical & 0.232 & 0.201 & 0.204 & elevated & binned temperature at crash time \\
+Time of Day & categorical & 0.000 & 0.000 & 0.000 & low & hour band — lighting/traffic-exposure proxy \\
+Unit 1 Action & categorical & 0.047 & 0.027 & 0.070 & low & primary unit's action/maneuver \\
+Unit 1 CV Configuration & categorical & 0.001 & 0.001 & 0.000 & low & CV configuration \\
+Unit 1 CV Issuing Authority & categorical & 0.022 & 0.017 & 0.016 & low & CV issuing authority \\
+Unit 1 CV Placard & categorical & 0.011 & 0.008 & 0.004 & low & CV placard \\
+Unit 1 Commercial Vehicle (CV) & categorical & 0.000 & 0.000 & 0.000 & low & is unit a commercial vehicle \\
+Unit 1 Direction of Travel & categorical & 0.056 & 0.049 & 0.094 & low & unit direction of travel \\
+Unit 1 License Plate State & categorical & 0.062 & 0.041 & 0.086 & low & plate state (local vs out-of-state) \\
+Unit 1 Model Year & categorical & 0.043 & 0.042 & 0.067 & low & vehicle model year (age proxy) \\
+Unit 1 Non-CV Configuration & categorical & 0.009 & 0.006 & 0.050 & low & non-CV body configuration \\
+Unit 1 Occupants & categorical & 0.000 & 0.000 & 0.000 & low & number of occupants in unit \\
+Unit 1 Person 1 Age Range & categorical & 0.047 & 0.044 & 0.052 & low & driver age band \\
+Unit 1 Person 1 Gender & categorical & 0.244 & 0.218 & 0.227 & elevated & driver gender \\
+Unit 1 Person 1 Raw Age & categorical & 0.047 & 0.044 & 0.052 & low & driver age (raw) \\
+Unit 1 Person 1 Residence State & categorical & 1.000 & 0.995 & 0.496 & elevated & resident vs visitor (scene fact) \\
+Unit 1 Person 1 Type & categorical & 0.002 & 0.002 & 0.027 & low & person type (driver/…) \\
+Unit 1 Traffic Control & categorical & 0.054 & 0.034 & 0.087 & low & traffic control present \\
+Weather & categorical & 0.017 & 0.013 & 0.012 & low & weather condition \\
+Week of the Year & numeric & 0.000 & 0.000 & 0.000 & low & week-of-year — seasonality (correlated with Month) \\
+\bottomrule
+\end{tabular}
+\endgroup
+\DIFdelbeginFL %DIFDELCMD < \tabnote{Type: numeric fields are median-imputed; categorical fields are most-frequent-imputed and one-hot encoded with an infrequent bucket. Miss.\ = share of missing or placeholder values on mapped development rows of that year. Thoro.\ risk = \emph{elevated} when development missingness differs by at least 0.05 between classes 0 and 2, so the field's presence is outcome-correlated (\artifact{experiment/target_reporting_process_audit.json}, q8). Every field is used directly as a model input after imputation and encoding; the year is only the split axis and no retained field is transformed beyond imputation, encoding, and (for linear models) standardization.}
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \tabnote{Type: numeric fields are median-imputed; categorical fields are most-frequent-imputed and one-hot encoded with an infrequent bucket. Miss.\ = share of missing or sentinel values on mapped development rows of that year. Thoro.\ risk = \emph{elevated} when development missingness differs by at least 0.05 between classes 0 and 2, so the field's presence is outcome-correlated (\artifact{experiment/target_reporting_process_audit.json}, q8). Every field is used directly as a model input after imputation and encoding; the year is only the split axis and no retained field is transformed beyond imputation, encoding, and (for linear models) standardization.}
+\DIFaddendFL \end{table}
+
+\begin{table}[H]
+\centering
+\caption{The 14 prohibited outcome-derived source fields (excluded from every modeling tier).}
+\label{tab:prohibited-fields}
+\footnotesize
+\begin{tabular}{@{}L{0.30\textwidth}L{0.13\textwidth}L{0.50\textwidth}@{}}
+\toprule
+\textbf{Source field} & \textbf{Category} & \textbf{Relationship to the target / leakage rationale} \\
+\midrule
+Arrest & Outcome-derived & post-crash enforcement \\
+Number of Fatalities & Outcome-derived & injury/fatality count — defines K; direct leak \\
+Number of Injuries with Fatalities & Outcome-derived & injury count — direct leak \\
+Number of Injuries without Fatailites & Outcome-derived & injury count (sic) — direct leak \\
+Unit 1 Damage & Outcome-derived & vehicle damage extent — co-measurement of harm \\
+Unit 1 Person 1 Extricated & Outcome-derived & extrication — post-crash response to entrapment/injury \\
+Unit 1 Person 1 Injury & Outcome-derived & the person's injury code — IS the outcome \\
+Unit 1 Person 1 NFR & Outcome-derived & ambiguous post-report field — excluded conservatively \\
+Unit 1 Person 1 Transported & Outcome-derived & EMS transport — post-crash response to injury \\
+Unit 1 Person 1 Transported By & Outcome-derived & EMS transport mode — post-crash response \\
+Unit 1 Person 1 Transported To & Outcome-derived & destination facility — post-crash response \\
+Unit 1 Person 1 Violations & Outcome-derived & post-crash adjudication \\
+Unit 1 Towed & Outcome-derived & tow disposition — post-crash outcome of damage \\
+Unit 1 Undercarriage Damage & Outcome-derived & rollover/undercarriage damage extent — co-measurement of harm \\
+\bottomrule
+\end{tabular}
+\tabnote{Every field in this table is recorded with or after the severity outcome (post-crash response, injury/fatality counting, damage assessment, or enforcement), so admitting it would let the predictors carry the outcome itself or its direct consequences.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Disposition of the remaining source fields (neither retained nor outcome-derived).}
+\label{tab:exclusion-summary}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.22\textwidth}R{0.07\textwidth}Y@{}}
+\toprule
+\textbf{Category} & \textbf{Fields} & \textbf{Disposition} \\
+\midrule
+Timing-uncertain & 14 & excluded from the primary restricted tier; admitted only to the broad-tier sensitivity (H4) \\
+Outcome-proximal & 2 & damage/response-adjacent (LEDGER-TENSION-001); broad-tier sensitivity only \\
+Identifier & 16 & identifier / privacy exclusion; removed at de-identification, never modeled \\
+Constant/invariant & 3 & invariant in the extract or on development rows; no information \\
+Split axis (Year) & 1 & chronological split axis; withheld as a feature \\
+Target field & 1 & the outcome itself \\
+\bottomrule
+\end{tabularx}
+\tabnote{The per-field ledger \artifact{paper/FEATURE_TIMING_EVIDENCE.md} names every field in each category with its grade and rationale; the machine-readable source is \artifact{data/feature_availability_ledger.csv}.}
+\end{table}
+
+
+\end{document}

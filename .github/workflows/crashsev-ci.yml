@@ -1,0 +1,53 @@
+name: crashsev-ci
+
+# Continuous integration for the leakage-controlled crash-severity study (AA2-019/026):
+# proves the minimal lock installs on a clean Windows AND Linux runner and the failure-mode
+# test suite passes. No raw data is needed (tests use synthetic fixtures + committed contracts).
+
+on:
+  push:
+    # CI-001: include every release-line branch so a push of the CURRENT branch actually
+    # triggers CI (the v3 filter listed only the old v2 branch and never fired for v3).
+    branches:
+      - graduate-research-remediation-v2
+      - portfolio-research-finalization-v3
+      - portfolio-research-finalization-v4
+      # r4: release-line branches (pattern covers r4 and future release passes)
+      - portfolio-final-r4
+      - "portfolio-final-*"
+      - main
+      - integrate-peyton-ml
+    paths: ["remediation/**", ".github/workflows/crashsev-ci.yml"]
+  pull_request:
+    paths: ["remediation/**"]
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: remediation
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install (minimal lock + package)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-lock.txt
+          python -m pip install -e .
+      - name: Import check (clean interpreter)
+        run: python -c "import crashsev, crashsev.cli, crashsev.contracts, crashsev.models; print('import ok')"
+      - name: Contract self-check (impostor rejected, real mapping loads)
+        run: |
+          python -c "import pandas as pd; from crashsev import contracts as K; s=K.load_schema(); m=K.load_target_mapping(); r=K.validate_dataframe(pd.DataFrame({'Crash Number':[1],'Year':[2011],'Crash Severity':['Fatal']}), s, m); assert not r.ok; print('impostor rejected')"
+      - name: Tests
+        run: python -m pytest tests/ -q

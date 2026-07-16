@@ -15,12 +15,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 if os.name == "nt":
     GDAL_LIBRARY_PATH = os.environ.get(
         "GDAL_LIBRARY_PATH",
-        r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\gdal312.dll",
+        r"C:\OSGeo4W\bin\gdal312.dll",
     )
 
     GEOS_LIBRARY_PATH = os.environ.get(
         "GEOS_LIBRARY_PATH",
-        r"C:\Users\dimen\AppData\Local\Programs\OSGeo4W\bin\geos_c.dll",
+        r"C:\OSGeo4W\bin\geos_c.dll",
     )
 else:
     GDAL_LIBRARY_PATH = os.environ.get("GDAL_LIBRARY_PATH")

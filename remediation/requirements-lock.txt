@@ -1,0 +1,28 @@
+# Minimal, portable, fully-pinned lock for the crashsev study (AA2-009).
+# Replaces the previous whole-environment freeze (which contained an unrelated local path).
+# Contains ONLY the packages this project uses. Verified importable + tests green on
+# Python 3.13 (Windows); versions are the exact ones the study was run with.
+#
+# Install:  python -m pip install -r requirements-lock.txt
+# The study itself needs only the core + models block; the paper block builds the PDF.
+
+# --- core (crashsev runtime) ---
+numpy==2.4.4
+pandas==3.0.3
+scikit-learn==1.9.0
+scipy==1.17.1
+PyYAML==6.0.3
+openpyxl==3.1.5
+
+# --- optional candidate models (study records their absence if omitted) ---
+xgboost==3.3.0
+interpret==0.7.8
+
+# --- paper / figure build only ---
+matplotlib==3.10.9
+markdown==3.10.2
+xhtml2pdf==0.2.17
+reportlab==4.5.1
+
+# --- tests ---
+pytest==8.4.2

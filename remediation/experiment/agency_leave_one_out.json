@@ -1,0 +1,111 @@
+{
+  "analysis": "agency_leave_one_out",
+  "status": "DEFERRED_EXTERNAL_EVIDENCE \u2014 the licensed raw extract CONTAINS agency-related fields (Officer Agency, Reporting Agency, Detachment; see data/column_inventory_09_12.csv), but they were removed as identifier-tier columns during de-identification (crashsev/build_modeling_table.py DROP_IDENTIFIERS) before the retained modeling table was built, and the raw file is absent from this analysis environment by data-handling policy. No row-level agency label can therefore be joined to the frozen evaluation rows; a true leave-one-agency-out / agency-cluster analysis requires licensed re-supply of the agency fields. The nearest available administrative/geographic proxies are reported below (post hoc; descriptive only). CORRECTION 2026-07-15: an earlier status line said the extract contained no such field; that statement conflated the de-identified modeling table with the licensed source extract.",
+  "generated_utc": "2026-07-15T19:54:41Z",
+  "git_commit": "42194a619c3a8c1a146c1202ac6afe6a919e392b",
+  "source_run": "final_8af9d5bc23d8",
+  "proxies": {
+    "region_leave_one_out": [
+      {
+        "left_out": "Central Region",
+        "rows_left_out": 9216,
+        "delta_omae_without_group": -0.03438276719138361
+      },
+      {
+        "left_out": "Northern Region",
+        "rows_left_out": 1336,
+        "delta_omae_without_group": -0.015737322712259583
+      },
+      {
+        "left_out": "Null value",
+        "rows_left_out": 686,
+        "delta_omae_without_group": -0.011970029239766034
+      },
+      {
+        "left_out": "Southeast Region",
+        "rows_left_out": 392,
+        "delta_omae_without_group": -0.0113899270332799
+      }
+    ],
+    "maintenance_responsibility_leave_one_out": [
+      {
+        "left_out": "State Highway Agency",
+        "rows_left_out": 6899,
+        "delta_omae_without_group": -0.01585288522511097
+      },
+      {
+        "left_out": "Borough Highway Agency",
+        "rows_left_out": 2532,
+        "delta_omae_without_group": -0.016157397230160464
+      },
+      {
+        "left_out": "Unknown Maint Responsibility",
+        "rows_left_out": 943,
+        "delta_omae_without_group": -0.01534574716945819
+      },
+      {
+        "left_out": "Null value",
+        "rows_left_out": 686,
+        "delta_omae_without_group": -0.011970029239766034
+      },
+      {
+        "left_out": "City Highway Agency",
+        "rows_left_out": 546,
+        "delta_omae_without_group": -0.014074341392998901
+      },
+      {
+        "left_out": "Private Agency",
+        "rows_left_out": 11,
+        "delta_omae_without_group": -0.014373009725449692
+      },
+      {
+        "left_out": "Other Local Agencies",
+        "rows_left_out": 10,
+        "delta_omae_without_group": -0.014457831325301207
+      },
+      {
+        "left_out": "Military - C.G. - Corps of Eng",
+        "rows_left_out": 2,
+        "delta_omae_without_group": -0.014447884416924683
+      },
+      {
+        "left_out": "U.S. Forest Service",
+        "rows_left_out": 1,
+        "delta_omae_without_group": -0.014446642015650546
+      }
+    ]
+  },
+  "reading": "Every leave-one-group-out delta stays negative iff the primary contrast does not depend on a single region/maintenance group; see values.",
+  "status_correction_2026_07_15": {
+    "old_status": "DEFERRED_EXTERNAL_EVIDENCE \u2014 the licensed extract contains no reporting-agency or officer/agency identifier field, so a true leave-one-agency-out analysis cannot be computed locally. The nearest available administrative/geographic proxies are reported below (post hoc; descriptive only).",
+    "reason": "Factual error: conflated the de-identified modeling table (no agency columns) with the licensed raw extract (contains Officer Agency / Reporting Agency / Detachment per data/column_inventory_09_12.csv rows 12/34/39 and build_modeling_table.DROP_IDENTIFIERS).",
+    "numeric_payload_changed": false
+  },
+  "raw_inventory_record_2026_07_15": {
+    "source": "data/column_inventory_09_12.csv (raw-column inventory recorded while the licensed workbook was present; prior-round record)",
+    "fields": {
+      "Officer Agency": {
+        "dtype": "str",
+        "n_null": 0,
+        "null_rate": 0.0,
+        "n_unique": 20,
+        "modal_value": "[redacted actual agency name]"
+      },
+      "Reporting Agency": {
+        "dtype": "str",
+        "n_null": 0,
+        "null_rate": 0.0,
+        "n_unique": 20,
+        "modal_value": "the literal string 'Null value'"
+      },
+      "Detachment": {
+        "dtype": "str",
+        "n_null": 0,
+        "null_rate": 0.0,
+        "n_unique": 8,
+        "modal_value": "the literal string 'Null value'"
+      }
+    },
+    "feasibility_note": "Officer Agency (20 levels, no NaN) is the most promising clustering key, but per-level row counts and the share of 'Null value' placeholder codes were not preserved in the inventory, and no row-level agency label survives locally; cluster-count/size-range/missingness quantification therefore requires the licensed re-supply requested in paper/custodian_semantics_request.md item 5."
+  }
+}

@@ -1,0 +1,400 @@
+{
+  "description": "Structured cell values for the COMPLETE Appendix A result tables (tab:full-results-a / tab:full-results-detail / tab:full-results-b), derived from the frozen experiment/final_results.json: every value recomputed from the stored confusion matrices and asserted equal to the stored fields where those are defined; NaN storage fields mapped through the F1-CONV-001 reporting convention (precision undefined '---'; recall/F1 measured zeros; macro-F1 averages including zeros). oMAE at 4 dp, deltas as +/-0.xxxx [lo,hi], all other metrics at 3 dp, round-half-even. The manuscript verifier checks the generated LaTeX byte-for-byte and each cell positionally.",
+  "source_artifact": "experiment/final_results.json",
+  "run_id": "final_8af9d5bc23d8",
+  "f1_zero_division_convention": "zero (F1-CONV-001; see experiment/metric_conventions.json)",
+  "row_order": [
+    "Random forest (unweighted)",
+    "Ordinal RF (unweighted)",
+    "Ordinal RF",
+    "Majority / ordinal median",
+    "Prior probability",
+    "Random forest (weighted)",
+    "XGBoost",
+    "EBM",
+    "Proportional-odds logit",
+    "Frank--Hall logit",
+    "Multinomial logit",
+    "Decision tree",
+    "Shallow tree"
+  ],
+  "roles": {
+    "Random forest (unweighted)": "Ablation",
+    "Ordinal RF (unweighted)": "Ablation",
+    "Ordinal RF": "Primary",
+    "Majority / ordinal median": "Baseline",
+    "Prior probability": "Baseline (probabilistic)",
+    "Random forest (weighted)": "Secondary",
+    "XGBoost": "Secondary",
+    "EBM": "Exploratory (final-only)",
+    "Proportional-odds logit": "Baseline (nonconverged)",
+    "Frank--Hall logit": "Baseline",
+    "Multinomial logit": "Baseline",
+    "Decision tree": "Secondary",
+    "Shallow tree": "Baseline"
+  },
+  "tables": {
+    "tab:full-results-a": {
+      "columns": [
+        "oMAE",
+        "$\\Delta$ vs majority (CI)",
+        "Acc.",
+        "Bal. acc.",
+        "QWK"
+      ],
+      "cells": {
+        "Random forest (unweighted)": [
+          "0.3401",
+          "-0.0213 [-0.0261,-0.0166]",
+          "0.686",
+          "0.359",
+          "0.143"
+        ],
+        "Ordinal RF (unweighted)": [
+          "0.3423",
+          "-0.0191 [-0.0241,-0.0144]",
+          "0.683",
+          "0.359",
+          "0.141"
+        ],
+        "Ordinal RF": [
+          "0.3469",
+          "-0.0144 [-0.0231,-0.0063]",
+          "0.670",
+          "0.408",
+          "0.249"
+        ],
+        "Majority / ordinal median": [
+          "0.3614",
+          "Reference",
+          "0.677",
+          "0.333",
+          "0.000"
+        ],
+        "Prior probability": [
+          "0.3614",
+          "+0.0000 [+0.0000,+0.0000]",
+          "0.677",
+          "0.333",
+          "0.000"
+        ],
+        "Random forest (weighted)": [
+          "0.3764",
+          "+0.0150 [+0.0046,+0.0258]",
+          "0.634",
+          "0.409",
+          "0.257"
+        ],
+        "XGBoost": [
+          "0.4442",
+          "+0.0828 [+0.0690,+0.0967]",
+          "0.574",
+          "0.490",
+          "0.285"
+        ],
+        "EBM": [
+          "0.4800",
+          "+0.1186 [+0.1047,+0.1324]",
+          "0.555",
+          "0.488",
+          "0.264"
+        ],
+        "Proportional-odds logit": [
+          "0.5118",
+          "+0.1504 [+0.1361,+0.1650]",
+          "0.523",
+          "0.509",
+          "0.263"
+        ],
+        "Frank--Hall logit": [
+          "0.5194",
+          "+0.1580 [+0.1440,+0.1721]",
+          "0.576",
+          "0.535",
+          "0.268"
+        ],
+        "Multinomial logit": [
+          "0.5208",
+          "+0.1594 [+0.1446,+0.1743]",
+          "0.526",
+          "0.519",
+          "0.262"
+        ],
+        "Decision tree": [
+          "0.6040",
+          "+0.2426 [+0.2267,+0.2585]",
+          "0.455",
+          "0.458",
+          "0.172"
+        ],
+        "Shallow tree": [
+          "0.6272",
+          "+0.2658 [+0.2499,+0.2819]",
+          "0.386",
+          "0.416",
+          "0.129"
+        ]
+      }
+    },
+    "tab:full-results-detail": {
+      "columns": [
+        "Macro-F1",
+        "Within-1",
+        "Two-step",
+        "Prec. 0",
+        "Rec. 0",
+        "Prec. 1",
+        "Rec. 1",
+        "Prec. 2",
+        "Rec. 2"
+      ],
+      "cells": {
+        "Random forest (unweighted)": [
+          "0.330",
+          "0.974",
+          "0.026",
+          "0.701",
+          "0.967",
+          "0.468",
+          "0.109",
+          "---",
+          "0.000"
+        ],
+        "Ordinal RF (unweighted)": [
+          "0.332",
+          "0.974",
+          "0.026",
+          "0.701",
+          "0.962",
+          "0.453",
+          "0.113",
+          "1.000",
+          "0.002"
+        ],
+        "Ordinal RF": [
+          "0.418",
+          "0.983",
+          "0.017",
+          "0.733",
+          "0.856",
+          "0.429",
+          "0.311",
+          "0.520",
+          "0.058"
+        ],
+        "Majority / ordinal median": [
+          "0.269",
+          "0.961",
+          "0.039",
+          "0.677",
+          "1.000",
+          "---",
+          "0.000",
+          "---",
+          "0.000"
+        ],
+        "Prior probability": [
+          "0.269",
+          "0.961",
+          "0.039",
+          "0.677",
+          "1.000",
+          "---",
+          "0.000",
+          "---",
+          "0.000"
+        ],
+        "Random forest (weighted)": [
+          "0.404",
+          "0.989",
+          "0.011",
+          "0.757",
+          "0.737",
+          "0.395",
+          "0.472",
+          "0.800",
+          "0.018"
+        ],
+        "XGBoost": [
+          "0.467",
+          "0.982",
+          "0.018",
+          "0.805",
+          "0.565",
+          "0.373",
+          "0.639",
+          "0.265",
+          "0.267"
+        ],
+        "EBM": [
+          "0.444",
+          "0.965",
+          "0.035",
+          "0.805",
+          "0.548",
+          "0.365",
+          "0.604",
+          "0.175",
+          "0.313"
+        ],
+        "Proportional-odds logit": [
+          "0.441",
+          "0.965",
+          "0.035",
+          "0.805",
+          "0.494",
+          "0.342",
+          "0.605",
+          "0.201",
+          "0.429"
+        ],
+        "Frank--Hall logit": [
+          "0.426",
+          "0.905",
+          "0.095",
+          "0.775",
+          "0.695",
+          "0.391",
+          "0.286",
+          "0.130",
+          "0.624"
+        ],
+        "Multinomial logit": [
+          "0.438",
+          "0.954",
+          "0.046",
+          "0.820",
+          "0.493",
+          "0.354",
+          "0.613",
+          "0.174",
+          "0.451"
+        ],
+        "Decision tree": [
+          "0.375",
+          "0.941",
+          "0.059",
+          "0.807",
+          "0.373",
+          "0.325",
+          "0.665",
+          "0.122",
+          "0.336"
+        ],
+        "Shallow tree": [
+          "0.314",
+          "0.987",
+          "0.013",
+          "0.889",
+          "0.183",
+          "0.309",
+          "0.902",
+          "0.197",
+          "0.164"
+        ]
+      }
+    },
+    "tab:full-results-b": {
+      "columns": [
+        "Sev. rec.",
+        "Sev. prec.",
+        "Sev. F1",
+        "Pred. 0",
+        "Role"
+      ],
+      "cells": {
+        "Random forest (unweighted)": [
+          "0.000",
+          "---",
+          "0.000",
+          "0.934",
+          "Ablation"
+        ],
+        "Ordinal RF (unweighted)": [
+          "0.002",
+          "1.000",
+          "0.004",
+          "0.929",
+          "Ablation"
+        ],
+        "Ordinal RF": [
+          "0.058",
+          "0.520",
+          "0.104",
+          "0.790",
+          "Primary"
+        ],
+        "Majority / ordinal median": [
+          "0.000",
+          "---",
+          "0.000",
+          "1.000",
+          "Baseline"
+        ],
+        "Prior probability": [
+          "0.000",
+          "---",
+          "0.000",
+          "1.000",
+          "Baseline (probabilistic)"
+        ],
+        "Random forest (weighted)": [
+          "0.018",
+          "0.800",
+          "0.035",
+          "0.660",
+          "Secondary"
+        ],
+        "XGBoost": [
+          "0.267",
+          "0.265",
+          "0.266",
+          "0.475",
+          "Secondary"
+        ],
+        "EBM": [
+          "0.313",
+          "0.175",
+          "0.225",
+          "0.461",
+          "Exploratory (final-only)"
+        ],
+        "Proportional-odds logit": [
+          "0.429",
+          "0.201",
+          "0.274",
+          "0.416",
+          "Baseline (nonconverged)"
+        ],
+        "Frank--Hall logit": [
+          "0.624",
+          "0.130",
+          "0.216",
+          "0.607",
+          "Baseline"
+        ],
+        "Multinomial logit": [
+          "0.451",
+          "0.174",
+          "0.251",
+          "0.407",
+          "Baseline"
+        ],
+        "Decision tree": [
+          "0.336",
+          "0.122",
+          "0.179",
+          "0.313",
+          "Secondary"
+        ],
+        "Shallow tree": [
+          "0.164",
+          "0.197",
+          "0.179",
+          "0.139",
+          "Baseline"
+        ]
+      }
+    }
+  }
+}

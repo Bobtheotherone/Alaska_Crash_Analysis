@@ -1,0 +1,22 @@
+# Repository git-state snapshot (portfolio finalization)
+# regenerated 2026-07-10 to agree with the finalized tree (GITSTATE-STALE-001)
+
+branch:        portfolio-research-finalization-v3
+finalization commit: 62993c971aae2df870c0e9f9ee991c69e5e1c2b4
+planned tag:   portfolio-v3 (annotated, local)
+base commit:   bb9247a (Bobtheotherone/Alaska_Crash_Analysis)
+remote:        origin -> https://github.com/Bobtheotherone/Alaska_Crash_Analysis.git (NOT pushed)
+working tree:  clean at finalization (see below)
+
+## recent history
+62993c9 Route R portfolio finalization: exposed/retrospective 2012, author, CAL-SELECT fix
+50509ea Honesty fix: state CI as configured + locally verified, not "green on Actions"
+b656dc3 Packaging: reconcile all docs to Route A, add LICENSE, record verified reproduction
+bb5a471 Route A empirical result, paper, leakage factorial, re-analysis packaging
+bd8d042 Governance: scope dirty-tree check to source (exclude phase-output dirs)
+8b9b50a Development phase results + failure-mode tests, CI, minimal env lock
+94d22b9 Route A remediation: executable contracts, governed CLI, corrected models
+f285a81 Portfolio README, faculty review, reproducibility guide, pinned environment
+
+## tags
+  (tag portfolio-v3 created immediately after this snapshot commit)

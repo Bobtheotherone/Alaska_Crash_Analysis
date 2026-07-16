@@ -1,0 +1,51 @@
+# v4.1 SENSITIVITY configuration — strict tier MINUS high-missingness fields (MISS-002).
+# Identical to the canonical v4 config (configs/route_r_09_12.yml) except exclude_features.
+#
+# PRESPECIFIED RULE (see experiment/missingness_summary.md, generated before this run's freeze):
+# strict-tier fields with > 50% missingness on the DEVELOPMENT rows are removed. Flagged fields:
+#   * "Unit 1 Person 1 Residence State"  (~74% missing)
+#   * "Direction"                         (~64% missing)
+# Purpose: test whether the primary contrast (candidate vs majority baseline on ordinal MAE,
+# posterior-median rule) depends on high-missingness administrative fields whose absence pattern
+# could encode year, agency, reporting completeness, or outcome-adjacent workflow.
+
+use_case: post_crash_triage
+year_col: Year
+group_col: Crash Number
+row_id_col: Crash Number
+final_test_years: [2012]
+
+n_classes: 3
+primary_metric: ordinal_mae
+decision_rule: posterior_median
+
+feature_tier: strict
+exclude_high_coupling: false
+exclude_features:
+  - "Unit 1 Person 1 Residence State"
+  - "Direction"
+
+baseline_set:
+  - majority
+  - ordinal_median
+  - prior_probability
+  - multinomial_logistic
+  - proportional_odds
+  - frank_hall_logistic
+  - shallow_tree
+
+cv_strategy: rolling
+cv_seeds: [1, 2, 3]
+cv_n_splits: 3
+cv_models: null
+
+include_optional_models: true
+min_frequency: 0.01
+categorical_max_cardinality: 100
+
+bootstrap_resamples: 2000
+seed: 42
+
+calibrate: true
+calibration_method: sigmoid
+calibration_folds: temporal

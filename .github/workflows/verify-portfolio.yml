@@ -1,0 +1,65 @@
+name: verify-portfolio
+
+# Public, NO-LICENSE verification tier for the graduate research portfolio (r4).
+# Runs only what needs zero restricted data: the failure-mode/governance test
+# suite, the eight generator freshness gates, the frozen/locked artifact
+# verifier, the manuscript-source verifier (tex-side; PDF-text checks run at
+# packaging time where the built PDF exists), and the claim scan.
+#
+# This workflow must NEVER require the licensed raw workbook, any per-crash
+# derivative, or any credential. Git-history gates skip gracefully on shallow
+# or snapshot checkouts; the full-history versions run at packaging time and
+# are captured in the release's gate_outputs.json.
+
+on:
+  push:
+    branches:
+      - "portfolio-final-*"
+      - integrate-peyton-ml
+      - main
+    paths: ["remediation/**", ".github/workflows/verify-portfolio.yml"]
+  pull_request:
+    paths: ["remediation/**", ".github/workflows/verify-portfolio.yml"]
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: remediation
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # give history gates a chance to run when the lineage is public
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install (minimal lock + package)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-lock.txt
+          python -m pip install -e .
+      - name: Test suite (governance + failure modes; no raw data)
+        run: python -m pytest tests -q -p no:cacheprovider
+      - name: Generator freshness gates (8)
+        run: |
+          python tools/gen_reanalysis_tables.py --check
+          python tools/gen_hyperparameter_ledger.py --check
+          python tools/gen_analysis_status_ledger.py --check
+          python tools/gen_metric_conventions.py --check
+          python tools/gen_full_results_tables.py --check
+          python tools/gen_dev_results_table.py --check
+          python tools/gen_feature_governance_tables.py --check
+          python tools/gen_cohort_year_table.py --check
+      - name: Frozen and locked artifacts
+        run: python tools/verify_frozen_and_locked.py
+      - name: Manuscript source verification (tex-side)
+        run: python tools/verify_manuscript_numbers.py paper/latex paper/latex/main.pdf
+      - name: Claim scan
+        run: python research_audit/claim_scan.py

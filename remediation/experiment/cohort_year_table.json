@@ -1,0 +1,59 @@
+{
+  "description": "Year-by-year cohort accounting of the licensed 2009-2012 extract (tab:cohort-year): source rows, mapped rows (researcher-defined working classes 0/1/2), quarantined rows (Unknown / Not Reported / Null value), and class composition, computed from the canonical modeling table and reconciled against the frozen target audits before writing.",
+  "sources": [
+    "licensed local modeling table (canonical content hash pinned in the evidence chain)",
+    "experiment/final_results.json (target_audit, split)",
+    "experiment/development_report.json (target_audit_dev_only)",
+    "experiment/target_reporting_process_audit.json (q6)"
+  ],
+  "years": {
+    "2009": {
+      "source_rows": 12862,
+      "mapped_rows": 11920,
+      "quarantined_rows": 942,
+      "class_counts": {
+        "0": 8086,
+        "1": 3392,
+        "2": 442
+      },
+      "class2_share_of_mapped": 0.03708053691275168,
+      "role": "Development"
+    },
+    "2010": {
+      "source_rows": 12459,
+      "mapped_rows": 11590,
+      "quarantined_rows": 869,
+      "class_counts": {
+        "0": 7902,
+        "1": 3245,
+        "2": 443
+      },
+      "class2_share_of_mapped": 0.03822260569456428,
+      "role": "Development"
+    },
+    "2011": {
+      "source_rows": 12682,
+      "mapped_rows": 11704,
+      "quarantined_rows": 978,
+      "class_counts": {
+        "0": 8181,
+        "1": 3107,
+        "2": 416
+      },
+      "class2_share_of_mapped": 0.0355434039644566,
+      "role": "Development"
+    },
+    "2012": {
+      "source_rows": 12540,
+      "mapped_rows": 11630,
+      "quarantined_rows": 910,
+      "class_counts": {
+        "0": 7877,
+        "1": 3303,
+        "2": 450
+      },
+      "class2_share_of_mapped": 0.03869303525365434,
+      "role": "Final retrospective evaluation"
+    }
+  }
+}

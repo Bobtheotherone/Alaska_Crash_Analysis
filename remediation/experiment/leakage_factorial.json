@@ -1,0 +1,198 @@
+{
+  "generated_utc": "2026-07-11T23:38:42Z",
+  "design": "2x2x2 factorial x seeds; development years only; fixed balanced random forest",
+  "development_years": [
+    2009,
+    2010,
+    2011
+  ],
+  "n_seeds": 5,
+  "n_leakage_columns": 14,
+  "reference_cell_all_defects_off": {
+    "leakage_features": false,
+    "preprocess_before": false,
+    "random_split": false,
+    "ordinal_mae": 0.36298701298701297,
+    "accuracy": 0.6466848940533151,
+    "severe_recall": 0.20576923076923076,
+    "ordinal_mae_sd": 0.00490362145447746,
+    "accuracy_sd": 0.005071302806705232,
+    "severe_recall_sd": 0.01081463642230961,
+    "n_seeds": 5
+  },
+  "cells": [
+    {
+      "leakage_features": false,
+      "preprocess_before": false,
+      "random_split": false,
+      "ordinal_mae": 0.36298701298701297,
+      "accuracy": 0.6466848940533151,
+      "severe_recall": 0.20576923076923076,
+      "ordinal_mae_sd": 0.00490362145447746,
+      "accuracy_sd": 0.005071302806705232,
+      "severe_recall_sd": 0.01081463642230961,
+      "n_seeds": 5
+    },
+    {
+      "leakage_features": false,
+      "preprocess_before": false,
+      "random_split": true,
+      "ordinal_mae": 0.32999999999999996,
+      "accuracy": 0.6805679862306369,
+      "severe_recall": 0.22507225897168262,
+      "ordinal_mae_sd": 0.0007708845327558937,
+      "accuracy_sd": 0.0016717518157091974,
+      "severe_recall_sd": 0.0074397082398215955,
+      "n_seeds": 5
+    },
+    {
+      "leakage_features": false,
+      "preprocess_before": true,
+      "random_split": false,
+      "ordinal_mae": 0.342447026657553,
+      "accuracy": 0.6676008202323993,
+      "severe_recall": 0.20432692307692307,
+      "ordinal_mae_sd": 0.0028322071331480163,
+      "accuracy_sd": 0.0030808989065466866,
+      "severe_recall_sd": 0.0015203257981578693,
+      "n_seeds": 5
+    },
+    {
+      "leakage_features": false,
+      "preprocess_before": true,
+      "random_split": true,
+      "ordinal_mae": 0.3310843373493976,
+      "accuracy": 0.6794148020654045,
+      "severe_recall": 0.2320126333634133,
+      "ordinal_mae_sd": 0.0022673766203185762,
+      "accuracy_sd": 0.0026471354486096374,
+      "severe_recall_sd": 0.013587271182674283,
+      "n_seeds": 5
+    },
+    {
+      "leakage_features": true,
+      "preprocess_before": false,
+      "random_split": false,
+      "ordinal_mae": 0.013926862611073138,
+      "accuracy": 0.9861073137388926,
+      "severe_recall": 0.6091346153846154,
+      "ordinal_mae_sd": 0.00014296992934621926,
+      "accuracy_sd": 0.00016742923737411288,
+      "severe_recall_sd": 0.0047105571976599845,
+      "n_seeds": 5
+    },
+    {
+      "leakage_features": true,
+      "preprocess_before": false,
+      "random_split": true,
+      "ordinal_mae": 0.015731497418244405,
+      "accuracy": 0.9842685025817556,
+      "severe_recall": 0.5785820030476636,
+      "ordinal_mae_sd": 0.0006828514431971562,
+      "accuracy_sd": 0.0006828514431971518,
+      "severe_recall_sd": 0.008603318614768547,
+      "n_seeds": 5
+    },
+    {
+      "leakage_features": true,
+      "preprocess_before": true,
+      "random_split": false,
+      "ordinal_mae": 0.01385850991114149,
+      "accuracy": 0.9861927546138072,
+      "severe_recall": 0.6115384615384616,
+      "ordinal_mae_sd": 0.00035186705881705427,
+      "accuracy_sd": 0.00032691603673459097,
+      "severe_recall_sd": 0.009197656956590871,
+      "n_seeds": 5
+    },
+    {
+      "leakage_features": true,
+      "preprocess_before": true,
+      "random_split": true,
+      "ordinal_mae": 0.015559380378657488,
+      "accuracy": 0.9844750430292599,
+      "severe_recall": 0.5834676838671884,
+      "ordinal_mae_sd": 0.0005534573215426342,
+      "accuracy_sd": 0.0005724023803206769,
+      "severe_recall_sd": 0.011952480112312248,
+      "n_seeds": 5
+    }
+  ],
+  "simple_effects_vs_reference": {
+    "ordinal_mae": {
+      "leakage_features_vs_reference": -0.34906015037593985,
+      "preprocess_before_given_leak_off": -0.02053998632945997,
+      "preprocess_before_given_leak_on": -6.835269993164805e-05,
+      "random_split_given_leak_off": -0.03298701298701301,
+      "random_split_given_leak_on": 0.0018046348071712667
+    },
+    "accuracy": {
+      "leakage_features_vs_reference": 0.3394224196855775,
+      "preprocess_before_given_leak_off": 0.02091592617908422,
+      "preprocess_before_given_leak_on": 8.544087491457741e-05,
+      "random_split_given_leak_off": 0.03388309217732177,
+      "random_split_given_leak_on": -0.0018388111571370214
+    },
+    "severe_recall": {
+      "leakage_features_vs_reference": 0.4033653846153847,
+      "preprocess_before_given_leak_off": -0.0014423076923076872,
+      "preprocess_before_given_leak_on": 0.0024038461538461453,
+      "random_split_given_leak_off": 0.01930302820245186,
+      "random_split_given_leak_on": -0.030552612336951834
+    }
+  },
+  "interactions": {
+    "ordinal_mae": {
+      "leakage_x_preprocess_before": 0.02047163362952832,
+      "leakage_x_random_split": 0.034791647794184276
+    },
+    "accuracy": {
+      "leakage_x_preprocess_before": -0.020830485304169644,
+      "leakage_x_random_split": -0.03572190333445879
+    },
+    "severe_recall": {
+      "leakage_x_preprocess_before": 0.0038461538461538325,
+      "leakage_x_random_split": -0.049855640539403695
+    }
+  },
+  "marginal_main_effects_NOT_one_at_a_time": {
+    "ordinal_mae": {
+      "leakage_features": -0.3268605316687117,
+      "preprocess_before": -0.004924029679895248,
+      "random_split": -0.010211049255120286
+    },
+    "accuracy": {
+      "leakage_features": 0.3166937778454898,
+      "preprocess_before": 0.005013680834067724,
+      "random_split": 0.010535137817160645
+    },
+    "severe_recall": {
+      "leakage_features": 0.3788854294141698,
+      "preprocess_before": 0.003196898418198424,
+      "random_split": -0.0029086628798207226
+    }
+  },
+  "main_effects": {
+    "ordinal_mae": {
+      "leakage_features": -0.3268605316687117,
+      "preprocess_before": -0.004924029679895248,
+      "random_split": -0.010211049255120286
+    },
+    "accuracy": {
+      "leakage_features": 0.3166937778454898,
+      "preprocess_before": 0.005013680834067724,
+      "random_split": 0.010535137817160645
+    },
+    "severe_recall": {
+      "leakage_features": 0.3788854294141698,
+      "preprocess_before": 0.003196898418198424,
+      "random_split": -0.0029086628798207226
+    }
+  },
+  "interpretation": {
+    "ordinal_mae": "negative effect => that defect makes apparent error LOOK smaller (inflation)",
+    "severe_recall": "leakage_features typically inflates severe recall via outcome-derived inputs",
+    "interactions": "conditional on leakage being present, the other two defects have almost no room left to matter (floor effect) \u2014 the defects are NOT additive"
+  },
+  "FAC-001_caveat": "leakage_features and preprocess_before are MATCHED contrasts (same rows/model/seed, one factor toggled) -> their effects are valid apparent-inflation estimates. random_split is NOT a matched contrast: it changes the evaluation population and train size, so its 'main effect' is a VALIDATION-OPTIMISM contrast between different estimands, not an isolated causal effect of splitting. Do not read the random_split row causally."
+}

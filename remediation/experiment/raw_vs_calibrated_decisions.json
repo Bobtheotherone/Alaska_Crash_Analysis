@@ -1,0 +1,75 @@
+{
+  "analysis": "raw_vs_calibrated_decisions",
+  "status": "POST HOC (v4.1 revision addendum): methodological verification and counterfactual clarification only. The governed headline hard labels are and remain those of the frozen bundle (raw probabilities, posterior-median rule); nothing here changes any published number or model role.",
+  "generated_utc": "2026-07-15T19:56:16Z",
+  "git_commit": "42194a619c3a8c1a146c1202ac6afe6a919e392b",
+  "source_run": "final_8af9d5bc23d8",
+  "verdicts": {
+    "headline_hard_labels_use_raw_probabilities": true,
+    "calibration_used_only_for_probability_quality": true,
+    "calibrated_probabilities_are_a_fold_ensemble_not_a_transform_of_raw": true
+  },
+  "raw_label_verification": {
+    "median_of_raw_equals_stored_y_pred": true,
+    "mismatch_count_exact_parser": 0,
+    "mismatch_count_default_pandas_parser": 3,
+    "note": "the frozen CSV text round-trips exactly under float_precision='round_trip'; pandas' default parser is 1-ulp imprecise and flips exact cumulative-0.5 ties"
+  },
+  "calibration_rederivation": {
+    "ordinal_random_forest": {
+      "method": "sigmoid (temporal rolling-origin folds)",
+      "ece_calibrated_rederived": 0.03188999547713045,
+      "ece_calibrated_frozen": 0.03188999547713045,
+      "ece_abs_diff": 0.0,
+      "log_loss_calibrated_rederived": 0.6924119310596474,
+      "log_loss_calibrated_frozen": 0.6924119310596474,
+      "log_loss_abs_diff": 0.0,
+      "exact_match": true
+    },
+    "majority": {
+      "method": "sigmoid (temporal rolling-origin folds)",
+      "ece_calibrated_rederived": 0.013092842178361597,
+      "ece_calibrated_frozen": 0.013092842178361597,
+      "ece_abs_diff": 0.0,
+      "log_loss_calibrated_rederived": 0.7476317043571837,
+      "log_loss_calibrated_frozen": 0.7476317043571837,
+      "log_loss_abs_diff": 0.0,
+      "exact_match": true
+    }
+  },
+  "calibrated_counterfactual": {
+    "labels_changed": 1894,
+    "transition_matrix_rows_frozenlabel_cols_calibratedlabel": [
+      [
+        9130,
+        58,
+        0
+      ],
+      [
+        1801,
+        583,
+        8
+      ],
+      [
+        2,
+        25,
+        23
+      ]
+    ],
+    "hard_metrics_frozen_raw_labels": {
+      "ordinal_mae": 0.3469475494411006,
+      "accuracy": 0.6699054170249356,
+      "severe_recall": 0.057777777777777775,
+      "severe_precision": 0.52,
+      "predicted_class0_share": 0.7900257953568358
+    },
+    "hard_metrics_calibrated_labels": {
+      "ordinal_mae": 0.34419604471195187,
+      "accuracy": 0.683834909716251,
+      "severe_recall": 0.042222222222222223,
+      "severe_precision": 0.6129032258064516,
+      "predicted_class0_share": 0.9400687876182288
+    },
+    "argmax_from_calibrated_changed_vs_frozen_argmax": 844
+  }
+}

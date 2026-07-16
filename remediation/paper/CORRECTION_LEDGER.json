@@ -1,0 +1,1348 @@
+{
+ "description": "Machine-readable ledger of every correction applied by the 2026-07-15 completion pass to governed or previously shipped material. Governed frozen bundles, predictions, bootstrap draws, and declared original-analysis statuses are untouched; every entry below is a demonstrated transcription, factual-statement, or checker defect, per the completion directive's permitted-change policy.",
+ "baseline_build": {
+  "pdf_sha256": "f8aab3236c8e93b146df2ae15e1045e600890766efa264fdc203de38f8b6baf5",
+  "pdf_pages": 37,
+  "repo_commit": "e1487b7e7555bdadff02b45be1dd94f9feaca559",
+  "audit": "AXIOM_LOCAL_Audit_Report_f8aab323.md (accept; findings N1/N2 + agency conflation found by the completion directive)"
+ },
+ "corrections": [
+  {
+   "id": "CORR-1",
+   "title": "Appendix Table 6 decision-tree macro-F1 misrounding",
+   "old_value": "0.452 (printed cell, tab:prior-performance, Decision tree row, Macro-F1 column)",
+   "new_value": "0.451",
+   "exact_source": "macro-F1 = 0.4514901510289138 recomputed exactly (fraction arithmetic and crashsev.metrics.metrics_from_cm) from the transcribed Iteration III decision-tree confusion matrix in data/confusion_matrices_from_paper.json; round-half-even at 3 dp = 0.451",
+   "reason": "Double rounding: the printed cell was re-rounded from the 4-dp reanalysis_metrics.csv value 0.4515 instead of from the exact value. Fifth and last cell of this defect family (four were fixed in the prior revision); survived because the release checker matched expected values as row substrings and the row's oMAE cell held 0.451 (audit finding N1/N2).",
+   "affected_files": [
+    "remediation/paper/latex/main.tex (tab:prior-performance)",
+    "remediation/reanalysis/reanalysis_table_cells.json (new structured cell artifact)",
+    "remediation/tools/gen_reanalysis_tables.py (new generator)"
+   ],
+   "tests_added": [
+    "remediation/tests/test_manuscript_tables.py::test_shipped_false_pass_mechanism_is_rejected",
+    "verify_manuscript_numbers.py section 4: positional cell verification against the regenerated artifact"
+   ],
+   "conclusion_impact": "None. Appendix-only historical re-analysis cell; no governed number, headline, or ordering changes."
+  },
+  {
+   "id": "CORR-2",
+   "title": "Agency-field existence misstatement (source vs de-identified evidence conflation)",
+   "old_value": "\"the extract exposes no reporting-agency identifier\" (manuscript S8.8 and limitation 7); \"the licensed extract contains no reporting-agency or officer/agency identifier field\" (agency_leave_one_out.json status, target_reporting_process_audit.json q6 note, module docstrings, claim-matrix row R5, resolution-matrix row C2, custodian request item 5, unresolved-evidence item 7)",
+   "new_value": "The licensed raw extract CONTAINED agency-related fields (Officer Agency, Reporting Agency, Detachment); they were removed as identifier-tier columns during de-identification (build_modeling_table.DROP_IDENTIFIERS) before the retained modeling table was built, so agency labels are absent from the released evidence and the retained local table, not from the source extract; a true agency-cluster analysis requires licensed re-supply (custodian request item 5).",
+   "exact_source": "remediation/data/column_inventory_09_12.csv rows 12/34/39 (Detachment: str, 0 nulls, 8 unique; Officer Agency: str, 0 nulls, 20 unique; Reporting Agency: str, 0 nulls, 20 unique); crashsev/build_modeling_table.py DROP_IDENTIFIERS; paper/FEATURE_TIMING_EVIDENCE.md rows graded EXCLUDED_IDENTIFIER",
+   "reason": "The de-identified modeling table (which has no agency columns) was conflated with the licensed source extract (which had three). The 2026-07-15 AXIOM audit's RC06 row repeated the conflation; an erratum is appended to that report.",
+   "affected_files": [
+    "remediation/paper/latex/main.tex (S4.1 publication-exclusion sentence, S8.8, limitation 7, S12.2 privacy sentence)",
+    "remediation/experiment/agency_leave_one_out.json (status + correction record + raw-inventory feasibility record; numeric payload unchanged)",
+    "remediation/experiment/target_reporting_process_audit.json (q6_note_agency + correction record; numeric payload unchanged)",
+    "remediation/crashsev/cluster_bootstrap_sensitivity.py (docstring + status string)",
+    "remediation/crashsev/target_reporting_audit.py (docstring, comment, q6 note string)",
+    "remediation/paper/CLAIM_EVIDENCE_MATRIX.md (row R5)",
+    "remediation/paper/audit_resolution_matrix.csv (row C2)",
+    "remediation/paper/custodian_semantics_request.md (item 5 reworded to agency-keyed re-supply)",
+    "remediation/paper/unresolved_external_evidence.md (item 7)",
+    "remediation/tools/package_release.py (artifact annotation)",
+    "AXIOM_LOCAL_Audit_Report_f8aab323.md (erratum appended, workspace copy)"
+   ],
+   "tests_added": [
+    "verify_manuscript_numbers.py section 5: forbidden strings ('exposes no reporting-agency identifier', 'contains no reporting-agency or officer/agency identifier', 'no agency field exists') in tex and PDF text",
+    "verify_manuscript_numbers.py section 6: required concepts ('removed during de-identification', 'absent from the released evidence')"
+   ],
+   "conclusion_impact": "None on any number. The dependence limitation is unchanged in substance (agency-cluster analysis remains locally infeasible), but its reason is now stated accurately: a deliberate privacy exclusion plus raw-file absence by policy, not source absence. The custodian request now asks for crash-keyed pseudonymous agency re-supply."
+  },
+  {
+   "id": "CORR-3",
+   "title": "Release checker row-substring false-pass defect (tooling)",
+   "old_value": "verify_manuscript_numbers.py checked each expected table value as a substring of the concatenated row text (and concatenated same-named rows across tables), so a correct value in any column satisfied the check for every column",
+   "new_value": "Positional verification: each expected value is compared for exact string equality at its (table_id, row_key, column_index) cell via crashsev/manuscript_tables.py; duplicate row keys, missing/extra rows and columns, header drift, and stale generated table artifacts are rejected; a git gate rejects modification/deletion of any frozen path relative to the governed baseline",
+   "exact_source": "audit finding N2 (AXIOM_LOCAL_Audit_Report_f8aab323.md section 7); defect mechanism reproduced in tests/test_manuscript_tables.py",
+   "reason": "The substring mechanism masked CORR-1 and could mask any right-value-wrong-column error.",
+   "affected_files": [
+    "remediation/tools/verify_manuscript_numbers.py (rewritten sections 2 and 4; new sections 4b, 4c, 8)",
+    "remediation/crashsev/manuscript_tables.py (new parsing/verification module)",
+    "remediation/tests/test_manuscript_tables.py (10 regression tests)"
+   ],
+   "tests_added": [
+    "test_correct_table_passes",
+    "test_shipped_false_pass_mechanism_is_rejected",
+    "test_right_value_wrong_column_rejected",
+    "test_duplicate_row_key_rejected",
+    "test_missing_column_rejected",
+    "test_unexpected_row_rejected",
+    "test_missing_table_rejected",
+    "test_missing_row_rejected",
+    "test_normalize_cell_strips_formatting",
+    "test_longtable_endlastfoot_rows_parsed"
+   ],
+   "conclusion_impact": "None (tooling). Verification coverage is strictly stronger: 486 checks vs 287, all table cells now positional."
+  }
+ ],
+ "explicitly_not_corrections": {
+  "note": "Wording/scope revisions of the same pass (title 'Reproducible'->'Governed, Self-Reproduced'; abstract 'score lower'->'record lower ordinal error'; H1 'supported'->'numerical criterion met'; descriptive-CI conditionality sentence; calibrated-counterfactual direction half-sentence; coarsening-rationale paragraph; log-loss clip convention; Appendix D hyperparameters; release-contents sentence) are revisions, not defect corrections, and are catalogued in REVISION_SUMMARY.md."
+ },
+ "locked_revision_2026_07_15": {
+  "description": "Post-audit locked correction release. Baseline: the audited final-submission build (PDF c94ba2b6…, 39 pp, commit 6ef7906, tag portfolio-final; AXIOM-LOCAL verdict ACCEPT with minor findings). Frozen run final_8af9d5bc23d8, its predictions, bootstrap witness, configurations, and all governed artifacts are preserved byte-for-byte; no model was retrained, retuned, relabeled, or recalibrated; no headline number changed. The only authorized numerical manuscript correction (0.452 -> 0.451) had already been applied by CORR-1 and is re-verified.",
+  "baseline_build": {
+   "pdf_sha256": "c94ba2b6e223450da4a8c99f41c5ffec6be5f7db3459d267c5c190cb0bb1f78a",
+   "pdf_pages": 39,
+   "repo_commit": "6ef7906081e6850a392b1e4a4b213329a6a10974",
+   "branch": "portfolio-final-submission",
+   "tag": "portfolio-final",
+   "audit": "AXIOM_LOCAL_Audit_Report_c94ba2b6.md (accept; 'statistically supported' residue + unstated RPS convention among findings)"
+  },
+  "corrections": [
+   {
+    "id": "E-001",
+    "title": "Title names the researcher-defined outcome",
+    "old": "Leakage-Controlled Ordinal Classification of Alaska Crash Severity: A Governed, Self-Reproduced Retrospective Out-of-Time Study Across Four Project Iterations",
+    "new": "Leakage-Controlled Ordinal Classification of a Researcher-Defined Alaska Crash-Severity Outcome: A Governed, Self-Reproduced Retrospective Out-of-Time Study Across Four Project Iterations (title page, pdftitle metadata, README, README_REPRODUCE, claim matrix, reports)",
+    "reason": "The target is a researcher-defined recorded-severity outcome; the title must not imply validated crash severity.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/README.md",
+     "remediation/paper/README_REPRODUCE.md"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: 'pdftitle carries the researcher-defined-outcome title'",
+     "verify_manuscript_numbers: title-page uppercase check"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-002",
+    "title": "'Leakage-controlled' defined with the custodian clause",
+    "old": "Definition present in the introduction only; custodian clause absent from abstract/methods",
+    "new": "Exact definition (structural final-outcome isolation; train-only learned transformations; explicit exclusion ledger; recording times NOT custodian-verified) inserted in the abstract and Sec.5, and the introduction definition extended with the custodian clause",
+    "reason": "Prevent readers from equating leakage control with verified field timing.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers required concept: 'leakage-controlled defined via custodian clause'"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-003",
+    "title": "Primary research question rewritten",
+    "old": "Using a conservative subset of fields that are not explicitly derived from recorded injury outcomes...",
+    "new": "Using a conservative predictor set that excludes identified outcome descendants, but whose retained-field recording times remain author judged, ... researcher-defined ordered outcome ... specified protocol perturbations ...",
+    "reason": "The RQ must carry the author-judged timing caveat and the perturbation framing.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-004",
+    "title": "Confirmatory language removed",
+    "old": "Sec.8.3 main finding said 'small but statistically supported reduction'; prose said 'This statistical difference is small'; abstract said shuffled splits 'overstate future-period performance'",
+    "new": "Main finding: 'small observed reduction ... descriptive paired case-bootstrap interval excluded zero under the stated crash-level exchangeability approximation'; prose: 'This observed difference is small and is not tied to a stakeholder-defined threshold of practical importance'; abstract: 'overstate how a model will perform on later periods'",
+    "reason": "The audited build still carried 'statistically supported' in Sec.8.3 while the verification report claimed the phrase was gated (audit finding); confirmatory framing is not defensible on a historically exposed cohort.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/verify_manuscript_numbers.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "forbidden (tex+pdf): 'statistically supported', 'statistically significant'"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-005",
+    "title": "Abstract result sentence replaced",
+    "old": "The primary model achieved ... a paired difference of -0.0144 (95% CI [-0.0231,-0.0063]) ...",
+    "new": "The protocol-designated class-weighted ordinal random forest achieved an ordinal mean absolute error of 0.3469, versus 0.3614 ..., an observed paired difference of -0.0144. A descriptive crash-level case-bootstrap interval was [-0.0231,-0.0063] under the stated independence approximation. The improvement was modest---about 14 fewer class-step errors per 1,000 crashes---and the model assigned the severe class to only 5.8% of severe crashes, so it should not be described as a severe-crash detector.",
+    "reason": "Spec-exact abstract wording; drops the unqualified CI framing (the 95% level remains defined in Sec.8.3).",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-006",
+    "title": "H1 verdict made explicitly descriptive",
+    "old": "Verdict cell 'Numerical criterion met'; prose '...met the protocol's numerical H1 criterion under the exposed retrospective protocol'",
+    "new": "Verdict cell 'Met the protocol's numerical criterion (descriptive)'; evidence cell 'Observed dOMAE = -0.0144; descriptive paired case-bootstrap CI [-0.0231,-0.0063] under the exposed retrospective protocol'; prose '...because the cohort was historically exposed, this is descriptive rather than confirmatory'",
+    "reason": "Historically exposed cohort: numerical success is descriptive, not confirmatory.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concept: 'H1 verdict descriptive'"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-007",
+    "title": "Class-0 provenance stated with machine-verified shares",
+    "old": "Class-0 blank provenance stated without the source/mapped shares",
+    "new": "All 32,046 class-0 records originate from blank values in the raw Crash Severity field; 63.4% of the 50,543 source rows and 68.4% of the 46,844 mapped rows (machine-checked against codebook_evidence_09_12.json and final_results.json)",
+    "reason": "Quantifies how load-bearing the blank-to-PDO working contract is.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: 'class-0 shares 63.4% / 68.4% (artifact-derived)'"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-008",
+    "title": "Target evidence downgraded to internal consistency; audit paragraph completed",
+    "old": "'This is strong source-specific evidence, but not an official codebook validation'; audit paragraph omitted Null value rows, the 93.4% person-level missingness figure, and the count-field anomaly magnitudes",
+    "new": "'This is a source-specific internal consistency check, not independent semantic validation'; paragraph now states: quarantined Unknown/Not Reported/Null value rows share the all-zero signature; person-level injury field missing for 93.4% of blanks (placeholder tokens for the remainder); 'Number of Injuries with Fatalities' positive for 1,511 of 1,512 zero-fatality incapacitating crashes and duplicates the without-fatalities column; blank->class 0 is a researcher-defined working contract pending codebook or custodian confirmation",
+    "reason": "Zero counts cannot distinguish 'no injury' from 'no injury data'; the anomaly makes count fields unusable as independent validation. All values machine-verified from target_reporting_process_audit.json (93.4% is the artifact's missing_share for the '<missing>' census cell; placeholder tokens cover the remainder — stated exactly as measured).",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: person-injury 93.4%; count-field anomaly 1,511/1,512"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-009",
+    "title": "Controlled target terminology",
+    "old": "researcher-defined three-level ordinal recorded-severity target (hereafter the ordinal target)",
+    "new": "researcher-defined recorded-severity outcome (equivalently, the working ordinal outcome; 'target' below always means this researcher-defined outcome); captions/tabnotes name PDO/minor/severe as working mapped classes",
+    "reason": "One controlled term, explicit equivalence for the legacy word 'target'; no clinical-category implication in captions.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concepts: controlled target term / short form / working mapped classes"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-010",
+    "title": "Coarsening and ordinal-spacing convention stated per spec",
+    "old": "Coarsening rationale present but without the exact 'not claims of clinical equivalence' / spacing-convention sentences",
+    "new": "The B/C and A/K combinations are analytical coarsenings ... not claims of clinical equivalence. Ordinal MAE treats the two adjacent transitions as equally spaced, so a class-0-to-class-2 error costs exactly twice an adjacent error; an analytical convention, not a stakeholder-validated utility function",
+    "reason": "Spec-exact convention statement.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-011",
+    "title": "Prediction moment and field timing made explicit",
+    "old": "'Variables recorded after injury severity became known were excluded'; timing caveats spread across Sec.4.3",
+    "new": "'No operational prediction timestamp was validated. None of the source fields has custodian-verified recording time...'; 'Variables identified as outcome-derived or outcome-proximal were excluded; recording times for retained variables remain unverified'; 49 retained fields author judged, 'not verified as simultaneously available and unrevised before the outcome is known'",
+    "reason": "'Recorded after severity became known' implied timing knowledge that does not exist.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concepts: no-timestamp-validated; author-judged-not-verified"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-012",
+    "title": "Agency-field provenance (verified already compliant)",
+    "old": "(2026-07-15 completion pass CORR-2 had already corrected every agency statement)",
+    "new": "No change needed: manuscript states the licensed extract contained Officer Agency / Reporting Agency / Detachment, removed at de-identification for privacy and identifier control; absence scoped to released evidence; agency proxies labeled post hoc",
+    "reason": "Spec requires the statement; it was verified present and accurate.",
+    "affected_files": [],
+    "generated_outputs": [],
+    "tests": [
+     "forbidden agency strings + required agency concepts (pre-existing, retained)"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-013",
+    "title": "Model role separated from metric leadership (controlled term)",
+    "old": "'designated ... as the primary candidate' without the leadership facts at first use",
+    "new": "'protocol-designated weighted candidate' defined at Sec.7 and used in the abstract, Sec.8.2 and the conclusion; explicit: designation came from the frozen role registry, not oMAE leadership; development oMAE leader = unweighted ordinal forest 0.3233, 2012 oMAE leader = unweighted random forest 0.3401; severe-recall leaders record materially worse ordinal error. (Spec precision note: the development leader is the unweighted ORDINAL forest; the 2012 leader is the unweighted nominal forest — stated exactly as the artifacts record.)",
+    "reason": "Prevents 'best model' misreading; forbidden strings guard regressions.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/verify_manuscript_numbers.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "forbidden: 'development-selected primary', 'selected primary candidate'",
+     "required: controlled model-role term; designation-not-from-leadership"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-014",
+    "title": "Weighting-preference limitation inserted",
+    "old": "(absent)",
+    "new": "Balanced weighting encoded a modeling preference for greater minority-class influence, but no stakeholder-approved utility function justified that preference; the weighted candidate is a protocol role, not an operationally optimal compromise",
+    "reason": "Spec insertion.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concept: weighting is a protocol role"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-015",
+    "title": "Posterior-median optimality qualified; reconstruction quantified",
+    "old": "'the Bayes-optimal action is a posterior median...' (unconditional)",
+    "new": "'the cumulative 0.5 rule ... is Bayes optimal when applied to meaningful posterior probabilities. For class-weighted or miscalibrated models, the rule remains loss matched to the model's stated probability vector, but that vector need not equal a natural-prevalence posterior'; plus: posterior-median reconstruction matched all 162,820 stored labels (14 x 11,630) with zero mismatches. crashsev/metrics.py docstring aligned.",
+    "reason": "Unconditional Bayes-optimality overstated what weighted/uncalibrated probability vectors deliver.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/crashsev/metrics.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: 162,820 reconstruction check",
+     "tests/test_prediction_evidence.py::test_parquet_reproduces_all_hard_metrics_and_labels_exactly"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-016",
+    "title": "Calibrated-label counterfactual quantified from the artifact",
+    "old": "'...which would have scored slightly better and is deliberately not used'",
+    "new": "1,894 of 11,630 primary-model labels would change; oMAE 0.3469 -> 0.3442; severe hard assignment falls (severe recall 4.2% vs frozen 5.8%); explicitly post hoc; did not replace the frozen headline",
+    "reason": "Spec requires exact artifact-generated values (raw_vs_calibrated_decisions.json).",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: counterfactual 1,894 / 0.3442 / 4.2% artifact-exact"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-017",
+    "title": "RPS convention stated (unnormalized)",
+    "old": "(convention unstated — audit finding)",
+    "new": "Formula added in Sec.6.4: RPS = (1/n) sum_i sum_{k=0}^{K-2} (F_ik - O_ik)^2; 'for K=3, twice the /(K-1) alternative'; 'unnormalized RPS' added to Sec.8.4 prose and the probability-score figure caption",
+    "reason": "The two RPS conventions differ by 2x for K=3; silent ambiguity was an audit finding. Printed RPS values unchanged.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [
+     "remediation/experiment/metric_conventions.json"
+    ],
+    "tests": [
+     "tests/test_metric_conventions.py::test_rps_is_the_unnormalized_convention",
+     "tests/test_metric_conventions.py::test_governed_rps_and_log_loss_reproduce_from_lossless_parquet"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-018",
+    "title": "Log-loss clipping rule machine-derived",
+    "old": "Clip stated as [1e-15, 1-1e-15] without the renormalization step or a machine pin",
+    "new": "'clipped using the implementation's epsilon value (1e-15, i.e., to [1e-15,1-1e-15] with row renormalization)'; epsilon extracted from the implementation signature into metric_conventions.json; 'without clipping, assigning zero probability to an observed class gives infinite empirical log loss'",
+    "reason": "Spec: no epsilon from memory; value read from crashsev.metrics.multiclass_log_loss.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [
+     "remediation/experiment/metric_conventions.json"
+    ],
+    "tests": [
+     "tests/test_metric_conventions.py::test_log_loss_epsilon_matches_sidecar_and_hyperparameter_ledger"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-019",
+    "title": "ECE and Brier definitions stated with machine-derived binning",
+    "old": "(binning convention unstated)",
+    "new": "Top-label ECE, 10 equal-width bins on [0,1] (linspace edges; first bin closed, later bins half-open; empty bins skipped; count-weighted); multiclass Brier = mean sum of squared class-probability errors; recorded in metric_conventions.json",
+    "reason": "Bin count/edges read from crashsev.calibration.expected_calibration_error.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [
+     "remediation/experiment/metric_conventions.json"
+    ],
+    "tests": [
+     "tests/test_metric_conventions.py::test_ece_binning_matches_sidecar"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-020",
+    "title": "Leakage-factorial causal language removed",
+    "old": "'Relative to the leakage-controlled reference, adding outcome-derived fields changes ordinal error by -0.349...'; caption 'Matched protocol-defect contrasts ... conditional on the tested model, feature sets, and years'",
+    "new": "'In the fixed development-only perturbation, adding outcome-derived fields produced the largest matched apparent reduction in oMAE (-0.349). Preprocessing-before-split and random-validation contrasts were smaller (-0.021 and -0.033), and the effects interacted'; caption: 'Matched protocol-perturbation contrasts under a fixed model and development cohort ... conditional diagnostic contrasts, not general causal effect estimates'; discussion 'drove' -> 'accounted for'",
+    "reason": "Diagnostic contrasts must not read as causal effect estimates.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "forbidden: 'dominant source of', 'caused by evaluation defects'"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-021",
+    "title": "'One governed run' scoped; every later analysis pointed at the ledger",
+    "old": "'evaluated, in one controlled execution...'; 'that execution generated the model, calibration, ranking, and error analyses'",
+    "new": "'The 2012 cohort was used once for the frozen primary evaluation execution; separately versioned secondary, exploratory, sensitivity, and post-hoc analyses later interrogated the historically exposed cohort and are identified in the analysis-status ledger (Appendix E)'; derivations described as recomputations from the frozen predictions",
+    "reason": "One primary execution must not read as 'the cohort was touched once ever'.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concept: one primary use of 2012 + ledger"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-022",
+    "title": "Analysis-status ledger regenerated on the four-value schema; appendix added",
+    "old": "8 columns (analysis, category, ...) with six status categories (frozen/derived/secondary/exploratory/post hoc/historical); no manuscript table",
+    "new": "Spec columns (analysis_id, description, status, first_run_commit_or_time, run_id, uses_2012_labels, changes_governed_output, reported_location); statuses ONLY protocol-primary / protocol-secondary / exploratory-final-only / post-hoc; 24 rows; generated LaTeX appendix (Appendix E, tab:analysis-status) emitted by the same generator. Classification anchors: broad tier = protocol-secondary (prespecified at commit b6152d4 before the v4 freeze); lowmiss/seed/blank-excluded = post-hoc (v4.1, after the primary run); v3 comparison and Iteration-III re-analysis = post-hoc.",
+    "reason": "Single controlled vocabulary; ledger rendered inside the manuscript so status is reviewable.",
+    "affected_files": [
+     "remediation/tools/gen_analysis_status_ledger.py",
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [
+     "remediation/paper/ANALYSIS_STATUS_LEDGER.csv",
+     "remediation/paper/latex/analysis_status_table.tex"
+    ],
+    "tests": [
+     "verify_manuscript_numbers 4c: CSV + appendix-table regeneration identical; four-value status guard"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-023",
+    "title": "Bootstrap scope completed",
+    "old": "Conditionality stated; non-coverage list absent",
+    "new": "'The interval does not incorporate uncertainty from target semantics, feature timing, model-role selection, or future temporal regimes' added to Sec.8.3",
+    "reason": "Spec-exact scope sentence.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concept: bootstrap non-coverage"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-024",
+    "title": "Dependence and rare-class analyses: units, counts, verdict, scope",
+    "old": "Cluster CIs quoted without cluster counts; severe intervals without resampling unit/positive count",
+    "new": "Calendar days (366), weeks (53), regions (4), boroughs (18), maintenance groups (9); 2,000 replicates, seed 42; qualitative conclusion unchanged; 'none resolves target semantics or transfer to later periods'. Severe intervals: crash-level resampling against 450 positives; qualitative reading unchanged; same scope sentence",
+    "reason": "Post-hoc labels alone were not enough; counts and scope are spec-required.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: proxy-cluster counts quoted (366/53/4/18/9)"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-025",
+    "title": "Ranking language tightened",
+    "old": "'the frozen scores show above-prevalence severe ranking...unvalidated for operational use'; 'may justify future evaluation as a screening or prioritization signal'",
+    "new": "'the frozen scores showed nontrivial severe-case ranking within the exposed 2012 cohort; ... unvalidated for later cohorts and for operational use'; 'provide a reason to evaluate ranking prospectively in a later cohort, without establishing an operating threshold or a workflow benefit'",
+    "reason": "Spec-exact replacements.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-026",
+    "title": "Conclusion scope sentence added",
+    "old": "Conclusion lacked the explicit not-established list",
+    "new": "'...the frozen evaluation showed a small, computationally self-reproduced reduction in cohort-specific ordinal error relative to the majority predictor... The result has not been independently replicated and does not establish validated physical injury severity, operational feature availability, later-period transportability, or deployment utility'",
+    "reason": "Spec-exact conclusion scope.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concept: conclusion scope"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-027",
+    "title": "Four reproduction tiers defined",
+    "old": "Self-reproduction vs independent replication distinguished; the four-tier ladder absent",
+    "new": "Sec.12.1 defines metric recomputation / self-reproduction / clean-room package verification / independent replication; 'metric recomputation is not independent replication'; tier (iv) has not occurred",
+    "reason": "Controlled vocabulary for every reproduction claim.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/paper/README_REPRODUCE.md"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concepts: reproduction tier 1 / tier 3"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-028",
+    "title": "Release-content wording per spec",
+    "old": "'A reviewer without the raw data can recompute reported hard-label metrics exactly from the de-identified predictions...'",
+    "new": "'A reviewer without the licensed source can recompute released metrics and probability-based analyses from the lossless de-identified parquet, which is the authoritative row-level evidence. A reviewer with the licensed source can additionally rebuild the modeling table and rerun training. The public package cannot independently validate raw-source semantics.'",
+    "reason": "Spec-exact wording; parquet named authoritative.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "required concept: parquet authoritative"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-029",
+    "title": "Positioning paragraph added (locally verifiable propositions only)",
+    "old": "(absent)",
+    "new": "New Sec.3.7 'Positioning relative to the inherited model-comparison practice': contrasts THIS project's prior iterations (verified-in-source claims, rows 14-19 of the claim matrix) with the current protocol along ordinal loss, rare-class ranking, temporal validation, calibration, leakage, governance; methodological attributions use only the existing bibliography; explicit 'no novelty claim' and 'no systematic literature review is claimed'. Claims about the literature at large were deliberately NOT added because cited external pages are not locally cached (unresolved item 8).",
+    "reason": "Spec requires every added proposition verified against a locally cached source; only the project's own archived iterations satisfy that bar.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "E-030",
+    "title": "Accessibility and layout",
+    "old": "39-page build; tagged-PDF limitation documented in the prior round",
+    "new": "43-page rebuild: 0 LaTeX errors, 0 overfull boxes, embedded fonts, numbered bookmarks, final-title metadata, selectable text (language gates run on extracted text); no accidental mostly-blank appendix page (page census in audit_paper render); analysis-status table emitted as a single-page non-splitting table (a page-split longtable trips a pdfTeX 'infinite glue shrinkage' warning under this preamble — avoided structurally); tagged-PDF output remains out of scope for the newtx/pdflatex toolchain and is documented honestly in README_REPRODUCE",
+    "reason": "Honest accessibility documentation; structural fix instead of suppressed warning.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/gen_analysis_status_ledger.py",
+     "remediation/paper/README_REPRODUCE.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-001",
+    "title": "Scientific-language gate extended and made case-insensitive",
+    "old": "Gate lacked 'statistically supported'/'statistically significant'/role-language phrases; case-sensitive; no page/line in failures; report language not tied to gate output",
+    "new": "Case-insensitive forbidden list extended (statistically supported/significant, development-selected primary, selected primary candidate, strong source-specific evidence, evidence-checked, dominant source of, caused by evaluation defects, agency misstatements, ...); context-qualified check for unqualified 'independent replication' (tex + PDF); failure output names main.tex line / PDF page; PDF text de-hyphenated before matching; the gate prints its enforced list ('[forbidden-list]') and FINAL_VERIFICATION_REPORT.md quotes exactly that",
+    "reason": "The prior report claimed 'statistically supported' was gated while the phrase survived in Sec.8.3 — the gate now actually enforces everything the report claims.",
+    "affected_files": [
+     "remediation/tools/verify_manuscript_numbers.py",
+     "remediation/tools/package_release.py",
+     "remediation/tools/gen_final_verification_report.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers section 5 (548-check run includes the new gate)"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-002",
+    "title": "Hard-coded machine paths removed from all scripts",
+    "old": "verify_frozen_and_locked.py pinned C:\\aca and C:\\aca\\remediation, git-checked C:\\aca unconditionally, and referenced a user-home auditor-kit path; make_figures.py defaulted --repo to C:/aca; audit_paper.py usage text showed C:/aca",
+    "new": "Root resolved from --root / CRASHSEV_REMEDIATION / walk-up from __file__; every inspected path confined to the resolved package top (refuses anything outside); git gate runs ONLY against the target package and reports an explicit SKIP when the target is not a git checkout (and when the nearest checkout is an enclosing/other repository); run-bundle and licensed-table sections report explicit SKIPs when absent; kit path is an explicit caller authorization; PASS/FAIL/SKIP totals printed; --require-full turns skips into failure",
+    "reason": "A clean-room extraction previously verified the author's live checkout instead of the package.",
+    "affected_files": [
+     "remediation/tools/verify_frozen_and_locked.py",
+     "remediation/tools/audit_paper.py",
+     "remediation/paper/latex/figure_generation/make_figures.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "tests/test_verifier_paths.py (4 tests: static drive-letter scan; decoy aca checkout ignored; explicit skips; corrupted pin fails)"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-003",
+    "title": "Bootstrap evidence tiers stated verbatim",
+    "old": "(statement absent from claim matrix / README / report)",
+    "new": "Exact three-sentence tier statement added to CLAIM_EVIDENCE_MATRIX.md (row R10), remediation/README.md, README_REPRODUCE.md, and generated into FINAL_VERIFICATION_REPORT.md",
+    "reason": "Prevents the de-identified parquet being misread as a bit-exact bootstrap witness.",
+    "affected_files": [
+     "remediation/paper/CLAIM_EVIDENCE_MATRIX.md",
+     "remediation/README.md",
+     "remediation/paper/README_REPRODUCE.md",
+     "remediation/tools/gen_final_verification_report.py"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-004",
+    "title": "Parquet authoritative; CSV parser warning + tests",
+    "old": "README did not name the parquet authoritative or warn about the default parser",
+    "new": "Both READMEs instruct float_precision='round_trip' and name the parquet the authoritative row-level evidence; scope stated exactly: three primary-model labels flip under the default parser, four across all 14 models (as recorded per model in prediction_roundtrip_test.json)",
+    "reason": "The default pandas parser is 1-ulp imprecise on exact cumulative-0.5 ties.",
+    "affected_files": [
+     "remediation/README.md",
+     "remediation/paper/README_REPRODUCE.md"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "tests/test_prediction_evidence.py (zero-mismatch parquet; default-parser regression)"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-005",
+    "title": "Environment-specific verification counts",
+    "old": "One verification total presented as universal",
+    "new": "FINAL_VERIFICATION_REPORT.md generated with separate live-checkout and clean-extraction sections (skipped sections named); README_REPRODUCE states 'never present one environment's count as universal'",
+    "reason": "Live checkout and clean extraction legitimately run different check sets.",
+    "affected_files": [
+     "remediation/tools/gen_final_verification_report.py",
+     "remediation/tools/build_handoff.py",
+     "remediation/paper/README_REPRODUCE.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-006",
+    "title": "PDF copy identity vs source-rebuild identity reported separately",
+    "old": "(single identity claim)",
+    "new": "Two checks: release copy byte-identity vs the repository artifact (asserted at packaging) AND a clean rebuild via tools/rebuild_identity_check.py (toolchain named; binary/text/page identity each reported); results generated into the report from the captured JSON",
+    "reason": "Rebuild hashes differ by PDF metadata; the two claims must not be conflated.",
+    "affected_files": [
+     "remediation/tools/rebuild_identity_check.py",
+     "remediation/tools/gen_final_verification_report.py"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-007",
+    "title": "RPS metadata recorded machine-readably (sidecar)",
+    "old": "(no rps_definition/rps_normalization/alternative_normalized_divisor anywhere)",
+    "new": "experiment/metric_conventions.json carries rps_definition='mean unnormalized sum of squared cumulative errors over K-1 thresholds', rps_normalization='none', alternative_normalized_divisor=2, extracted from the implementation. Recorded as a SIDECAR rather than inside final_results.json because the frozen governed artifacts are preserved byte-for-byte (non-negotiable control 2); the sidecar is referenced by the manuscript and enforced by tests",
+    "reason": "Guards against a silent convention switch without touching frozen bytes.",
+    "affected_files": [
+     "remediation/tools/gen_metric_conventions.py"
+    ],
+    "generated_outputs": [
+     "remediation/experiment/metric_conventions.json"
+    ],
+    "tests": [
+     "tests/test_metric_conventions.py (5 tests incl. parquet recomputation and 2x-relationship guard)"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-008",
+    "title": "Log-loss metadata recorded machine-readably",
+    "old": "(no machine-readable clipping record)",
+    "new": "metric_conventions.json: log_loss_probability_clipping (clip to [1e-15,1-1e-15] then row renormalization; epsilon from the implementation signature), hard_one_hot_unclipped_behavior='infinite when an observed class has probability zero'",
+    "reason": "Same sidecar rationale as R-007.",
+    "affected_files": [
+     "remediation/tools/gen_metric_conventions.py"
+    ],
+    "generated_outputs": [
+     "remediation/experiment/metric_conventions.json"
+    ],
+    "tests": [
+     "tests/test_metric_conventions.py"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-009",
+    "title": "Structured table verification (verified retained + extended)",
+    "old": "(positional verifier existed from the completion pass)",
+    "new": "No mechanism change needed: verification remains positional per (table_id, row_key, column_index) with duplicate/missing/extra/header-drift/stale-artifact rejection and the substring-false-pass regression test retained; coverage extended to the new appendix table via generator-identity checks; total checks 486 -> 548",
+    "reason": "Spec requires preserving the regression test and rejecting wrong-column matches — verified.",
+    "affected_files": [
+     "remediation/tools/verify_manuscript_numbers.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "tests/test_manuscript_tables.py (10 tests, retained)"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-010",
+    "title": "Historical macro-F1 0.451 chain (verified)",
+    "old": "(0.452 corrected in the completion pass)",
+    "new": "Verified: 0.451 in reanalysis_table_cells.json, generated LaTeX, PDF, verifier expectation; stale 0.452 appears only inside correction-history text (this ledger, REVISION_SUMMARY history)",
+    "reason": "Spec acceptance gate.",
+    "affected_files": [],
+    "generated_outputs": [],
+    "tests": [
+     "gen_reanalysis_tables --check; positional cell check"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-011",
+    "title": "Windows clean-room instructions",
+    "old": "(basetemp guidance absent; audit noted pytest needs a short basetemp)",
+    "new": "README_REPRODUCE documents pytest --basetemp C:\\tmp\\aca-tests and explains that MAX_PATH/ACL failures are environment failures, distinct from scientific test failures, and must not be silently ignored; packaging/clean-room tooling uses short scratch paths",
+    "reason": "Long %TEMP% paths break tests before any assertion runs.",
+    "affected_files": [
+     "remediation/paper/README_REPRODUCE.md",
+     "remediation/README.md",
+     "remediation/tools/package_release.py",
+     "remediation/tools/build_handoff.py"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R-012",
+    "title": "Portable release contents",
+    "old": "(handoff lacked the c94ba2b6 audit report and the captured-output evidence files)",
+    "new": "build_handoff.py additionally ships AXIOM_LOCAL_Audit_Report_c94ba2b6.md, gate_outputs.json, cleanroom_results.json, rebuild_identity.json, pdf_token_diff.json, metric_conventions.json; --tier1 runs the full no-license suite inside the clean-room extraction (short path) and captures the results; source zip now includes the generated appendix table",
+    "reason": "The archive must carry the evidence behind every report claim and verify from an arbitrary short path.",
+    "affected_files": [
+     "remediation/tools/build_handoff.py",
+     "remediation/tools/package_release.py"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "D-001",
+    "title": "FINAL_VERIFICATION_REPORT.md generated from captured output only",
+    "old": "Hand-authored report in the release directory; claimed a phrase-gate the verifier did not enforce; claimed hard-coded paths were gone while verify_frozen_and_locked.py still pinned C:\\aca",
+    "new": "Report now generated by tools/gen_final_verification_report.py exclusively from gate_outputs.json, build_manifest.json, cleanroom_results.json, rebuild_identity.json, pdf_token_diff.json; sections without captured input say 'not captured' instead of asserting; forbidden-phrase section quotes the gate's own printed list; reproduction-tier and unresolved-dependency sections fixed text, no replication claim",
+    "reason": "A verification report must not assert more than its gates ran.",
+    "affected_files": [
+     "remediation/tools/gen_final_verification_report.py",
+     "remediation/tools/package_release.py"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "D-002",
+    "title": "REVISION_SUMMARY.md rewritten and committed",
+    "old": "Release-dir-only summary claiming 'the previous C:\\aca hard-coded paths are gone' while R-002 was unfixed",
+    "new": "Committed at paper/REVISION_SUMMARY.md; separates numerical corrections (none this pass), wording/scope changes, package repairs, verifier repairs, post-hoc analyses (none new), unresolved external evidence; the hard-coded-path claim now appears only WITH the passing R-002 regression tests; enumerates the authorized numeric-token diff from the captured pdf_token_diff output",
+    "reason": "D-002 forbids the path claim until R-002 passes; it now passes and is test-backed.",
+    "affected_files": [
+     "remediation/paper/REVISION_SUMMARY.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "D-003",
+    "title": "Claim-to-evidence matrix revised",
+    "old": "Header referenced final_paper.md; row 2 'evidence-checked'; row 3 'prespecified, dev-selected'; no metric-convention/bootstrap-tier/reproduction-tier rows; no residual-dependency section",
+    "new": "Header points at the LaTeX manuscript; row 2 = internal-consistency wording with the full audit findings; row 3 = protocol-designated weighted candidate with descriptive-interval framing and the oMAE leader named; new rows R9 (metric conventions), R10 (bootstrap tiers, verbatim), R11 (reproduction tiers + per-environment counts); residual external dependencies appended",
+    "reason": "D-003 items: target semantics, feature timing, inferential status, model role, posterior interpretation, factorial causality, bootstrap tier, reproduction tier, portability.",
+    "affected_files": [
+     "remediation/paper/CLAIM_EVIDENCE_MATRIX.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "D-004",
+    "title": "Correction-ledger schema for this pass",
+    "old": "(ledger held only the completion-pass corrections)",
+    "new": "This locked_revision_2026_07_15 section: every edit ID records old, new, reason, affected files, generated outputs, tests, governed-output flag, conclusion impact",
+    "reason": "Spec schema.",
+    "affected_files": [
+     "remediation/paper/CORRECTION_LEDGER.json"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "PKG-1",
+    "title": "Stale repository README modernized",
+    "old": "README.md headline still described the superseded v3 result (0.331 vs 0.361, delta -0.030 [-0.037,-0.024], 'prespecified primary comparison', severe recall 0.28, 66 features -> 483 dims, 54 tests) and named final_paper.pdf as the paper",
+    "new": "README now states the frozen v4 governed result (0.3469 vs 0.3614, -0.0144 [-0.0231,-0.0063]), the protocol-designated-role framing, the restricted tier (49 -> 376), the corrected title, paper/latex/main.pdf as the authoritative manuscript, the R-003/R-004 statements, and the environment-specific-count rule",
+    "reason": "A package claim contradicting the frozen governed result; not a change to any governed number (the v3 figures remain, correctly labeled, in the manuscript's protocol-correction section)",
+    "affected_files": [
+     "remediation/README.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "PKG-2",
+    "title": "Superseded banner on the markdown draft",
+    "old": "paper/final_paper.md carried no supersession notice",
+    "new": "Banner names the LaTeX manuscript as authoritative; the draft is retained for lineage",
+    "reason": "Prevents the older title/framing being cited as current.",
+    "affected_files": [
+     "remediation/paper/final_paper.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "PKG-3",
+    "title": "Unresolved-external-evidence list completed",
+    "old": "List lacked the departmental-template-approval dependency and the prediction-moment phrase",
+    "new": "Row 2 extended ('...and a real operational prediction moment'); row 9 added (departmental template approval, if required)",
+    "reason": "Part D of the correction directive enumerates six dependencies; all six are now explicit.",
+    "affected_files": [
+     "remediation/paper/unresolved_external_evidence.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   }
+  ]
+ },
+ "submission_readiness_2026_07_15_r3": {
+  "description": "r3 submission-readiness revision executed 2026-07-15 (late evening) from the eleven-phase external review directive, against baseline portfolio-final-r2 (PDF 294b8cd7..., commit 7fd8584). Frozen run final_8af9d5bc23d8, its predictions, bootstrap witness, configurations, and all governed artifacts are preserved byte-for-byte; nothing retrained, retuned, relabeled, or recalibrated; no governed number changed. The only recomputed manuscript numbers derive from frozen artifacts under the newly documented count-based F1 reporting convention (F1-CONV-001) or from the pinned modeling table (per-year cohort/missingness), each generated and gate-checked, never typed.",
+  "baseline_build": {
+   "pdf_sha256": "294b8cd760948736def5dc273e42a8eaa6e3a09f91693879d052fce0dc6a9e4a",
+   "pdf_pages": 43,
+   "repo_commit": "7fd8584",
+   "branch": "portfolio-final-correction",
+   "tag": "portfolio-final-r2",
+   "audit": "external eleven-phase review directive (2026-07-15) + DISCREPANCY_LEDGER_R3.md (Phase-1 verification of every reviewer claim)"
+  },
+  "corrections": [
+   {
+    "id": "L-01",
+    "title": "F1 zero-division convention corrected to the standard count-based reporting convention",
+    "old": "Appendix B footnotes: 'The majority baseline's macro-F1 is undefined (em dash) rather than zero' / 'minority precision and F1 are undefined rather than zero'; Table 6 majority macro-F1 '---'; Table 7 majority severe F1 '---'",
+    "new": "Section 6.4 states the count-based convention (precision undefined iff TP+FP=0; recall 0 when TP=0 with support; F1=2TP/(2TP+FP+FN)=0 for a never-predicted class with support; macro-F1 averages including zeros). Table 6 majority macro-F1 = 0.269; Table 7 majority severe F1 = 0.000; footnotes rewritten. metrics.py gains a zero_division parameter with the frozen 'nan' STORAGE default preserved so pipeline reruns stay byte-identical; the re-analysis reporting layer uses 'zero'.",
+    "reason": "Under the standard count-based definition, F1 for an unpredicted class with positive support is a measured zero (denominator FN>0), not undefined; the old footnote claim was incorrect as a general statement.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/crashsev/metrics.py",
+     "remediation/crashsev/reanalysis.py",
+     "remediation/tools/gen_reanalysis_tables.py",
+     "remediation/tools/gen_metric_conventions.py"
+    ],
+    "generated_outputs": [
+     "reanalysis/reanalysis_table_cells.json",
+     "reanalysis/reanalysis_metrics.csv",
+     "reanalysis/reanalysis_table.md",
+     "experiment/metric_conventions.json (f1_reporting_convention block)"
+    ],
+    "tests": [
+     "tests/test_models_metrics.py::test_majority_only_classifier_f1_conventions",
+     "tests/test_models_metrics.py::test_f1_zero_convention_no_support_no_predictions_is_nan",
+     "tests/test_metric_conventions.py::test_f1_convention_block_matches_implementation",
+     "verify_manuscript_numbers: tab:prior-performance/severe positional cells + FORBIDDEN 'macro-F1 is undefined'"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "Does not alter the governed 2012 oMAE result, the primary model, the primary confidence interval, or the headline conclusion; frozen final_results.json untouched (its stored NaN fields are a documented storage convention)."
+   },
+   {
+    "id": "L-03",
+    "title": "Appendix A made actually complete under the Section 6.4 metric declaration",
+    "old": "Tables titled 'Complete...' lacked macro-F1, within-one accuracy, two-step error, and non-severe per-class precision/recall; hand-written rows",
+    "new": "Three generated longtables (performance/agreement; hard-label detail with macro-F1, within-one, two-step, per-class P/R; severe behavior + severe F1 + roles) derived from frozen final_results.json under F1-CONV-001; every recomputed value asserted against the stored fields (exact; F1 within 1e-12 and at printed precision); input by the manuscript; verified cell-by-cell",
+    "reason": "A table titled Complete must contain every declared metric.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/gen_full_results_tables.py"
+    ],
+    "generated_outputs": [
+     "experiment/full_results_table_cells.json",
+     "paper/latex/full_results_tables.tex"
+    ],
+    "tests": [
+     "tools/gen_full_results_tables.py --check",
+     "verify_manuscript_numbers: three positional table specs + identity checks"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-04",
+    "title": "Frank-Hall cumulative probability construction documented and validated",
+    "old": "Construction (monotonicity, negativity, renormalization, degenerate folds) undocumented in the manuscript",
+    "new": "New subsection 6.2.1: K-1 exceedance probabilities; cumulative-minimum monotonicity repair + clip; differencing; 1e-9 floor; row renormalization; CV skip rule for class-incomplete folds plus constant-exceedance defence-in-depth; identical for logistic and forest variants; validity machine-verified over all 162,820 stored rows",
+    "reason": "Reviewers must be able to assess probability validity; the reviewer's no-repair-exists contingency does not apply.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/gen_metric_conventions.py"
+    ],
+    "generated_outputs": [
+     "experiment/metric_conventions.json (frank_hall_probability_construction block)"
+    ],
+    "tests": [
+     "tests/test_metric_conventions.py::test_frank_hall_convention_block_matches_implementation",
+     "tests/test_metric_conventions.py::test_frank_hall_degenerate_training_targets_stay_valid",
+     "tests/test_prediction_evidence.py::test_released_probability_vectors_are_valid_distributions"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-05",
+    "title": "Paired bootstrap interval fully specified",
+    "old": "'2,000 crash-level case-bootstrap resamples' without interval type, level, seed, refit status, or interpolation",
+    "new": "Section 6.5: paired 95% percentile intervals (2.5th/97.5th percentiles, NumPy linear interpolation), seed 42, default_rng, same resampled index set for both models, models NOT refit, conditional on fixed predictions/protocol/cohort/target, no degenerate resamples possible",
+    "reason": "Interval method must be reproducible from the text.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/gen_metric_conventions.py"
+    ],
+    "generated_outputs": [
+     "experiment/metric_conventions.json (paired_bootstrap block)"
+    ],
+    "tests": [
+     "tests/test_metric_conventions.py::test_bootstrap_convention_block_matches_implementation"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-06",
+    "title": "Candidate eligibility and selection rule stated in full; complete development record published",
+    "old": "Selection described qualitatively; fold/seed aggregation, tie-break, and final-refit seed absent; no complete development table",
+    "new": "New subsection 7.1 (eligibility = candidate role; exclusions by role; unweighted mean over fold x seed trials; equal fold weights, never pooled; stable-min tie-break in frozen registry order; trivial-baseline tie resolved to majority by frozen list order; refit on all 35,214 mapped development rows at seed 42; no hyperparameter search). New Appendix F generated from development_report.json with per-fold, per-seed scores, eligibility, and outcomes. Results and Discussion now state plainly that the unweighted random forest achieved the lowest 2012 oMAE while the designation was role-frozen.",
+    "reason": "The protocol-primary designation must be impossible to mistake for overall metric leadership.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/gen_dev_results_table.py"
+    ],
+    "generated_outputs": [
+     "experiment/dev_results_table_cells.json",
+     "paper/latex/dev_results_table.tex"
+    ],
+    "tests": [
+     "tools/gen_dev_results_table.py --check (re-executes and asserts the selection semantics)",
+     "verify_manuscript_numbers: tab:dev-results positional spec + designation-semantics check"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-07",
+    "title": "Code, data, and evidence availability section with reproducibility manifest",
+    "old": "No consolidated availability statement; LICENSE holder placeholder '[Author name]'",
+    "new": "New subsection 12.2 naming release tag portfolio-final-r3, manifest-anchored commit/hashes, MIT License, licensed-raw status, distributable vs restricted evidence, no-license vs licensed reproduction scopes, exact verification commands, and a 10-row reproducibility manifest table; visible AUTHOR ACTION markers for the public URL, DOI, raw-hash publication permission, and reproduction contact; LICENSE holder set to the author",
+    "reason": "The paper must be auditable without private explanation; nothing (URL/DOI/hash permission) is invented.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/LICENSE"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: REQUIRED availability tag/license/marker/anchoring checks",
+     "audit_paper: MIT-license exemption scoped to the license phrase"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-08",
+    "title": "Retained-49 and prohibited-14 field lists made inspectable in the manuscript",
+    "old": "Feature tiers described but enumerated only in external files",
+    "new": "New Appendix G generated from the contract ledger + frozen retained-column list + licensed modeling table: all 49 retained fields with representation, per-development-year missingness (2009/2010/2011), and thoroughness flags; the 14 outcome-derived prohibited fields with category/stage/leakage rationale; disposition summary for every remaining column",
+    "reason": "The restricted tier is central to the scientific claim.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/gen_feature_governance_tables.py"
+    ],
+    "generated_outputs": [
+     "experiment/feature_governance_cells.json",
+     "paper/latex/feature_governance_tables.tex"
+    ],
+    "tests": [
+     "tools/gen_feature_governance_tables.py --check (data-free structural + render; full recompute when the licensed table is present)",
+     "verify_manuscript_numbers: structural reconciliation + 49/14 counts"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-09",
+    "title": "Coarsening rationale corrected: the source DOES distinguish A/K and B/C",
+    "old": "'...while the source's older ABC-style field offers no finer reliable resolution'",
+    "new": "'The study deliberately coarsens the available A/K and B/C labels---the raw field does distinguish fatal from incapacitating and possible from non-incapacitating injury---so this analytical coarsening is not a claim that the source contains no finer labels or that the grouped outcomes are clinically equivalent.'",
+    "reason": "The old sentence contradicted the frozen raw_value_counts (239 Fatal vs 1,512 Incapacitating; 5,257 Possible vs 7,790 Non-Incapacitating).",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: FORBIDDEN 'offers no finer reliable resolution' + REQUIRED coarsening-precision phrase"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-10",
+    "title": "Year-by-year cohort table added",
+    "old": "Cohort accounting aggregate-only (Table 1)",
+    "new": "Generated tab:cohort-year: per-year source rows, mapped rows, quarantined rows, class counts, class-2 share, role; reconciled at generation AND verification time against the frozen target audits and the q6 per-year audit shares",
+    "reason": "Reviewer-visible cohort stability; values generated from the authoritative data, never typed.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/tools/gen_cohort_year_table.py"
+    ],
+    "generated_outputs": [
+     "experiment/cohort_year_table.json",
+     "paper/latex/cohort_year_table.tex"
+    ],
+    "tests": [
+     "tools/gen_cohort_year_table.py --check",
+     "verify_manuscript_numbers: tab:cohort-year positional spec + reconciliation"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-11",
+    "title": "Attribution page rewritten as a neutral contribution statement with a single Claim boundary paragraph",
+    "old": "'The role ordering above is intentional. Peyton Ratzer is credited...' + separate scope-boundary line",
+    "new": "Neutral per-person contribution list (sole author roles; historical collaborator; client; mentor), the no-endorsement sentence, and one prominent Claim boundary paragraph that bounds every later section",
+    "reason": "Defensive wording replaced by neutral scientific attribution; boundary defined once.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: FORBIDDEN 'the role ordering above is intentional' + REQUIRED neutral-attribution and claim-boundary phrases"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-12",
+    "title": "AI-assistance disclosure made precise; privacy attestation routed to the author",
+    "old": "One broad sentence on material AI assistance",
+    "new": "Disclosure separates intellectual ownership, AI-supported activities, author verification (machine-verification suites pin every numerical claim), and responsibility; release-side privacy stated as machine-checked; an explicit AUTHOR ACTION marker requires the author to document external-AI exposure of project material in the new paper/AI_USE_AND_PRIVACY.md record before the privacy statement can be asserted",
+    "reason": "The privacy negative cannot be reconstructed from the repository; precision over vagueness.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/paper/AI_USE_AND_PRIVACY.md"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: REQUIRED 'no AI system is listed as an author' + AUTHOR ACTION marker present; artifact-existence check for the record"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-13",
+    "title": "Abstract tightened to 343 words (within the 275-350 target) with all required content",
+    "old": "~640-word four-paragraph abstract with duplicated limitation lists",
+    "new": "Four short paragraphs (343 words): problem (shuffled evaluation, outcome leakage, imbalance, temporal structure, ordinal loss); dataset/design (50,543 / 46,844 / 2009-2011 dev 35,214 / exposed 2012 11,630 / researcher-defined target); result + tradeoff (0.3469 vs 0.3614, -0.0144, [-0.0231,-0.0063], 5.8%, not a severe-crash detector, ablations lower by almost never assigning severe); contribution + boundaries (remediation, noncausal, exposed, unverified blank semantics and timing, self-reproduction not replication)",
+    "reason": "Admissions readability; every governed number preserved.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: locked values remain; token diff enumerated in REVISION_SUMMARY"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-14",
+    "title": "'severe-risk ranking' renamed 'severe-class score ranking' (incl. Figure 10)",
+    "old": "Section 9 title, Fig. 10 caption, contribution list, conclusion, threshold phrases used 'severe-risk'",
+    "new": "'severe-class score ranking' / 'severe-class ranking signal' / 'severe-alert threshold' / 'severe-class alert threshold' throughout; the analysis concerns retrospective class scores, not validated prospective risk",
+    "reason": "Terminology must not overstate prospective risk.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: FORBIDDEN 'severe-risk' (tex+pdf) + REQUIRED new term"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-15",
+    "title": "Defensive history sentence neutralized",
+    "old": "'This paper treats that history as a methodological asset rather than an embarrassment: ...'",
+    "new": "'The project history provides a natural case study of how increasing software capability can coexist with unresolved evaluation validity: ...'",
+    "reason": "Neutral scientific register.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: FORBIDDEN old phrase"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-16",
+    "title": "Manuscript ends with the Conclusion; readiness framing added",
+    "old": "Conclusion (Sec. 13) followed by Recommendations (Sec. 14)",
+    "new": "Recommendations (Sec. 13) precede the Conclusion (Sec. 14); the final paragraph states the methodological-judgment-as-readiness conclusion without weakening any limitation",
+    "reason": "Reviewer leaves on the contribution, scope, and readiness.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: REQUIRED 'not an inflated performance number'"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-17",
+    "title": "Severe-class reliability diagram added (raw + development-only calibrated)",
+    "old": "ECE bars were the only calibration visualization",
+    "new": "New Figure 8 (fig06c): calibrated points from the frozen run artifact; raw curve recomputed from the released frozen probabilities under the same 10-bin rule; per-bin counts annotated; supporting prose in Sec. 8.4; ledger row A26",
+    "reason": "Reliability data existed in frozen evidence; nothing invented.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex",
+     "remediation/paper/latex/figure_generation/make_figures.py",
+     "remediation/tools/gen_analysis_status_ledger.py"
+    ],
+    "generated_outputs": [
+     "paper/latex/figures/user/fig06c_reliability.pdf",
+     "paper/ANALYSIS_STATUS_LEDGER.csv (A25/A26)",
+     "paper/latex/analysis_status_table.tex"
+    ],
+    "tests": [
+     "audit_paper: 11 figures / LoF 11",
+     "verify_manuscript_numbers: REQUIRED reliability figure + locked 11,148"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-18",
+    "title": "Figure legibility pass (Figures 6, 7, 10)",
+    "old": "Labels/legends at 8-8.5pt; thin curves",
+    "new": "Fonts raised to 9-10pt, markers/lines thickened in fig06a/fig06b/fig08; numerical content unchanged (regenerated from the same frozen artifacts; fig08 retains its AP cross-check assertions)",
+    "reason": "Print legibility at 100% and grayscale.",
+    "affected_files": [
+     "remediation/paper/latex/figure_generation/make_figures.py"
+    ],
+    "generated_outputs": [
+     "paper/latex/figures/user/fig06a_probability_scores.pdf",
+     "paper/latex/figures/user/fig06b_calibration.pdf",
+     "paper/latex/figures/user/fig08_severe_ranking.pdf"
+    ],
+    "tests": [
+     "make_figures.py internal AP assertions",
+     "audit_paper page-render margin checks"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-19",
+    "title": "Title retained (decision record; no change)",
+    "old": "(same title)",
+    "new": "(same title)",
+    "reason": "The title matches the delivered r2 handoff and the review request's own header; changing it would desynchronize application correspondence. Self-reproduced remains defined in the abstract and reproducibility section.",
+    "affected_files": [],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-20",
+    "title": "Focused-review sentence replaces the 'no systematic literature review' disclaimer",
+    "old": "'No novelty claim beyond this positioning is made, and no systematic literature review is claimed.'",
+    "new": "'No novelty claim beyond this positioning is made; the review is intentionally focused on work that directly informs the study's target construction, ordinal evaluation, temporal validation, leakage control, probability assessment, and reproducibility protocol.' No citation added: the one materially relevant candidate (Kapoor & Narayanan, leakage taxonomy) could not be full-text inspected through accessible channels (publisher 403; arXiv page lists no journal reference), and the no-uninspected-citations rule controls.",
+    "reason": "Accurate description of the review's scope without a defensive disclaimer; no cosmetic recency.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: FORBIDDEN old sentence + REQUIRED new sentence"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "L-21",
+    "title": "Terminology: 'protocol-primary weighted ordinal forest' introduced once",
+    "old": "Repetitions of 'protocol-designated weighted candidate' as the only name",
+    "new": "Sec. 7 defines the model as 'the protocol-designated weighted candidate---the protocol-primary weighted ordinal random forest, hereafter the primary ordinal forest'; the controlled r2 term remains where reminders are needed",
+    "reason": "Shorter precise term without losing the controlled vocabulary.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "verify_manuscript_numbers: REQUIRED controlled term retained"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R3-INF-1",
+    "title": "Verifier extended to 893 checks",
+    "old": "548 checks; input files unparsed; r2 language gates only",
+    "new": "Input expansion; generated-table identity + positional specs (full-results x3, dev-results, cohort-year); governance structural reconciliation; F1/bootstrap/FH sidecar pins; new FORBIDDEN (severe-risk, undefined-F1 claims, defensive phrases) and REQUIRED (convention statements, selection rule, claim boundary, availability items) entries; new locked values (11,148; portfolio-final-r3)",
+    "reason": "Every new claim needs a machine gate.",
+    "affected_files": [
+     "remediation/tools/verify_manuscript_numbers.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "self: 893 passed, 0 failed"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R3-INF-2",
+    "title": "audit_paper updated (11 figures, 17 LoT entries, license exemption)",
+    "old": "10 figures / 10 tables expected; 'MIT' forbidden outright",
+    "new": "11 figures incl. fig06c; 17 LoT entries with list-suppressed continuation parts; 'MIT' guard scoped to exclude the declared 'MIT License'",
+    "reason": "Gate must match the r3 layout.",
+    "affected_files": [
+     "remediation/tools/audit_paper.py"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "self: 42 pass, 0 warn, 0 fail"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R3-INF-3",
+    "title": "Analysis-status ledger gains A25/A26; A24 extended; two-part rendering",
+    "old": "24 rows; single-page appendix table",
+    "new": "A25 (complete result tables from frozen artifacts) and A26 (severe-class reliability diagram) added as post-hoc rows with run ids; A24 lists the r3 convention blocks; the appendix table renders as two single-page parts (26 rows exceed one page)",
+    "reason": "Every 2012-cohort derivation must carry a status row.",
+    "affected_files": [
+     "remediation/tools/gen_analysis_status_ledger.py"
+    ],
+    "generated_outputs": [
+     "paper/ANALYSIS_STATUS_LEDGER.csv",
+     "paper/latex/analysis_status_table.tex"
+    ],
+    "tests": [
+     "tools/gen_analysis_status_ledger.py --check"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R3-INF-4",
+    "title": "Artifact map split into two parts and extended with the r3 artifacts",
+    "old": "Single [H] table overflowing its page after new rows",
+    "new": "Part 1 (frozen-protocol artifacts) / part 2 (post-hoc addenda) with the new r3 rows (full-results cells, dev-results cells, governance cells, cohort-year, AI-use record); metric-conventions row lists the r3 blocks",
+    "reason": "Layout + completeness.",
+    "affected_files": [
+     "remediation/paper/latex/main.tex"
+    ],
+    "generated_outputs": [],
+    "tests": [
+     "audit_paper: no overfull vbox; LoT count"
+    ],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   },
+   {
+    "id": "R3-INF-5",
+    "title": "Tier-1 clean-room command list extended with the four new regeneration gates",
+    "old": "Four gen_*.py --check commands",
+    "new": "Eight gen_*.py --check commands (adds full-results, dev-results, feature-governance, cohort-year; the latter two run data-free structural/render modes in extractions)",
+    "reason": "Clean-room verification must cover the new generated tables.",
+    "affected_files": [
+     "remediation/paper/README_REPRODUCE.md"
+    ],
+    "generated_outputs": [],
+    "tests": [],
+    "governed_output_changed": "no (frozen governed outputs byte-identical)",
+    "conclusion_impact": "None on any governed number."
+   }
+  ]
+ }
+}

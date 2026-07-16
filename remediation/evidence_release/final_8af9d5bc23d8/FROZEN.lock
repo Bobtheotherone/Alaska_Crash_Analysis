@@ -1,0 +1,16 @@
+{
+  "frozen_utc": "2026-07-12T00:45:05Z",
+  "protocol_version": "v4-structural-isolation",
+  "config_sha256": "f174006aa81b68b786ef3d300f1c99275880790981aea2b12b84b61219fd3b83",
+  "contract_sha256": {
+    "schema_sha256": "fe7d8b1caf5c49ec810ac43f987b26ee1ceb189cb59576828c3be2e5c37c8e85",
+    "target_mapping_sha256": "806d02652e348d1462c9f650e25f762df05a8bc50b9d3a480d61d7df454f3301",
+    "feature_ledger_sha256": "a6293c81f4b0c9ae7650bc48d6f22a40dca65404215a5344b0d492aff2a68231"
+  },
+  "data_sha256": "059559cd7a9c40a37f7f60e12e6a82137dc8c70d12817246c2a19d59ea3e097b",
+  "split_sha256": "b7fd83f52bc869abfed3891a4fcb05f81ad9ce7f51dbe6439f181cb61d65d8c1",
+  "development_report_sha256": "941170ed03d34d56abf857c1edceb142b9027c19a1a79b94726a88061f03b86f",
+  "primary_baseline": "majority",
+  "git_commit": "458f784ee82e50a9a0dbaed1cbc242fd1a70c7f0",
+  "git_branch": "portfolio-research-finalization-v4"
+}

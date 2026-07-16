@@ -1,0 +1,59 @@
+cff-version: 1.2.0
+message: >-
+  If you use this repository (code, verification tooling, or released
+  de-identified evidence), please cite it using the metadata below. To cite
+  the research itself, use preferred-citation.
+type: software
+title: >-
+  Alaska Crash Analysis — secure crash-analysis platform and governed,
+  reproducible ordinal crash-severity evaluation
+authors:
+  - family-names: Mercado-Barbosa
+    given-names: Radames Naythan
+    email: rnmercado@alaska.edu
+    affiliation: University of Alaska Anchorage
+repository-code: 'https://github.com/Bobtheotherone/Alaska_Crash_Analysis'
+version: portfolio-final-r4
+date-released: '2026-07-20'
+license: MIT
+license-url: 'https://github.com/Bobtheotherone/Alaska_Crash_Analysis/blob/portfolio-final-r4/remediation/LICENSE'
+keywords:
+  - ordinal classification
+  - temporal validation
+  - data leakage
+  - reproducible research
+  - traffic safety
+  - crash analysis
+  - Alaska
+abstract: >-
+  Governed, leakage-controlled, temporally evaluated ordinal machine-learning
+  study of police-reported Alaska crash severity (2009-2012), together with the
+  secure Django/React crash-analysis platform from earlier project iterations.
+  The MIT license covers the remediation/ source code and documentation only;
+  no rights to the restricted Alaska DMV source data are granted, and no raw
+  records are distributed. No archival DOI had been issued at the time this
+  submission package was finalized; the tagged public release is dated
+  July 20, 2026.
+preferred-citation:
+  type: report
+  title: >-
+    Leakage-Controlled Ordinal Classification of a Researcher-Defined Alaska
+    Crash-Severity Outcome: A Governed, Self-Reproduced Retrospective
+    Out-of-Time Study Across Four Project Iterations
+  authors:
+    - family-names: Mercado-Barbosa
+      given-names: Radames Naythan
+      email: rnmercado@alaska.edu
+      affiliation: University of Alaska Anchorage
+  institution:
+    name: University of Alaska Anchorage
+  year: 2026
+  month: 7
+  date-published: '2026-07-20'
+  url: 'https://github.com/Bobtheotherone/Alaska_Crash_Analysis/releases/tag/portfolio-final-r4'
+  notes: >-
+    Graduate research portfolio, final submission r4. The release assets
+    include the final manuscript PDF, the manuscript source archive, and a
+    self-contained verification handoff package; exact commit and per-file
+    SHA-256 identities are recorded in the release MANIFEST.json and
+    SHA256SUMS.txt.

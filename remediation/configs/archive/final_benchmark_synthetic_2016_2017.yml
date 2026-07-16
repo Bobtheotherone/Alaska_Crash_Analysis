@@ -1,0 +1,26 @@
+# Benchmark configuration for the leakage-controlled crash-severity study.
+# This is the machine-readable companion to research/FINAL_BENCHMARK_PROTOCOL.md.
+# Committing this file BEFORE final-test access fixes the analysis plan on development evidence; this is not an externally witnessed preregistration.
+
+use_case: post_crash_triage          # feature-availability tier (see crashsev/schema.py)
+year_col: Year
+group_col: Crash Number              # crash-level grouping key (no crash spans partitions)
+final_test_years: [2016, 2017]       # held-out chronological evaluation (out-of-time; latest contiguous years)
+
+# Preprocessing
+min_frequency: 0.01                  # OneHotEncoder infrequent-category bucket, fit on train only
+categorical_max_cardinality: 100     # drop free-text/id-like categoricals above this
+
+# Evaluation
+primary_metric: ordinal_mae          # ordinal MAE in severity-class steps (transparent; adjacent=1, two-step=2)
+primary_baseline: ordinal_logistic   # the strongest simple baseline models must beat
+bootstrap_resamples: 2000            # crash-level (case/row) bootstrap under a cross-crash independence approximation, for 95% CIs
+dev_cv: temporal                     # rolling-origin development CV
+seed: 42
+include_optional_models: true        # include xgboost / EBM if installed
+
+# NOTE ON DATA (DATA-001): with --synthetic this runs on a TEST-ONLY structural fixture to
+# prove the harness executes. A valid empirical result requires the real, lawful Alaska
+# dataset placed via --data, plus a codebook-verified target_mapping (data/target_mapping.yml)
+# and confirmed analytical unit. Until then, no number produced here is an empirical claim.
+synthetic_n: 12000

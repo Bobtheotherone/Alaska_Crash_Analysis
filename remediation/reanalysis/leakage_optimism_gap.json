@@ -1,0 +1,53 @@
+{
+  "note": "SYNTHETIC diagnostic. Illustrates the mechanism by which the original protocol (random split + outcome-derived features + full-data preprocessing) overstates performance. Not an Alaska result.",
+  "models": {
+    "random_forest": {
+      "contaminated": {
+        "accuracy": 0.7424874791318865,
+        "ordinal_mae": 0.25751252086811355,
+        "qwk": 0.5744009267800038,
+        "macro_f1": 0.788103531288169,
+        "severe_recall": 1.0,
+        "severe_precision": 1.0
+      },
+      "corrected": {
+        "accuracy": 0.7252671492588763,
+        "ordinal_mae": 0.281282316442606,
+        "qwk": 0.38577906478012836,
+        "macro_f1": 0.4653863546943749,
+        "severe_recall": 0.04,
+        "severe_precision": 0.2727272727272727
+      },
+      "optimism_gap": {
+        "accuracy": 0.017220329873010254,
+        "ordinal_mae": -0.023769795574492436,
+        "severe_recall": 0.96,
+        "qwk": 0.1886218619998754
+      }
+    },
+    "xgboost": {
+      "contaminated": {
+        "accuracy": 0.7604340567612687,
+        "ordinal_mae": 0.2395659432387312,
+        "qwk": 0.5872637644868406,
+        "macro_f1": 0.7817460317460317,
+        "severe_recall": 1.0,
+        "severe_precision": 1.0
+      },
+      "corrected": {
+        "accuracy": 0.7466390899689762,
+        "ordinal_mae": 0.2619786280592899,
+        "qwk": 0.3617220664275602,
+        "macro_f1": 0.4564175433122039,
+        "severe_recall": 0.04,
+        "severe_precision": 0.375
+      },
+      "optimism_gap": {
+        "accuracy": 0.013794966792292529,
+        "ordinal_mae": -0.022412684820558693,
+        "severe_recall": 0.96,
+        "qwk": 0.22554169805928037
+      }
+    }
+  }
+}

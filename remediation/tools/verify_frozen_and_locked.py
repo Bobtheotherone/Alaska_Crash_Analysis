@@ -244,9 +244,31 @@ def main(argv: list[str] | None = None) -> int:
             if mb.returncode != 0:
                 skip("git: descends from baseline 42194a6",
                      "baseline commit not present in this checkout's history")
+            elif mb.stdout.strip() == BASELINE_COMMIT:
+                check("git: revision branch descends from baseline 42194a6", True)
             else:
-                check("git: revision branch descends from baseline 42194a6",
-                      mb.stdout.strip() == BASELINE_COMMIT)
+                # Snapshot-published lineage (r4 publication route (a)): HEAD carries
+                # the release tree, but its commit graph does not include the governed
+                # baseline even though the baseline object exists locally. Enforce the
+                # same protection content-wise: no frozen path may be modified or
+                # deleted between the baseline tree and HEAD's tree (additions are
+                # post-hoc addenda and allowed) — the identical rule the manuscript
+                # verifier applies.
+                diff = subprocess.run(["git", "-C", str(top), "diff", "--name-status",
+                                       BASELINE_COMMIT, "HEAD"],
+                                      capture_output=True, text=True)
+                bad = []
+                for ln in diff.stdout.splitlines():
+                    parts = ln.split("\t")
+                    if len(parts) < 2 or parts[0].startswith("A"):
+                        continue
+                    for pth in parts[1:]:
+                        if any(pth.startswith(p) or p.rstrip("/") == pth
+                               for p in frozen_prefixes):
+                            bad.append(ln)
+                check("git: frozen paths unchanged vs baseline 42194a6 "
+                      "(content check; snapshot lineage)",
+                      diff.returncode == 0 and not bad, str(bad))
     else:
         skip("git frozen-path gate",
              "the target package is not a git checkout; history is verifiable via the "

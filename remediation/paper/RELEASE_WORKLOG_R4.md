@@ -240,3 +240,31 @@ deterministic package/handoff rebuilt from the final commit):
   remains on the verified snapshot commit unless the author approves
   re-pointing before the release is drafted (recorded in
   `GITHUB_PUBLICATION_R4.md`).
+- Tag re-point (author-approved) executed: `portfolio-final-r4` → `8227e6e`
+  (all checks green); handoff rebuilt there; PR #2 merged after green checks;
+  PR #3 recorded the publication facts; draft release created with 9 assets,
+  API digests verified equal to the local files; title-encoding and
+  draft-tag-binding quirks fixed via API PATCH.
+
+### Figure 8 visual fix (2026-07-16, author-requested)
+
+- Defect (author report + high-resolution visual inspection of the r4 PDF):
+  the per-bin count annotations of Figure 8 (fig06c, severe-class reliability)
+  used one fixed offset per series, so the three large-count labels near the
+  origin ("11,148", "8,706", "1,958") collided with each other and the dashed
+  series line; "295"/"42"/"28"/"33"/"67" sat on lines or markers; "22"/"15"
+  merged; 7pt text was undersized.
+- Fix in `figure_generation/make_figures.py` (fig06c only): deterministic
+  per-point label placement keyed by the sixteen frozen bin counts (all
+  unique; a KeyError fails closed if the evidence ever changes), 8pt labels,
+  thin white halo for line crossings; one iteration moved "635" above-left
+  after the first render showed it entering the legend region. All 11 figures
+  regenerate with internal assertions passing; the other 10 figure PDFs were
+  restored from git (their only delta was the embedded creation timestamp) so
+  the diff is exactly the one changed figure.
+- Verified visually at high resolution (standalone figure) and at print size
+  (page-27 render of the rebuilt 56-page PDF): every label clear of markers,
+  lines, the diagonal, and the legend; identical plotted values; identical
+  numeric token multiset (same sixteen counts). Full gate suite + packaging
+  rerun follows; the tag and draft-release assets are refreshed to the fixed
+  build (pre-publication, author-requested change).

@@ -753,7 +753,37 @@ def fig06c_reliability(repo: Path, r: dict, out: Path):
     ax.text(0.875, 0.845, "perfect reliability", fontsize=8, color=GRAY_M,
             rotation=33.5, ha="center", va="center")
 
-    def series(pts, color, marker, label, ls, dxy, ha):
+    # Per-bin count labels: deterministic per-point placement keyed by the frozen
+    # bin count (all sixteen counts are unique across both series), replacing the
+    # r3 fixed per-series offset that collided in the congested low-probability
+    # corner (r4 visual fix; REVISION_MEMO_R4). A KeyError here is intentional
+    # fail-closed behavior: if the frozen evidence ever changed, every placement
+    # must be re-audited. The thin white halo keeps a label readable where it
+    # must cross a grid, reference, or series line.
+    from matplotlib import patheffects as _pe
+    _halo = [_pe.withStroke(linewidth=2.2, foreground="white")]
+    _label_pos = {
+        # raw series (open circles, dashed): (dx pt, dy pt, ha)
+        8706:  (15, -4, "left"),    # right of the big first-bin circle, under the dashed rise
+        1958:  (10, -10, "left"),   # below-right, clear of the calibrated square above
+        635:   (-10, 5, "right"),  # above-left: below-right would sit inside the legend
+        214:   (9, -10, "left"),
+        67:    (10, -3, "left"),    # right of the circle, below the rising dashed segment
+        33:    (9, -11, "left"),    # below-right, clear of the diagonal and the square above
+        15:    (9, -10, "left"),
+        2:     (10, -3, "left"),    # right of the top circle, away from the square's label
+        # calibrated series (filled squares, solid)
+        11148: (-4, 11, "left"),    # above the big first-bin square
+        295:   (-9, 6, "right"),    # above-left; the dotted diagonal passes below-left here
+        86:    (0, 8, "center"),    # local maximum: straight above
+        42:    (0, -13, "center"),  # valley: straight below, above the distant dashed line
+        28:    (0, -13, "center"),  # below; the raw circle sits above this square
+        22:    (-9, 5, "right"),    # above-left, clear of the incoming steep segment
+        4:     (-9, -2, "right"),   # left of the marker on the steep climb
+        5:     (-8, 4, "right"),    # above-left of the top square, away from the raw circle
+    }
+
+    def series(pts, color, marker, label, ls):
         xs = [p["mean_predicted"] for p in pts]
         ys_ = [p["empirical_frequency"] for p in pts]
         ns = [p["count"] for p in pts]
@@ -763,16 +793,15 @@ def fig06c_reliability(repo: Path, r: dict, out: Path):
                    edgecolors=color, linewidths=1.1, marker=marker, zorder=3,
                    label=label)
         for x, yv, n in zip(xs, ys_, ns):
-            xy, h = dxy, ha
-            if marker == "o" and x < 0.1:   # first raw bin: keep inside the axes
-                xy, h = (15, -5), "left"
+            dx, dy, h = _label_pos[n]
             ax.annotate(f"{n:,}", (x, yv), textcoords="offset points",
-                        xytext=xy, fontsize=7, color=color, ha=h)
+                        xytext=(dx, dy), fontsize=8, color=color, ha=h,
+                        zorder=4, path_effects=_halo)
 
     series(raw_pts, GRAY_D, "o", "raw probabilities (recomputed from frozen evidence)",
-           (0, (4, 2)), (-8, -11), "right")
+           (0, (4, 2)))
     series(cal_pts, ACCENT, "s",
-           "development-only calibrated (frozen run artifact)", "-", (7, 6), "left")
+           "development-only calibrated (frozen run artifact)", "-")
 
     ax.set_xlim(-0.02, 1.0)
     ax.set_ylim(-0.02, 1.05)

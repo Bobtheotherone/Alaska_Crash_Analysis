@@ -1,0 +1,51 @@
+# Study configuration — Alaska 2009-2012 crash-severity classification (the CANONICAL config).
+# Consumed by crashsev.cli (develop / freeze-experiment / evaluate-final).
+#
+# NAMING NOTE (CFG-001): "route_a" in this FILENAME is the historical *data-route* label
+# ("Route A = model the raw 09-12 extract", vs the abandoned framework-only route). The study's
+# evidentiary route per research/ROUTE_DECISION.md is **Route R** (retrospective out-of-time).
+# The filename is kept for artifact-hash and documentation stability; comments do not enter
+# config_hash. The retired synthetic harness config lives in configs/archive/.
+
+use_case: post_crash_triage
+year_col: Year
+group_col: Crash Number
+row_id_col: Crash Number
+
+# Chronological final test: train/develop on 2009-2011, hold out 2012.
+final_test_years: [2012]
+
+n_classes: 3
+primary_metric: ordinal_mae
+
+# Prespecified baseline set; the comparator is chosen from these on development evidence only.
+baseline_set:
+  - majority
+  - ordinal_median
+  - empirical_prior
+  - multinomial_logistic
+  - proportional_odds
+  - frank_hall_logistic
+  - shallow_tree
+
+# Development cross-validation for model selection.
+cv_strategy: rolling      # rolling-origin over 2009->2010->2011 (mirrors the temporal final test)
+cv_seeds: [1, 2, 3]
+cv_n_splits: 3            # used only when cv_strategy: grouped
+cv_models: null           # null -> all registry models except EBM (EBM evaluated only at final)
+
+include_optional_models: true
+min_frequency: 0.01
+categorical_max_cardinality: 100
+
+# Uncertainty.
+bootstrap_resamples: 2000
+seed: 42
+
+# Calibration is fit on development data only (diagnostic).
+calibrate: true
+calibration_method: sigmoid
+
+# Ablation: set true to drop the 3 high-coupling occupant-kinematic features
+# (ejection, restraint, seat position) and show the result is not carried by near-outcome proxies.
+exclude_high_coupling: false

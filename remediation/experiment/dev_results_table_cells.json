@@ -1,0 +1,455 @@
+{
+  "description": "Structured cells for the complete development-results appendix table (tab:dev-results): every model of the frozen development report with per-fold scores, seed variability, trial-mean aggregate, eligibility, and designation outcome. Derived from experiment/development_report.json; the selection semantics (candidate-kind eligibility, unweighted trial mean, stable-min tie-break, majority comparator from the frozen baseline list) are re-executed and asserted at generation time.",
+  "source_artifact": "experiment/development_report.json",
+  "folds": [
+    "train<=2009|val=2010",
+    "train<=2010|val=2011"
+  ],
+  "cv_seeds": [
+    1,
+    2,
+    3
+  ],
+  "designated_candidate": "ordinal_random_forest",
+  "comparator": "majority",
+  "tied_comparator_baselines": [
+    "majority",
+    "ordinal_median",
+    "prior_probability"
+  ],
+  "row_order": [
+    "ordinal_random_forest_unweighted",
+    "random_forest_unweighted",
+    "ordinal_random_forest",
+    "majority",
+    "ordinal_median",
+    "prior_probability",
+    "random_forest",
+    "xgboost",
+    "frank_hall_logistic",
+    "shallow_tree",
+    "decision_tree",
+    "multinomial_logistic",
+    "proportional_odds",
+    "ebm"
+  ],
+  "rows": {
+    "majority": {
+      "display": "Majority",
+      "role": "Baseline",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.356427955133736
+          ],
+          "mean": 0.356427955133736,
+          "sd": null
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.3365516062884484
+          ],
+          "mean": 0.3365516062884484,
+          "sd": null
+        }
+      },
+      "seeds": [
+        42
+      ],
+      "aggregate_mean": 0.34648978071109215,
+      "aggregate_sd": 0.009938174422643803,
+      "n_trials": 2,
+      "eligible": false,
+      "outcome": "Designated comparator"
+    },
+    "ordinal_median": {
+      "display": "Ordinal median",
+      "role": "Baseline",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.356427955133736
+          ],
+          "mean": 0.356427955133736,
+          "sd": null
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.3365516062884484
+          ],
+          "mean": 0.3365516062884484,
+          "sd": null
+        }
+      },
+      "seeds": [
+        42
+      ],
+      "aggregate_mean": 0.34648978071109215,
+      "aggregate_sd": 0.009938174422643803,
+      "n_trials": 2,
+      "eligible": false,
+      "outcome": "Tied comparator score"
+    },
+    "prior_probability": {
+      "display": "Prior probability",
+      "role": "Baseline",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.356427955133736
+          ],
+          "mean": 0.356427955133736,
+          "sd": null
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.3365516062884484
+          ],
+          "mean": 0.3365516062884484,
+          "sd": null
+        }
+      },
+      "seeds": [
+        42
+      ],
+      "aggregate_mean": 0.34648978071109215,
+      "aggregate_sd": 0.009938174422643803,
+      "n_trials": 2,
+      "eligible": false,
+      "outcome": "Tied comparator score"
+    },
+    "multinomial_logistic": {
+      "display": "Multinomial logit",
+      "role": "Baseline",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.5918895599654875
+          ],
+          "mean": 0.5918895599654875,
+          "sd": null
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.6652426520847573
+          ],
+          "mean": 0.6652426520847573,
+          "sd": null
+        }
+      },
+      "seeds": [
+        42
+      ],
+      "aggregate_mean": 0.6285661060251224,
+      "aggregate_sd": 0.036676546059634885,
+      "n_trials": 2,
+      "eligible": false,
+      "outcome": "---"
+    },
+    "proportional_odds": {
+      "display": "Proportional-odds logit",
+      "role": "Baseline",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.578602243313201
+          ],
+          "mean": 0.578602243313201,
+          "sd": null
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.7187286397812713
+          ],
+          "mean": 0.7187286397812713,
+          "sd": null
+        }
+      },
+      "seeds": [
+        42
+      ],
+      "aggregate_mean": 0.6486654415472362,
+      "aggregate_sd": 0.07006319823403517,
+      "n_trials": 2,
+      "eligible": false,
+      "outcome": "---"
+    },
+    "frank_hall_logistic": {
+      "display": "Frank--Hall logit",
+      "role": "Baseline",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.5784296807592753
+          ],
+          "mean": 0.5784296807592753,
+          "sd": null
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.48436431989063566
+          ],
+          "mean": 0.48436431989063566,
+          "sd": null
+        }
+      },
+      "seeds": [
+        42
+      ],
+      "aggregate_mean": 0.5313970003249555,
+      "aggregate_sd": 0.047032680434319796,
+      "n_trials": 2,
+      "eligible": false,
+      "outcome": "---"
+    },
+    "shallow_tree": {
+      "display": "Shallow tree",
+      "role": "Baseline",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.602588438308887,
+            0.602588438308887,
+            0.602588438308887
+          ],
+          "mean": 0.602588438308887,
+          "sd": 0.0
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.6238892686261107,
+            0.6238892686261107,
+            0.6238892686261107
+          ],
+          "mean": 0.6238892686261107,
+          "sd": 0.0
+        }
+      },
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "aggregate_mean": 0.6132388534674988,
+      "aggregate_sd": 0.01065041515861187,
+      "n_trials": 6,
+      "eligible": false,
+      "outcome": "---"
+    },
+    "decision_tree": {
+      "display": "Decision tree",
+      "role": "Candidate",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.5956859361518551,
+            0.5964624676445212,
+            0.5958584987057809
+          ],
+          "mean": 0.5960023008340524,
+          "sd": 0.000332925996628995
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.632177033492823,
+            0.6330314422419686,
+            0.6330314422419686
+          ],
+          "mean": 0.6327466393255867,
+          "sd": 0.00040277214695067615
+        }
+      },
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "aggregate_mean": 0.6143744700798196,
+      "aggregate_sd": 0.01837588461424126,
+      "n_trials": 6,
+      "eligible": true,
+      "outcome": "---"
+    },
+    "random_forest": {
+      "display": "Random forest (weighted)",
+      "role": "Candidate",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.3780845556514236,
+            0.3791199309749784,
+            0.37696289905090596
+          ],
+          "mean": 0.3780557952257693,
+          "sd": 0.0008808393920686479
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.3709842788790157,
+            0.3714969241285031,
+            0.3697881066302119
+          ],
+          "mean": 0.3707564365459102,
+          "sd": 0.0007159834295953915
+        }
+      },
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "aggregate_mean": 0.3744061158858398,
+      "aggregate_sd": 0.003736899040293456,
+      "n_trials": 6,
+      "eligible": true,
+      "outcome": "---"
+    },
+    "ordinal_random_forest": {
+      "display": "Ordinal RF (weighted)",
+      "role": "Candidate",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.34141501294219156,
+            0.33934426229508197,
+            0.3394305435720449
+          ],
+          "mean": 0.34006327293643945,
+          "sd": 0.0009564733476166803
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.3304853041695147,
+            0.3329630895420369,
+            0.33142515379357484
+          ],
+          "mean": 0.33162451583504216,
+          "sd": 0.0010213272429392198
+        }
+      },
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "aggregate_mean": 0.33584389438574086,
+      "aggregate_sd": 0.004333835559297486,
+      "n_trials": 6,
+      "eligible": true,
+      "outcome": "Designated primary"
+    },
+    "random_forest_unweighted": {
+      "display": "Random forest (unweighted)",
+      "role": "Ablation",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.3276962899050906,
+            0.3250215703192407,
+            0.3262295081967213
+          ],
+          "mean": 0.32631578947368417,
+          "sd": 0.0010936527662830874
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.32245386192754616,
+            0.3229665071770335,
+            0.3233937115516063
+          ],
+          "mean": 0.32293802688539536,
+          "sd": 0.00038422014021507605
+        }
+      },
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "aggregate_mean": 0.32462690817953976,
+      "aggregate_sd": 0.0018772774889141406,
+      "n_trials": 6,
+      "eligible": false,
+      "outcome": "---"
+    },
+    "ordinal_random_forest_unweighted": {
+      "display": "Ordinal RF (unweighted)",
+      "role": "Ablation",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.32389991371872306,
+            0.32484900776531495,
+            0.3244176013805004
+          ],
+          "mean": 0.32438884095484616,
+          "sd": 0.00038799935470899843
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.3235645933014354,
+            0.32177033492822965,
+            0.3210013670539986
+          ],
+          "mean": 0.32211209842788785,
+          "sd": 0.001073975144393071
+        }
+      },
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "aggregate_mean": 0.323250469691367,
+      "aggregate_sd": 0.0013956619177040769,
+      "n_trials": 6,
+      "eligible": false,
+      "outcome": "---"
+    },
+    "xgboost": {
+      "display": "XGBoost",
+      "role": "Candidate",
+      "per_fold": {
+        "train<=2009|val=2010": {
+          "seed_values": [
+            0.43330457290767904,
+            0.4311475409836066,
+            0.4316652286453839
+          ],
+          "mean": 0.4320391141788898,
+          "sd": 0.0009194344183575369
+        },
+        "train<=2010|val=2011": {
+          "seed_values": [
+            0.4254955570745044,
+            0.4325017088174983,
+            0.43403964456596034
+          ],
+          "mean": 0.4306789701526544,
+          "sd": 0.0037186144324332336
+        }
+      },
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "aggregate_mean": 0.4313590421657721,
+      "aggregate_sd": 0.0027927091535651597,
+      "n_trials": 6,
+      "eligible": true,
+      "outcome": "---"
+    },
+    "ebm": {
+      "display": "EBM",
+      "role": "Exploratory (final-only)",
+      "per_fold": {},
+      "seeds": [],
+      "aggregate_mean": null,
+      "aggregate_sd": null,
+      "n_trials": 0,
+      "eligible": false,
+      "outcome": "---"
+    }
+  }
+}

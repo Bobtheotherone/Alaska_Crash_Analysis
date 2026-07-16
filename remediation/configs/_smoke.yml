@@ -1,0 +1,11 @@
+# FAST smoke config — validates the full CLI flow quickly (not a scientific run).
+final_test_years: [2012]
+n_classes: 3
+baseline_set: [majority, ordinal_median, multinomial_logistic, shallow_tree]
+cv_strategy: rolling
+cv_seeds: [1]
+cv_models: [majority, ordinal_median, multinomial_logistic, shallow_tree]
+include_optional_models: false
+bootstrap_resamples: 100
+seed: 42
+calibrate: false

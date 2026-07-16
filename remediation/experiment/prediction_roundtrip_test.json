@@ -1,0 +1,187 @@
+{
+  "analysis": "prediction_roundtrip_test",
+  "status": "POST HOC packaging verification (v4.1 revision); no frozen artifact modified; y_pred in the frozen bundle remains the authoritative governed hard label.",
+  "generated_utc": "2026-07-15T19:54:33Z",
+  "git_commit": "42194a619c3a8c1a146c1202ac6afe6a919e392b",
+  "source_run": "final_8af9d5bc23d8",
+  "parser_note": "Frozen CSVs are full-repr text and round-trip EXACTLY under an exact float parser (pandas float_precision='round_trip' or Python float()); pandas' DEFAULT parser is 1-ulp imprecise and flips labels on exact cumulative-0.5 / argmax-tie rows. The parquet removes the pitfall.",
+  "lossless_parquet": {
+    "path": "experiment/predictions_lossless.parquet",
+    "sha256": "494e94cde2e1b87071094836fb140ad82ebb1e25bfe150981524694b828a37ab",
+    "deid": "row_surrogate per PRIV-001 witness transform (seeded permutation, mapping discarded)",
+    "kept_out_of_git": "yes (per-crash rows; hash pinned here)"
+  },
+  "all_checks_pass": true,
+  "checks": {
+    "parquet_rows": 162820,
+    "expected_rows": 162820,
+    "models": {
+      "decision_tree": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "ebm": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "frank_hall_logistic": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "majority": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "multinomial_logistic": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "ordinal_median": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "ordinal_random_forest": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 3
+      },
+      "ordinal_random_forest_unweighted": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "prior_probability": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "proportional_odds": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "random_forest": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 1
+      },
+      "random_forest_unweighted": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "shallow_tree": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      },
+      "xgboost": {
+        "bitwise_probability_roundtrip": true,
+        "label_columns_identical": true,
+        "posterior_median_mismatches_from_parquet": 0,
+        "hard_metrics_exact_vs_manifest": true,
+        "log_loss_vs_manifest_abs_diff": 0.0,
+        "rows": 11630,
+        "median_label_mismatches_exact_parse": 0,
+        "argmax_label_mismatches_exact_parse": 0,
+        "median_label_mismatches_DEFAULT_parser": 0
+      }
+    },
+    "primary_bootstrap_interval": {
+      "recomputed": [
+        -0.023131986242476355,
+        -0.006274720550300949
+      ],
+      "manifest": [
+        -0.023131986242476355,
+        -0.006274720550300949
+      ],
+      "exact_match": true,
+      "note": "row_surrogate is a bijection of the crash id, so surrogate-level resampling is identical; the RNG stream here uses the ORIGINAL sorted-id order (documented)."
+    }
+  }
+}

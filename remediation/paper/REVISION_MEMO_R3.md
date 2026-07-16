@@ -1,0 +1,36 @@
+# Revision memorandum — r3 submission-readiness pass (2026-07-15)
+
+Baseline: tag `portfolio-final-r2` (PDF `294b8cd7…`, 43 pp, commit `7fd8584`) → r3
+(56 pp). Every row links to `CORRECTION_LEDGER.json` §`submission_readiness_2026_07_15_r3`
+(same IDs) and to `DISCREPANCY_LEDGER_R3.md` (the Phase-1 verification that motivated
+it). "Frozen-result impact: none" = run `final_8af9d5bc23d8` and every governed
+artifact byte-identical; the governed 2012 oMAE (0.3469), the primary model, the
+primary interval ([−0.0231, −0.0063]), and the headline conclusion are unchanged.
+
+| ID | Location | Original text/result | Revised text/result | Reason | Evidence source | Frozen-result impact |
+|---|---|---|---|---|---|---|
+| L-01 | App. B Tables 6–7 + §6.4 | Majority macro-F1 and severe F1 "undefined" (em dashes); footnotes claim undefined-ness | Majority macro-F1 **0.269**; severe F1 **0.000**; count-based zero-division convention stated in §6.4; footnotes corrected | F1 = 2TP/(2TP+FP+FN) is a measured 0 for a never-predicted class with support | `data/confusion_matrices_from_paper.json` via regenerated `reanalysis/reanalysis_table_cells.json`; sklearn-equivalent convention | None (reporting convention; frozen NaN storage untouched; oMAE/CI/headline unchanged — asserted in ledger) |
+| L-03 | App. A | "Complete" tables missing macro-F1, within-one, two-step, per-class P/R | Three generated tables containing every §6.4-declared hard-label metric | Table titles must be true | `experiment/final_results.json` → `experiment/full_results_table_cells.json` | None (display of stored frozen values) |
+| L-04 | §6.2.1 (new) | Frank–Hall probability construction undocumented | Full construction: exceedance estimates, cumulative-minimum repair, differencing, 1e-9 floor, renormalization, degenerate-fold rules; validity verified over 162,820 rows | Probability validity must be assessable | `crashsev/models.py::FrankHallOrdinalClassifier`; `experiment/predictions_lossless.parquet`; sidecar FH-CONV-001 | None |
+| L-05 | §6.5 | "2,000 crash-level case-bootstrap resamples" (method unspecified) | Paired 95% percentile intervals, 2.5/97.5, linear interpolation, seed 42, same index sets, **no refitting**, conditioning stated | Interval must be reproducible from the text | `crashsev/uncertainty.py`; frozen config (seed 42, 2,000); sidecar BOOT-CONV-001 | None |
+| L-06 | §7.1 (new), §8.2–8.3, §10.1, App. F (new) | Selection rule partially stated; no complete development record | Eligibility, aggregation (unweighted fold×seed trial mean), tie-break, refit-at-42, no-search stated; complete generated development table; plain 2012-leader statements | Primary designation must not read as metric leadership | `experiment/development_report.json`; `cli.py::select_best_candidate/select_primary_baseline` | None |
+| L-07 | §12.2 (new) + `LICENSE` | No availability statement; license holder placeholder | Availability section + reproducibility manifest + AUTHOR ACTION markers (URL/DOI/hash permission/contact); MIT holder completed | Standalone auditability; nothing invented | Repo state (local-only), `README_REPRODUCE.md` verification tiers | None |
+| L-08 | App. G (new) | 49/14 field lists external-only | Generated retained-49 (with per-year missingness), prohibited-14, and exclusion-disposition tables | Restricted tier is central to the claim | `data/feature_availability_ledger.csv`; frozen `allowed_feature_columns`; pinned modeling table | None |
+| L-09 | §4.2 | "source's older ABC-style field offers no finer reliable resolution" | Deliberate-coarsening sentence; source *does* distinguish A/K and B/C | Old sentence contradicted frozen `raw_value_counts` (239 Fatal / 1,512 Incap.) | `experiment/final_results.json::target_audit` | None |
+| L-10 | §4.2 (new table) | No year-by-year cohort accounting | Generated `tab:cohort-year`, reconciled to frozen audits + q6 shares | Cohort stability visible; values generated, never typed | Pinned modeling table; frozen target audits; `target_reporting_process_audit.json` q6 | None |
+| L-11 | Roles page | "The role ordering above is intentional." | Neutral contribution statement + single Claim boundary paragraph | Neutral register; boundary once | Project records (§2); Phase-6 directive | None |
+| L-12 | §12.4 | Broad AI-assistance sentence | Precise ownership/activities/verification/responsibility disclosure; machine-checked release privacy; AUTHOR ACTION for external-AI attestation + `AI_USE_AND_PRIVACY.md` record | Privacy negative not reconstructable from repo | Repo search (no prior record); handoff verifier scan | None |
+| L-13 | Abstract | ~640 words | 343 words (within 275–350); all six required elements and every governed number retained | Admissions readability | Phase-7 checklist; token diff enumerated (REVISION_SUMMARY §r3.7) | None |
+| L-14 | §1, §6.3, §9, ranking figure (r2 Fig. 10 = r3 Fig. 11), §13, Concl. | "severe-risk …" | "severe-class score ranking" / "severe-class alert threshold" / "severe-alert threshold" | Retrospective class scores, not validated risk | Phase-8 directive | None |
+| L-15 | §1 | "…methodological asset rather than an embarrassment" | "…natural case study of how increasing software capability can coexist with unresolved evaluation validity" | Neutral register | Phase-8 directive | None |
+| L-16 | §13/§14 | Conclusion before Recommendations | Recommendations §13, Conclusion §14 (final); readiness closing added | End on contribution/scope/readiness | Phase-9A directive | None |
+| L-17 | §8.4 + Fig. 8 (new) | ECE bars only | Severe-class reliability diagram (raw recomputed + calibrated frozen points, counts annotated); ledger row A26 | Reliability data existed in frozen evidence | `final_results.json::calibration.reliability_severe`; `predictions_lossless.parquet` | None |
+| L-18 | Figs. 6, 7, 10 (r2 numbering; r3 Figs. 6, 7, 11) | 8–8.5 pt labels | 9–10 pt labels/legends, thicker lines | Print legibility | `make_figures.py` (AP assertions intact) | None (numerical content unchanged) |
+| L-19 | Title | (unchanged) | (unchanged — decision recorded) | Matches delivered r2 handoff and this review's own header; change would desynchronize correspondence | Phase-9D criteria | None |
+| L-20 | §3.7 | "…no systematic literature review is claimed." | Focused-review sentence; **no citation added** (full-text inspection unavailable for the one material candidate) | Accurate scope, no cosmetic recency | Phase-10 rules; fetch attempts logged in ledger | None |
+| L-21 | §7 | Only "protocol-designated weighted candidate" | Adds "protocol-primary weighted ordinal random forest (hereafter the primary ordinal forest)"; controlled term retained | Shorter precise term | Phase-3 directive | None |
+| R3-INF-1..5 | tools/, ledgers, README_REPRODUCE | r2 gate set (548 checks; 10 figs/10 LoT; 4 gen gates; 24 ledger rows) | r3 gate set (893 checks; 11 figs/17 LoT; 8 gen gates; 26 ledger rows incl. A25/A26; artifact map split; tier-1 list extended) | Every new claim machine-gated | Tool self-reports (this build) | None |
+
+**Explicitly not corrections:** the title (L-19); every governed number; the frozen
+role registry and its H1–H4 adjudications; the reported limitations (none weakened);
+the bibliography (nothing added or removed).

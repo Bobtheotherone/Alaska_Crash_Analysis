@@ -1,0 +1,315 @@
+{
+  "description": "Structured cell values for the prior-iteration re-analysis tables (manuscript tab:prior-performance / tab:prior-severe), recomputed exactly from the transcribed Iteration III confusion matrices under the F1-CONV-001 reporting convention (zero_division='zero': precision undefined ('---') when a class is never predicted; recall and F1 measured zeros via the count-based F1 = 2TP/(2TP+FP+FN); macro-F1 averages class F1 values including zeros). Formatted at 3 dp, round-half-even. The manuscript verifier checks each LaTeX cell positionally against this artifact.",
+  "f1_zero_division_convention": "zero (F1-CONV-001; see experiment/metric_conventions.json)",
+  "source_artifact": "data/confusion_matrices_from_paper.json",
+  "source_sha256": "9f4dcf0cdc2f83cbe71e51101bcd6bd1fbe5530cb96e911c0326edd35e84edee",
+  "n": 10936,
+  "tables": {
+    "tab:prior-performance": {
+      "columns": [
+        "Acc.",
+        "oMAE",
+        "QWK",
+        "Macro-F1",
+        "Bal. acc."
+      ],
+      "row_order": [
+        "Majority baseline",
+        "Decision tree",
+        "XGBoost",
+        "MLRF / random forest",
+        "EBM"
+      ],
+      "rows": {
+        "Majority baseline": {
+          "Acc.": {
+            "formatted": "0.676",
+            "exact": 0.6762070226773957,
+            "metric": "accuracy"
+          },
+          "oMAE": {
+            "formatted": "0.359",
+            "exact": 0.35936356986100954,
+            "metric": "ordinal_mae"
+          },
+          "QWK": {
+            "formatted": "0.000",
+            "exact": 0.0,
+            "metric": "qwk"
+          },
+          "Macro-F1": {
+            "formatted": "0.269",
+            "exact": 0.2689433200589166,
+            "metric": "macro_f1"
+          },
+          "Bal. acc.": {
+            "formatted": "0.333",
+            "exact": 0.3333333333333333,
+            "metric": "balanced_accuracy"
+          }
+        },
+        "Decision tree": {
+          "Acc.": {
+            "formatted": "0.580",
+            "exact": 0.5797366495976591,
+            "metric": "accuracy"
+          },
+          "oMAE": {
+            "formatted": "0.451",
+            "exact": 0.4509875640087784,
+            "metric": "ordinal_mae"
+          },
+          "QWK": {
+            "formatted": "0.221",
+            "exact": 0.2209821054041332,
+            "metric": "qwk"
+          },
+          "Macro-F1": {
+            "formatted": "0.451",
+            "exact": 0.4514901510289138,
+            "metric": "macro_f1"
+          },
+          "Bal. acc.": {
+            "formatted": "0.472",
+            "exact": 0.47181995044353503,
+            "metric": "balanced_accuracy"
+          }
+        },
+        "XGBoost": {
+          "Acc.": {
+            "formatted": "0.627",
+            "exact": 0.627377468910022,
+            "metric": "accuracy"
+          },
+          "oMAE": {
+            "formatted": "0.401",
+            "exact": 0.4013350402340892,
+            "metric": "ordinal_mae"
+          },
+          "QWK": {
+            "formatted": "0.367",
+            "exact": 0.3673966118526355,
+            "metric": "qwk"
+          },
+          "Macro-F1": {
+            "formatted": "0.514",
+            "exact": 0.5141789515720939,
+            "metric": "macro_f1"
+          },
+          "Bal. acc.": {
+            "formatted": "0.578",
+            "exact": 0.5780662464953853,
+            "metric": "balanced_accuracy"
+          }
+        },
+        "MLRF / random forest": {
+          "Acc.": {
+            "formatted": "0.710",
+            "exact": 0.7097659107534747,
+            "metric": "accuracy"
+          },
+          "oMAE": {
+            "formatted": "0.309",
+            "exact": 0.30888807607900515,
+            "metric": "ordinal_mae"
+          },
+          "QWK": {
+            "formatted": "0.365",
+            "exact": 0.36499595964900367,
+            "metric": "qwk"
+          },
+          "Macro-F1": {
+            "formatted": "0.506",
+            "exact": 0.5064234746861915,
+            "metric": "macro_f1"
+          },
+          "Bal. acc.": {
+            "formatted": "0.509",
+            "exact": 0.5093677858511411,
+            "metric": "balanced_accuracy"
+          }
+        },
+        "EBM": {
+          "Acc.": {
+            "formatted": "0.578",
+            "exact": 0.5784564740307242,
+            "metric": "accuracy"
+          },
+          "oMAE": {
+            "formatted": "0.490",
+            "exact": 0.4902158010241405,
+            "metric": "ordinal_mae"
+          },
+          "QWK": {
+            "formatted": "0.311",
+            "exact": 0.31074039387486985,
+            "metric": "qwk"
+          },
+          "Macro-F1": {
+            "formatted": "0.460",
+            "exact": 0.46042603232196305,
+            "metric": "macro_f1"
+          },
+          "Bal. acc.": {
+            "formatted": "0.583",
+            "exact": 0.5828626146397751,
+            "metric": "balanced_accuracy"
+          }
+        }
+      }
+    },
+    "tab:prior-severe": {
+      "columns": [
+        "Sev. P",
+        "Sev. R",
+        "Sev. F1",
+        "Pred. 0",
+        "2-step"
+      ],
+      "row_order": [
+        "Majority baseline",
+        "Decision tree",
+        "XGBoost",
+        "MLRF / random forest",
+        "EBM"
+      ],
+      "rows": {
+        "Majority baseline": {
+          "Sev. P": {
+            "formatted": "---",
+            "exact": null,
+            "metric": "severe_precision"
+          },
+          "Sev. R": {
+            "formatted": "0.000",
+            "exact": 0.0,
+            "metric": "severe_recall"
+          },
+          "Sev. F1": {
+            "formatted": "0.000",
+            "exact": 0.0,
+            "metric": "severe_f1"
+          },
+          "Pred. 0": {
+            "formatted": "1.000",
+            "exact": 1.0,
+            "metric": "predicted_class0_share"
+          },
+          "2-step": {
+            "formatted": "0.036",
+            "exact": 0.03557059253840527,
+            "metric": "two_step_error_rate"
+          }
+        },
+        "Decision tree": {
+          "Sev. P": {
+            "formatted": "0.234",
+            "exact": 0.2344582593250444,
+            "metric": "severe_precision"
+          },
+          "Sev. R": {
+            "formatted": "0.339",
+            "exact": 0.3393316195372751,
+            "metric": "severe_recall"
+          },
+          "Sev. F1": {
+            "formatted": "0.277",
+            "exact": 0.2773109243697479,
+            "metric": "severe_f1"
+          },
+          "Pred. 0": {
+            "formatted": "0.609",
+            "exact": 0.6094550109729334,
+            "metric": "predicted_class0_share"
+          },
+          "2-step": {
+            "formatted": "0.031",
+            "exact": 0.030724213606437453,
+            "metric": "two_step_error_rate"
+          }
+        },
+        "XGBoost": {
+          "Sev. P": {
+            "formatted": "0.252",
+            "exact": 0.25178997613365156,
+            "metric": "severe_precision"
+          },
+          "Sev. R": {
+            "formatted": "0.542",
+            "exact": 0.5424164524421594,
+            "metric": "severe_recall"
+          },
+          "Sev. F1": {
+            "formatted": "0.344",
+            "exact": 0.3439282803585982,
+            "metric": "severe_f1"
+          },
+          "Pred. 0": {
+            "formatted": "0.574",
+            "exact": 0.5737929773226043,
+            "metric": "predicted_class0_share"
+          },
+          "2-step": {
+            "formatted": "0.029",
+            "exact": 0.028712509144111192,
+            "metric": "two_step_error_rate"
+          }
+        },
+        "MLRF / random forest": {
+          "Sev. P": {
+            "formatted": "0.403",
+            "exact": 0.4027027027027027,
+            "metric": "severe_precision"
+          },
+          "Sev. R": {
+            "formatted": "0.383",
+            "exact": 0.38303341902313626,
+            "metric": "severe_recall"
+          },
+          "Sev. F1": {
+            "formatted": "0.393",
+            "exact": 0.3926218708827404,
+            "metric": "severe_f1"
+          },
+          "Pred. 0": {
+            "formatted": "0.867",
+            "exact": 0.8666788588149232,
+            "metric": "predicted_class0_share"
+          },
+          "2-step": {
+            "formatted": "0.019",
+            "exact": 0.018653986832479885,
+            "metric": "two_step_error_rate"
+          }
+        },
+        "EBM": {
+          "Sev. P": {
+            "formatted": "0.158",
+            "exact": 0.15849282296650719,
+            "metric": "severe_precision"
+          },
+          "Sev. R": {
+            "formatted": "0.681",
+            "exact": 0.6812339331619537,
+            "metric": "severe_recall"
+          },
+          "Sev. F1": {
+            "formatted": "0.257",
+            "exact": 0.2571567200388161,
+            "metric": "severe_f1"
+          },
+          "Pred. 0": {
+            "formatted": "0.534",
+            "exact": 0.533558888076079,
+            "metric": "predicted_class0_share"
+          },
+          "2-step": {
+            "formatted": "0.069",
+            "exact": 0.06867227505486467,
+            "metric": "two_step_error_rate"
+          }
+        }
+      }
+    }
+  }
+}

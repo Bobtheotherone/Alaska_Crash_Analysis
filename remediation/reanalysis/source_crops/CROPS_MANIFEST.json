@@ -1,0 +1,30 @@
+{
+  "source_docx": "Alaska Car Crash Analysis Final Report.docx",
+  "source_docx_sha256": "c590e46d313fef71df7c1e0ded16e1aabdb8536314c1ecdc69b86618470ff7c3",
+  "crops": {
+    "decision_tree": {
+      "image": "word/media/image9.png",
+      "sha256": "9c146fe91ac4769a11a017a6ed2989d8ae6bb4b2da347be8c6451ae7bbac18b4",
+      "bytes": 12839,
+      "saved_as": "decision_tree_confusion_matrix.png"
+    },
+    "xgboost": {
+      "image": "word/media/image11.png",
+      "sha256": "10a84a903d807dc5aa0673c0f186afa33dc9535c232cc90722a7e59fc246413c",
+      "bytes": 13295,
+      "saved_as": "xgboost_confusion_matrix.png"
+    },
+    "mlrf_random_forest": {
+      "image": "word/media/image13.png",
+      "sha256": "ecddd6cdca648d866ea854fc4d926eccf8fe7feac241bf22cbbd8974dc0f3efe",
+      "bytes": 13002,
+      "saved_as": "mlrf_random_forest_confusion_matrix.png"
+    },
+    "ebm": {
+      "image": "word/media/image15.png",
+      "sha256": "060ae2085a40e49307c25b1f3ed1519b7a35f4f3c5d970ac48165e09604e6236",
+      "bytes": 12678,
+      "saved_as": "ebm_confusion_matrix.png"
+    }
+  }
+}

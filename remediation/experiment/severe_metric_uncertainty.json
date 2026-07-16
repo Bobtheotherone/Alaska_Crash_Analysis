@@ -1,0 +1,53 @@
+{
+  "analysis": "severe_metric_uncertainty",
+  "status": "POST HOC (v4.1 revision addendum): descriptive case-bootstrap intervals for the frozen primary model's severe-class metrics on the historically exposed 2012 cohort. NOT prespecified; no threshold is selected; no operational validation is implied; no frozen artifact is modified.",
+  "generated_utc": "2026-07-15T19:54:40Z",
+  "git_commit": "42194a619c3a8c1a146c1202ac6afe6a919e392b",
+  "source_run": "final_8af9d5bc23d8",
+  "model": "ordinal_random_forest (frozen primary; posterior-median labels; raw probabilities)",
+  "bootstrap": {
+    "unit": "crash (== row)",
+    "method": "percentile",
+    "seed": 42,
+    "replicates": 2000,
+    "undefined_rule": "undefined replicate values counted and excluded"
+  },
+  "metrics": {
+    "severe_recall": {
+      "point": 0.057777777777777775,
+      "ci95_percentile": [
+        0.03811659192825112,
+        0.07951936779375565
+      ],
+      "defined_replicates": 2000,
+      "undefined_replicates_excluded": 0
+    },
+    "severe_precision": {
+      "point": 0.52,
+      "ci95_percentile": [
+        0.37777777777777777,
+        0.6579246411483253
+      ],
+      "defined_replicates": 2000,
+      "undefined_replicates_excluded": 0
+    },
+    "severe_average_precision": {
+      "point": 0.20376658441284906,
+      "ci95_percentile": [
+        0.16876856583837027,
+        0.24262882853495135
+      ],
+      "defined_replicates": 2000,
+      "undefined_replicates_excluded": 0
+    },
+    "severe_auroc": {
+      "point": 0.7930699662095011,
+      "ci95_percentile": [
+        0.7717262200291427,
+        0.813678886426137
+      ],
+      "defined_replicates": 2000,
+      "undefined_replicates_excluded": 0
+    }
+  }
+}

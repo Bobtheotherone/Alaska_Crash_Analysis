@@ -1,0 +1,143 @@
+{
+  "source_file": "Crash Level 09-12 (1).xlsx",
+  "n_rows": 50543,
+  "n_cols": 100,
+  "severity_census": {
+    "nan": 32046,
+    "Non-Incapacitating": 7790,
+    "Possible": 5257,
+    "Unknown": 1847,
+    "Not Reported": 1788,
+    "Incapacitating": 1512,
+    "Fatal": 239,
+    "Null value": 64
+  },
+  "n_blank_severity": 32046,
+  "blank_severity_outcome_profile": {
+    "n": 32046,
+    "Number of Fatalities": {
+      "n_nonnull": 32046,
+      "n_gt0": 0,
+      "max": 0.0,
+      "mean": 0.0
+    },
+    "Number of Injuries with Fatalities": {
+      "n_nonnull": 32046,
+      "n_gt0": 0,
+      "max": 0.0,
+      "mean": 0.0
+    },
+    "Number of Injuries without Fatailites": {
+      "n_nonnull": 32046,
+      "n_gt0": 0,
+      "max": 0.0,
+      "mean": 0.0
+    },
+    "Unit 1 Person 1 Injury": {
+      "top_values": {
+        "Unknown": 1610,
+        "Not Reported": 357,
+        "Null value": 147
+      }
+    }
+  },
+  "fatal_severity_outcome_profile": {
+    "n": 239,
+    "Number of Fatalities": {
+      "n_nonnull": 239,
+      "n_gt0": 239,
+      "max": 3.0,
+      "mean": 1.1004
+    },
+    "Number of Injuries with Fatalities": {
+      "n_nonnull": 238,
+      "n_gt0": 238,
+      "max": 9.0,
+      "mean": 1.9748
+    },
+    "Number of Injuries without Fatailites": {
+      "n_nonnull": 238,
+      "n_gt0": 112,
+      "max": 8.0,
+      "mean": 0.8739
+    },
+    "Unit 1 Person 1 Injury": {
+      "top_values": {
+        "Fatal": 138,
+        "Non-Incapacitating": 29,
+        "Incapacitating": 21,
+        "Possible": 5,
+        "Null value": 2,
+        "Not Reported": 1
+      }
+    }
+  },
+  "incap_severity_outcome_profile": {
+    "n": 1512,
+    "Number of Fatalities": {
+      "n_nonnull": 1512,
+      "n_gt0": 0,
+      "max": 0.0,
+      "mean": 0.0
+    },
+    "Number of Injuries with Fatalities": {
+      "n_nonnull": 1511,
+      "n_gt0": 1511,
+      "max": 8.0,
+      "mean": 1.6658
+    },
+    "Number of Injuries without Fatailites": {
+      "n_nonnull": 1511,
+      "n_gt0": 1511,
+      "max": 8.0,
+      "mean": 1.6658
+    },
+    "Unit 1 Person 1 Injury": {
+      "top_values": {
+        "Incapacitating": 818,
+        "Non-Incapacitating": 164,
+        "Possible": 57,
+        "Unknown": 44,
+        "Not Reported": 31,
+        "Null value": 7
+      }
+    }
+  },
+  "blank_and_injury_signal": {
+    "n_blank": 32046,
+    "n_blank_with_injury_or_fatality": 0,
+    "pct_blank_contaminated": 0.0
+  },
+  "n_quarantined": 3699,
+  "n_usable": 46844,
+  "ordinal_distribution": {
+    "0": 0.6841,
+    "1": 0.2785,
+    "2": 0.0374
+  },
+  "paper_distribution": {
+    "0": 0.677,
+    "1": 0.287,
+    "2": 0.035
+  },
+  "max_abs_dist_gap_vs_paper": 0.0085,
+  "year_counts": {
+    "2009": 12862,
+    "2010": 12459,
+    "2011": 12682,
+    "2012": 12540
+  },
+  "key_is_unique_per_row": true,
+  "usable_by_year": {
+    "2009": 11920,
+    "2010": 11590,
+    "2011": 11704,
+    "2012": 11630
+  },
+  "severe_by_year": {
+    "2009": 442,
+    "2010": 443,
+    "2011": 416,
+    "2012": 450
+  }
+}

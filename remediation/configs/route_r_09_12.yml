@@ -1,0 +1,61 @@
+# v4 study configuration — Alaska 2009-2012 crash-severity classification (Route R protocol,
+# corrected per the third-round reconnaissance; the CANONICAL config from v4 onward).
+# Consumed by crashsev.cli (develop / freeze-experiment / evaluate-final).
+#
+# Differences from the v3 config (configs/route_a_09_12.yml, retained for the historical chain):
+#   * feature_tier: strict        — FEAT-001: primary benchmark uses only the conservative
+#                                   scene-observable tier (ledger column strict_scene_tier);
+#                                   the broad tier becomes a sensitivity, not the headline.
+#   * decision_rule: posterior_median — OBJ-001/DECISION-LOSS-001: the hard decision rule is
+#                                   prespecified to match the absolute ordinal loss; argmax is
+#                                   recorded as a sensitivity.
+#   * calibration_folds: temporal — CAL-001: dev-only calibration uses rolling-origin YEAR folds.
+#   * prior_probability           — BASE-001: deterministic training-prevalence probability
+#                                   baseline replaces the stochastic 'empirical_prior'.
+#   * develop runs under GOV-001 structural isolation (year-partition before target mapping);
+#     the freeze pins the outcome-free DEVELOPMENT-side assignment hash.
+
+use_case: post_crash_triage
+year_col: Year
+group_col: Crash Number
+row_id_col: Crash Number
+
+# Chronological final test: train/develop on 2009-2011, hold out 2012.
+final_test_years: [2012]
+
+n_classes: 3
+primary_metric: ordinal_mae
+decision_rule: posterior_median
+
+# FEAT-001: strict scene-observable tier is the primary feature set.
+feature_tier: strict
+exclude_high_coupling: false   # the strict tier already excludes the high-coupling trio
+
+# Prespecified baseline set; the comparator is chosen from these on development evidence only.
+baseline_set:
+  - majority
+  - ordinal_median
+  - prior_probability
+  - multinomial_logistic
+  - proportional_odds
+  - frank_hall_logistic
+  - shallow_tree
+
+# Development cross-validation for model selection.
+cv_strategy: rolling      # rolling-origin over 2009->2010->2011 (mirrors the temporal final test)
+cv_seeds: [1, 2, 3]
+cv_n_splits: 3            # used only when cv_strategy: grouped
+cv_models: null           # null -> all registry models except EBM (EBM evaluated only at final)
+
+include_optional_models: true
+min_frequency: 0.01
+categorical_max_cardinality: 100
+
+# Uncertainty.
+bootstrap_resamples: 2000
+seed: 42
+
+# Calibration is fit on development data only, with temporal rolling-origin folds (CAL-001).
+calibrate: true
+calibration_method: sigmoid
+calibration_folds: temporal

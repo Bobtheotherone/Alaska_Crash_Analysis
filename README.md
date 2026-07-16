@@ -1,283 +1,189 @@
-# Alaska Car Crash Analysis
+# Alaska Crash Analysis
 
-This repository contains a Django + React application for exploring and summarizing
-police-reported crash data. The backend follows an **App Server + Upload Gateway**
-pattern with clear separation of responsibilities and a security-first upload flow.
+Alaska Crash Analysis combines a secure Django/React crash-analysis platform with a
+governed, leakage-controlled, temporally evaluated ordinal machine-learning study of
+police-reported Alaska crash severity (2009–2012).
 
-## Backend (Django)
+**No raw Alaska DMV records are distributed anywhere in this repository or its
+releases.** The licensed source extract is restricted under an NDA/data-use
+agreement; everything published here is code, documentation, aggregate evidence, or
+de-identified verification artifacts that passed release-side privacy controls.
 
-The Django project is split into three main apps:
+## 1. Research portfolio quick links
 
-- **`ingestion`** – upload gateway / validation engine
-  - `POST /api/ingest/upload/`
-    - Accepts authenticated uploads of crash datasets (CSV and Parquet by
-      default; additional formats can be enabled via config).
-    - Enforces file size limits (`INGESTION_MAX_FILE_SIZE_BYTES`).
-    - Restricts extensions to a configurable whitelist
-      (`INGESTION_ALLOWED_EXTENSIONS`).
-    - Performs MIME sniffing (via `python-magic` when available).
-    - Runs an antivirus scan via ClamAV (when configured).
-    - Validates the header against a MMUCC-aligned schema loaded from
-      `ingestion/config/mmucc_schema.yml` (including KABCO severity and core
-      location fields). See `docs/schema_config.md` for non-developer editing
-      guidance.
-    - Runs basic type/range checks and Alaska-specific geo bounding-box checks.
-    - Produces a structured per-step status report plus row-level summary stats.
-    - Returns a `schema_version` so the UI can display which schema was applied.
-  - `GET /api/ingest/uploads/`
-    - Returns uploads visible to the current user (uploads owned by the current user; admins see all).
-    - Each entry includes `id`, `original_filename`, `created_at`, `status`, `schema_version`, `mime_type`,
-      and row summary counts (`total_rows`, `invalid_row_count`, `invalid_geo_row_count`).
-  - `GET /api/ingest/uploads/<upload_id>/`
-    - Returns the persisted validation report and metadata for a given upload.
-    - Useful for re-displaying validation status in the UI without re-uploading.
-  - `GET /api/ingest/uploads/<upload_id>/export/validation.csv`
-    - CSV export of the validation steps + row summaries, with formula-injection
-      defenses applied.
-  - Persists each successful upload in `ingestion.UploadedDataset` with:
-    - `owner` (uploading user)
-    - `original_filename`, `size_bytes`, `mime_type`
-    - `schema_version` (from the MMUCC config file)
-    - `raw_file` (stored under `uploaded_datasets/`)
-    - `status` (`pending | accepted | rejected`)
-    - `validation_report` (JSON copy of the status report returned
-      to the client)
-  - All “hard fail” stages in the pipeline now return machine-readable
-    `error_code`s (e.g. `EXTENSION_NOT_ALLOWED`, `FILE_TOO_LARGE`,
-    `MIME_MISMATCH`, `UPLOAD_INFECTED`, `AV_UNAVAILABLE_REQUIRED`,
-    `SCHEMA_MISSING_COLUMNS`). Error codes are documented in
-    `docs/ingestion_errors.md`.
+| Deliverable | Location |
+|---|---|
+| Final manuscript (PDF) | Asset of the tagged release [`portfolio-final-r4`](https://github.com/Bobtheotherone/Alaska_Crash_Analysis/releases/tag/portfolio-final-r4) (published July 20, 2026); buildable from source at [`remediation/paper/latex/`](remediation/paper/latex/) |
+| Tagged release | [`portfolio-final-r4`](https://github.com/Bobtheotherone/Alaska_Crash_Analysis/releases/tag/portfolio-final-r4) — exact commit and per-file identities in the release `MANIFEST.json` / `SHA256SUMS.txt` |
+| Verification handoff (self-contained ZIP) | Asset of the same release; verify offline with the packaged `VERIFY_HANDOFF.py` |
+| Reproducibility guide | [`remediation/research/REPRODUCE.md`](remediation/research/REPRODUCE.md) (authoritative; two tiers, see §9) |
+| Data availability | [`DATA_AVAILABILITY.md`](DATA_AVAILABILITY.md) |
+| Citation | [`CITATION.cff`](CITATION.cff) (§14 below) |
 
-- **`crashdata`** – domain models & query helpers
-  - Owns the `CrashRecord` model, which captures core MMUCC/KABCO fields and
-    a PostGIS `PointField` for the crash location with a **GiST index** for
-    fast spatial queries.
-  - Includes helpers in `crashdata.queries` for:
-    - severity histograms (`severity_histogram`)
-    - spatial queries (`crashes_within_bbox`), with support for filters such as
-      severity, municipality and date range.
-  - Exposes read-only APIs for visualization and exports:
-    - `GET /api/crashdata/severity-histogram/`
-    - `GET /api/crashdata/within-bbox/`
-    - `GET /api/crashdata/export/`
-  - Most endpoints return a `count` and a list of results, suitable for
-    paginated tables and charts.
+## 2. Research question
 
-- **`models`** – integration surface for ML / statistical models
-  - Provides a thin wrapper around long-running model jobs driven by
-    uploaded crash datasets.
-  - Exposes:
-    - `POST /api/models/run/`
-    - `GET /api/models/results/<job_id>/`
-  - Uses a `ModelJob` Django model to track jobs:
-    - `id` (UUID), `upload`, `owner`, `model_name`, `status`
-    - `parameters` (JSON), `result_metadata` (JSON)
-    - timestamps (`created_at`, `updated_at`)
-  - `POST /api/models/run/` validates the request body:
-    - required: `upload_id`, `model`
-    - optional: `parameters` object
-    - `model` must be one of the enum values in `SUPPORTED_MODELS`
-      (e.g. `crash_severity_risk_v1`, `ebm_v1`).
-    - creates a `ModelJob` with status `queued` and returns 202 + `job_id`.
-    - designed to be wired into a task queue by the ML team.
-  - `GET /api/models/results/<job_id>/` returns the current job status plus any
-    high-level `result_metadata`. For queued/running jobs it returns 202;
-    for finished jobs it returns 200 and a `result_metadata` payload.
+Using a conservative predictor set that excludes identified outcome descendants —
+but whose retained-field recording times remain author-judged, not
+custodian-verified — how well do models developed on 2009–2011 Alaska crashes
+predict a researcher-defined three-level ordinal recorded-severity outcome for 2012
+crashes, and how much do specified protocol perturbations change the apparent
+result?
 
-## Frontend (React)
+## 3. Main result
 
-The frontend (`alaska_ui`) is a Vite + React app that consumes the Django APIs
-and provides:
+One frozen, governed evaluation execution (run `final_8af9d5bc23d8`; development
+2009–2011, n = 35,214; single exposure-disclosed test year 2012, n = 11,630):
 
-- An upload page for CSV/Parquet datasets with a validation results panel.
-- A map-based view for filtering and exploring crashes.
-- A simple model runner UI for triggering backend model jobs and viewing
-  high-level results.
+- Weighted ordinal random forest (protocol-designated primary) oMAE: **0.3469**
+- Majority-class baseline oMAE: **0.3614**
+- Paired difference: **−0.0144**
+- Descriptive 95% crash-level bootstrap interval: **[−0.0231, −0.0063]**
+- Severe-class (class 2) recall of the primary model: **5.8%**
+- Overall 2012 oMAE leader: **unweighted random forest, 0.3401** — it achieves this
+  by predicting "no injury" for ~93% of crashes
+- Interpretation: **methodological evaluation infrastructure, not a deployable
+  severe-crash detector**
 
-## Running the project locally
+The weighted ordinal forest retained the primary role because the candidate
+registry was frozen before the governed execution; role designation was not
+re-litigated after seeing 2012 results, and the unweighted forest's better oMAE is
+reported alongside it rather than silently promoted.
 
-See `docs/deployment.md` for detailed instructions on running the full stack
-(with or without Docker).
+## 4. Why the result matters
 
-In short:
+The contribution is the **evaluation protocol, not the effect size**. The project
+demonstrates auditing an inherited AI system, detecting leakage and evaluation
+optimism (the original pipeline's apparent performance collapsed once
+outcome-derived fields were removed and evaluation was made temporal), constructing
+a governed temporal/ordinal protocol with structural outcome isolation and frozen
+decision rules, preserving reproducible evidence for every reported number, and
+narrowing claims to what corrected evidence supports: a modest, descriptively
+supported improvement over a trivial baseline — with the severe-crash detection
+failure reported as prominently as the headline number.
 
-- Start Postgres (and PostGIS).
-- Run migrations (`python manage.py migrate`).
-- Start the backend (`python manage.py runserver`).
-- Run the frontend dev server (`npm run dev` inside `alaska_ui`).
+## 5. Critical limitations
 
-## Ingestion pipeline details
+Read these before quoting any number:
 
-The ingestion pipeline is designed to be:
+- **Unresolved blank-value semantics in the target.** Blank severity is mapped to
+  property-damage-only (class 0) on documented evidence, but the source coding
+  practice is not custodian-confirmed; class 0 is partly a construction of this
+  mapping.
+- **Retained-feature recording times are not custodian-verified.** "Leakage-
+  controlled" means structural isolation plus an author-judged field tier, not a
+  verified as-of-scene data dictionary.
+- **The evaluation is retrospectively exposed.** 2012 was historically visible
+  during the project's lifetime; the single frozen execution is exposure-disclosed,
+  not a sealed prospective holdout. Results are descriptive, not confirmatory.
+- **The primary model is not a severe-crash detector** (5.8% severe recall;
+  ranking ability exists — severe-class AP ≈ 0.17–0.23, AUROC ≈ 0.75–0.80 at
+  prevalence 0.0387 — but hard-rule detection does not).
+- **Not preregistered, not causal, not independently replicated, and no
+  deployment is endorsed.**
 
-- **Secure by default** – strict file type/size checks, MIME sniffing, and
-  antivirus integration.
-- **Configurable** – schema, allowed extensions, and size limits are all driven
-  by configuration rather than hard-coded.
-- **Observable** – every major step is recorded in a structured `steps` array
-  along with row-level summary counts to help the UI explain what happened.
+## 6. Project lineage
 
-### File formats
+| Iteration | Scope | Where |
+|---|---|---|
+| I–II | Data cleaning and exploratory modeling of the licensed extracts (original contributors' capstone work) | `peyton_original/`, `analysis/`, `Data Cleaning` history |
+| III | Secure Django/React crash-analysis platform: authenticated upload gateway (MIME sniffing, ClamAV hook, MMUCC schema validation), PostGIS crash store, model-job API, React map UI | `alaska_project/`, `ingestion/`, `crashdata/`, `alaska_ui/`, `frontend/` — see [`docs/APPLICATION_PLATFORM.md`](docs/APPLICATION_PLATFORM.md) |
+| IV | Governed research remediation: leakage audit and re-analysis of the inherited pipeline, then the frozen ordinal study summarized above, with verification tooling and releases r1–r4 | [`remediation/`](remediation/README.md) |
 
-By default, the ingestion pipeline accepts:
+The platform work is preserved, not diminished: it is the system context that
+motivated the governance questions Iteration IV answers.
 
-- **CSV** – parsed with `pandas.read_csv` using UTF-8 decoding.
-- **Parquet** – parsed with `pandas.read_parquet` (requires `pyarrow` or `fastparquet`,
-  which are already included in the backend dependencies).
+## 7. Repository structure
 
-The set of allowed extensions is controlled by the `INGESTION_ALLOWED_EXTENSIONS`
-environment variable, which should be a comma-separated list of lower-cased
-extensions such as:
+```
+├── remediation/           # Iteration IV research portfolio (MIT-licensed code)
+│   ├── crashsev/          #   pipeline: cohort build, contracts, models, governance
+│   ├── experiment/        #   frozen aggregate artifacts of the governed runs
+│   ├── evidence_release/  #   de-identification manifests + frozen-run skeletons
+│   ├── reanalysis/        #   leakage/optimism re-analysis of the inherited model
+│   ├── research/          #   protocol, provenance, scope, reproduction guide
+│   ├── paper/             #   LaTeX manuscript source + release reports
+│   ├── tests/             #   failure-mode & governance test suite
+│   └── tools/             #   verifiers and packaging (VERIFY_HANDOFF, gates)
+├── alaska_project/ ingestion/ crashdata/ alaska_ui/ frontend/   # Iteration III app
+├── peyton_original/ analysis/ ml_partner_adapters/              # earlier iterations
+├── docs/                  # platform documentation
+├── DATA_AVAILABILITY.md   # what is / is not distributed, and why
+├── LICENSES/              # component-level license scope
+└── CITATION.cff           # citation metadata for the tagged release
+```
+
+## 8. Reproduction tiers
+
+| Tier | Needs | Reproduces |
+|---|---|---|
+| A — no licensed data | Python 3.11–3.13, `pip` | Test suite, generator/verifier gates, re-analysis matrices, every figure, and **exact recomputation of all reported metrics from the released de-identified predictions** (handoff ZIP) |
+| B — licensed data | A lawful copy of `Crash Level 09-12 (1).xlsx` | The full from-raw pipeline: byte-identical modelling table, identical frozen hashes, identical governed results |
+
+## 9. No-license verification command
 
 ```bash
-INGESTION_ALLOWED_EXTENSIONS=".csv,.parquet"
+cd remediation
+python -m pip install -r requirements-lock.txt && python -m pip install -e .
+python -m pytest tests/ -q                 # governance + failure-mode suite
 ```
 
-If the environment variable is not set, the default is `.csv,.parquet`.
+Then, against the downloaded release handoff ZIP (self-contained, offline):
 
-Additional formats can be enabled by extending `INGESTION_ALLOWED_EXTENSIONS`
-**and** updating the loader in
-`ingestion.validation.load_dataframe_from_bytes` to handle the new format.
-
-The key knobs are controlled by environment variables:
-
-- `INGESTION_ALLOWED_EXTENSIONS` (default: `.csv,.parquet`)
-- `INGESTION_MAX_FILE_SIZE_BYTES` (default: `10MB` – intentionally small so
-  production must explicitly opt into larger uploads)
-- `INGESTION_SCHEMA_CONFIG_PATH` (optional override of the MMUCC schema path)
-
-### Antivirus
-
-Antivirus integration is handled via **ClamAV** and the `clamd` Python
-library. Configuration is controlled through environment variables:
-
-- `CLAMAV_UNIX_SOCKET` – path to the ClamAV Unix socket
-- `CLAMAV_TCP_HOST` / `CLAMAV_TCP_PORT` – host/port for TCP connections
-- `INGESTION_REQUIRE_AV` – when set to `"true"`, any upload where the AV
-  step is skipped will be treated as a hard failure.
-
-### Ingestion status report shape
-
-`POST /api/ingest/upload/` returns a JSON payload of the form:
-
-```json
-{
-  "upload_id": "uuid-of-UploadedDataset",
-  "overall_status": "accepted",
-  "schema_version": "mmucc-alaska-v1",
-  "steps": [
-    {
-      "step": "PAYLOAD",
-      "status": "passed",
-      "severity": "info",
-      "is_hard_fail": false,
-      "details": "Received multipart/form-data with a single file field named 'file'."
-    },
-    {
-      "step": "EXTENSION_CHECK",
-      "status": "passed",
-      "severity": "info",
-      "is_hard_fail": false,
-      "details": "Extension '.csv' is allowed."
-    },
-    {
-      "step": "FILE_SIZE",
-      "status": "passed",
-      "severity": "info",
-      "is_hard_fail": false,
-      "details": "File size is within the configured limit.",
-      "meta": { "size_bytes": 12345, "max_size_bytes": 10485760 }
-    },
-    {
-      "step": "MIME_SNIFF",
-      "status": "passed",
-      "severity": "info",
-      "is_hard_fail": false,
-      "details": "Declared Content-Type matches detected MIME type.",
-      "meta": { "detected_mime_type": "text/csv", "declared_mime_type": "text/csv" }
-    },
-    {
-      "step": "AV_SCAN",
-      "status": "passed",
-      "severity": "info",
-      "is_hard_fail": false,
-      "details": "ClamAV did not detect malware in the upload."
-    },
-    {
-      "step": "PARSE_TABLE",
-      "status": "passed",
-      "severity": "info",
-      "is_hard_fail": false,
-      "details": "Parsed dataset with 1234 rows and 25 columns."
-    },
-    {
-      "step": "SCHEMA_CHECK",
-      "status": "passed",
-      "severity": "info",
-      "is_hard_fail": false,
-      "details": "All required MMUCC columns are present.",
-      "meta": {
-        "missing_columns": [],
-        "unknown_columns": [],
-        "columns": ["crash_id", "crash_date", "severity", "..."],
-        "schema_version": "mmucc-alaska-v1"
-      }
-    },
-    {
-      "step": "TYPE_AND_RANGE_CHECKS",
-      "status": "passed",
-      "severity": "warning",
-      "is_hard_fail": false,
-      "details": "Some rows have out-of-range or invalid values.",
-      "meta": {
-        "total_rows": 1234,
-        "invalid_row_count": 12,
-        "details": "..."
-      }
-    },
-    {
-      "step": "GEO_CHECKS",
-      "status": "passed",
-      "severity": "warning",
-      "is_hard_fail": false,
-      "details": "Some rows have coordinates outside configured Alaska bounds.",
-      "meta": {
-        "has_coordinates": true,
-        "invalid_row_count": 3,
-        "details": "..."
-      }
-    }
-  ],
-  "schema": {
-    "schema_version": "mmucc-alaska-v1",
-    "missing_columns": [],
-    "unknown_columns": [],
-    "columns": ["crash_id", "crash_date", "severity", "..."]
-  },
-  "row_checks": {
-    "total_rows": 1234,
-    "invalid_row_count": 12,
-    "invalid_geo_row_count": 3
-  }
-}
+```bash
+python VERIFY_HANDOFF.py                   # from the extracted ZIP root
 ```
 
-If the upload is rejected for a "hard" reason (extension, size, MIME,
-antivirus (when required), or schema), `overall_status` is `"rejected"`,
-`upload_id` is omitted, and `error_code` / `message` describe the reason.
+Full tier-A instructions: [`remediation/research/REPRODUCE.md`](remediation/research/REPRODUCE.md).
 
-- `status` describes the outcome of the step itself (`"passed"`, `"failed"`,
-  `"skipped"`).
-- `severity` describes how serious the outcome is for the upload as a whole:
-  - `"error"` + `is_hard_fail: true` → the upload is rejected.
-  - `"warning"` → upload is accepted, but there are data quality issues.
-  - `"info"` → purely informational, no impact on acceptance.
+## 10. Licensed-data reproduction requirements
 
-## Security & authentication
+Tier B requires a lawful copy of the licensed extract from the data owner —
+this repository cannot grant access (see `remediation/research/DATA_LICENSE_NOTE.md`).
+The raw workbook's byte identity is retained in a restricted reproduction log and is
+not published pending custodian permission; a licensed holder can still verify
+end-to-end because rebuilding from their lawful copy must reproduce the published
+governed content hash (`059559cd…`) exactly.
 
-- All ingestion and model endpoints require authentication (`IsAuthenticated`).
-- Access control is enforced so that users can only see uploads and jobs they
-  own, unless they are in the `Admin` group or have staff/superuser status.
-- CSRF protection is enabled for browser-based sessions; API clients should use
-  token or session authentication as appropriate.
+## 11. Privacy and NDA statement
 
+The Alaska DMV crash data were supplied under an NDA and data-use restrictions,
+which were respected. Sensitive source records were processed **only in local
+computing environments**; no raw crash rows, real crash identifiers, exact
+coordinates, free-text locations, or officer/agency identifiers were transmitted to
+nonlocal language models or external generative-AI services, and none are
+distributed here. External AI assistance operated on code, manuscript text,
+synthetic examples, aggregate results, and de-identified release artifacts only.
+Details: [`remediation/paper/AI_USE_AND_PRIVACY.md`](remediation/paper/AI_USE_AND_PRIVACY.md)
+and [`DATA_AVAILABILITY.md`](DATA_AVAILABILITY.md).
+
+## 12. Software / application setup
+
+The Iteration III platform (Django + PostGIS backend, Vite/React frontend, secure
+ingestion pipeline) is documented in
+[`docs/APPLICATION_PLATFORM.md`](docs/APPLICATION_PLATFORM.md) and
+`docs/deployment.md`. Short version: start Postgres/PostGIS, `python manage.py
+migrate`, `python manage.py runserver`, and `npm run dev` inside `alaska_ui/`. The
+platform is archived scope and not production-hardened.
+
+## 13. License scope
+
+Component-level licensing is documented in [`LICENSES/README.md`](LICENSES/README.md):
+the Iteration IV analysis and verification code (`remediation/`) is MIT-licensed
+with an explicit **no-data-rights** clause; earlier application/platform code
+remains under its contributors' rights; the manuscript text is not MIT-licensed.
+Nothing in this repository is a data-release license.
+
+## 14. Citation
+
+See [`CITATION.cff`](CITATION.cff). Preferred citation: the manuscript
+*Leakage-Controlled Ordinal Classification of a Researcher-Defined Alaska
+Crash-Severity Outcome: A Governed, Self-Reproduced Retrospective Out-of-Time Study
+Across Four Project Iterations*, Radames Naythan Mercado-Barbosa, release
+`portfolio-final-r4`, July 20, 2026.
+
+## 15. Contact
+
+Questions concerning the released manuscript, code, or verification package:
+**Radames Naythan Mercado-Barbosa** — <rnmercado@alaska.edu>.
+Access to the licensed source records remains controlled by the data owner; the
+author cannot grant source-data access independently.

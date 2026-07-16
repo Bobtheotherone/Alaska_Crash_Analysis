@@ -1,0 +1,101 @@
+column,dtype,n_null,null_rate,n_unique,sample_value
+AHS System,str,0,0.0,3,Null value
+Arrest,str,0,0.0,3,No
+At Intersection,str,0,0.0,2,No
+Borough,str,0,0.0,20,Null value
+Census Area,str,0,0.0,32,Null value
+City,str,0,0.0,55,Null value
+Crash Severity,str,32046,0.634,7,Null value
+Date,str,0,0.0,1461,[redacted]
+Day of Month,int64,0,0.0,31,15
+Day of the Week,str,0,0.0,7,Monday
+Detachment,str,0,0.0,8,Null value
+Direction,str,0,0.0,7,Not Applicable
+Election District,str,0,0.0,98,[redacted]
+First Sequence Event,str,0,0.0,43,Curb/Wall
+First Sequence Location,str,0,0.0,10,Roadway
+Functional Class,str,0,0.0,14,Null value
+Hit and Run,str,0,0.0,2,No
+Lighting,str,0,0.0,8,Daylight
+Location Type,str,0,0.0,1,Null value
+Maintenance Category,str,0,0.0,14,Null value
+Maintenance Responsibility,str,0,0.0,10,Null value
+Maintenance Station,str,0,0.0,73,[redacted]
+Month,str,0,0.0,12,October
+NHS System,str,0,0.0,7,Null value
+Non Vehicle Damage,str,0,0.0,4,No
+Number of Commercial Vehicles Involved,int64,0,0.0,3,0
+Number of Fatalities,int64,0,0.0,4,0
+Number of Injuries with Fatalities,str,0,0.0,11,0
+Number of Injuries without Fatailites,str,0,0.0,11,0
+Number of Pedestrians Involved,int64,0,0.0,3,0
+Number of Persons Involved,str,0,0.0,12,0
+Number of Units Involved,str,0,0.0,9,1
+Officer Agency,str,0,0.0,20,[redacted]
+Officer ID,str,0,0.0,1539,[redacted]
+Pavement,str,0,0.0,5,Null value
+Posted Speed,str,0,0.0,14,25
+Region,str,0,0.0,4,Null value
+Reporting Agency,str,0,0.0,20,Null value
+Road Surface,str,0,0.0,9,Snow
+Roadway Characteristics,str,0,0.0,8,Unknown
+Roadway Junction,str,0,0.0,13,Roundabout
+Rural Urban,str,0,0.0,2,Null value
+Temperature Range,str,0,0.0,16,0 to 10
+Time of Day,str,0,0.0,24,4:00 PM to 4:59 PM
+Unit 1 Action,str,0,0.0,20,Null value
+Unit 1 Commercial Vehicle (CV),str,0,0.0,3,No
+Unit 1 CV Configuration,str,0,0.0,13,Not a Commercial Vehicle
+Unit 1 CV Haz-Mat Released,str,0,0.0,5,Not a Commercial Vehicle
+Unit 1 CV Issuing Authority,str,0,0.0,5,Not a Commercial Vehicle
+Unit 1 CV Placard,str,0,0.0,5,Not a Commercial Vehicle
+Unit 1 Damage,str,0,0.0,7,Not Available
+Unit 1 Direction of Travel,str,0,0.0,6,Null value
+Unit 1 License Plate State,str,1,0.0,60,Null value
+Unit 1 Make,str,0,0.0,1,Null value
+Unit 1 Model Year,str,2,0.0,47,Null value
+Unit 1 Non-CV Configuration,str,0,0.0,13,Null value
+Unit 1 Occupants,str,0,0.0,13,0
+Unit 1 Person 1 Age Range,str,0,0.0,20,Null value
+Unit 1 Person 1 Alcohol or Drug Use Suspected,str,37434,0.7406,5,Null value
+Unit 1 Person 1 Circumstance,str,0,0.0,27,Null value
+Unit 1 Person 1 Ejected,str,0,0.0,7,Null value
+Unit 1 Person 1 Environment Circumstance,str,21769,0.4307,8,Null value
+Unit 1 Person 1 Extricated,str,0,0.0,5,Null value
+Unit 1 Person 1 Gender,str,0,0.0,4,Null value
+Unit 1 Person 1 Injury,str,35511,0.7026,7,Null value
+Unit 1 Person 1 Insurance Coverage,str,0,0.0,5,Null value
+Unit 1 Person 1 NFR,str,0,0.0,3,Null value
+Unit 1 Person 1 Raw Age,str,0,0.0,100,Null value
+Unit 1 Person 1 Residence State,str,1,0.0,53,Null value
+Unit 1 Person 1 Restraint,str,0,0.0,16,Null value
+Unit 1 Person 1 Seat Location,str,0,0.0,8,Null value
+Unit 1 Person 1 Test Given,str,0,0.0,6,Null value
+Unit 1 Person 1 Transported,str,0,0.0,5,Null value
+Unit 1 Person 1 Transported By,str,0,0.0,9,Null value
+Unit 1 Person 1 Transported To,str,0,0.0,7,Null value
+Unit 1 Person 1 Type,str,0,0.0,4,Null value
+Unit 1 Person 1 Violations,str,0,0.0,3,Not Reported
+Unit 1 Primary Contributing Circumstance,str,35351,0.6994,13,Missing
+Unit 1 Primary Damage Location,str,0,0.0,17,Null value
+Unit 1 Road Circumstance,str,33192,0.6567,15,Missing
+Unit 1 Secondary Sequence of Events,str,0,0.0,45,Missing
+Unit 1 Towed,str,0,0.0,4,Null value
+Unit 1 Traffic Control,str,0,0.0,13,Null value
+Unit 1 Undercarriage Damage,str,0,0.0,4,Null value
+Weather,str,0,0.0,12,Snow
+Week of the Year,int64,0,0.0,53,42
+Year,int64,0,0.0,4,2012
+AADT,int64,0,0.0,4154,-2147483648
+CDS Number,str,0,0.0,2590,[redacted]
+Crash Number,int64,0,0.0,50543,[redacted]
+DateTime,str,0,0.0,48104,[redacted]
+Distance From Intersection,int64,0,0.0,719,0
+Intersecting Street,str,8,0.0002,16251,[redacted]
+Latitude,float64,0,0.0,39643,[redacted]
+Longitude,float64,0,0.0,39130,[redacted]
+Milepoint,float64,0,0.0,7941,[redacted]
+Report ID,str,0,0.0,50408,[redacted]
+Route,str,0,0.0,2492,[redacted]
+Street,str,0,0.0,6648,[redacted]
+Temperature,int64,0,0.0,125,10

@@ -1,0 +1,40 @@
+% GENERATED FILE — do not edit by hand.
+% Source: tools/gen_dev_results_table.py, derived from the frozen
+% experiment/development_report.json.
+% \newpage: the 14 double-line rows plus caption and note fill most of a page;
+% starting mid-page would strand the last row on a lone continuation page.
+\newpage
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}L{0.18\textwidth}L{0.10\textwidth}R{0.115\textwidth}R{0.115\textwidth}L{0.07\textwidth}R{0.135\textwidth}L{0.075\textwidth}L{0.115\textwidth}@{}}
+\caption{Complete development-phase results, eligibility, and designation record.}\label{tab:dev-results}\\
+\toprule
+\textbf{Model} & \textbf{Role} & \textbf{Val.~2010} & \textbf{Val.~2011} & \textbf{Seeds} & \textbf{Aggregate oMAE} & \textbf{Eligible} & \textbf{Outcome} \\
+\midrule
+\endfirsthead
+\multicolumn{8}{l}{\footnotesize\itshape Table \thetable\ continued from previous page}\\
+\toprule
+\textbf{Model} & \textbf{Role} & \textbf{Val.~2010} & \textbf{Val.~2011} & \textbf{Seeds} & \textbf{Aggregate oMAE} & \textbf{Eligible} & \textbf{Outcome} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{8}{r}{\footnotesize Continued on next page}\\
+\endfoot
+\bottomrule
+\multicolumn{8}{@{}p{0.97\textwidth}@{}}{\rule{0pt}{11pt}\footnotesize\itshape Rolling-origin development validation of the frozen registry (\artifact{experiment/development_report.json}). Val.\ 2010 / Val.\ 2011 = ordinal MAE on the fold validating on that year (train on 2009, and on 2009--2010, respectively); stochastic models show the mean $\pm$ SD over development seeds 1--3, deterministic models run once (their seed column shows the configured run seed, which does not influence their fit). Aggregate = unweighted mean $\pm$ SD over all fold$\times$seed trials --- folds are equally weighted, not pooled at prediction level. Eligible = registered \emph{candidate} role; ablations, baselines, and the final-only EBM are excluded from designation by prespecified role. The three trivial baselines tie exactly; the comparator designation falls to the majority predictor, first in the frozen baseline list. No candidate tie occurred; a tie would resolve to the earlier frozen-registry entry. RF = random forest; EBM = Explainable Boosting Machine.}\\
+\endlastfoot
+Ordinal RF (unweighted) & Ablation & 0.3244 $\pm$ 0.0004 & 0.3221 $\pm$ 0.0011 & 1,2,3 & 0.3233 $\pm$ 0.0014 & No & --- \\
+Random forest (unweighted) & Ablation & 0.3263 $\pm$ 0.0011 & 0.3229 $\pm$ 0.0004 & 1,2,3 & 0.3246 $\pm$ 0.0019 & No & --- \\
+\textbf{Ordinal RF (weighted)} & \textbf{Candidate} & \textbf{0.3401 $\pm$ 0.0010} & \textbf{0.3316 $\pm$ 0.0010} & \textbf{1,2,3} & \textbf{0.3358 $\pm$ 0.0043} & \textbf{Yes} & \textbf{Designated primary} \\
+Majority & Baseline & 0.3564 & 0.3366 & 42 & 0.3465 $\pm$ 0.0099 & No & Designated comparator \\
+Ordinal median & Baseline & 0.3564 & 0.3366 & 42 & 0.3465 $\pm$ 0.0099 & No & Tied comparator score \\
+Prior probability & Baseline & 0.3564 & 0.3366 & 42 & 0.3465 $\pm$ 0.0099 & No & Tied comparator score \\
+Random forest (weighted) & Candidate & 0.3781 $\pm$ 0.0009 & 0.3708 $\pm$ 0.0007 & 1,2,3 & 0.3744 $\pm$ 0.0037 & Yes & --- \\
+XGBoost & Candidate & 0.4320 $\pm$ 0.0009 & 0.4307 $\pm$ 0.0037 & 1,2,3 & 0.4314 $\pm$ 0.0028 & Yes & --- \\
+Frank--Hall logit & Baseline & 0.5784 & 0.4844 & 42 & 0.5314 $\pm$ 0.0470 & No & --- \\
+Shallow tree & Baseline & 0.6026 $\pm$ 0.0000 & 0.6239 $\pm$ 0.0000 & 1,2,3 & 0.6132 $\pm$ 0.0107 & No & --- \\
+Decision tree & Candidate & 0.5960 $\pm$ 0.0003 & 0.6327 $\pm$ 0.0004 & 1,2,3 & 0.6144 $\pm$ 0.0184 & Yes & --- \\
+Multinomial logit & Baseline & 0.5919 & 0.6652 & 42 & 0.6286 $\pm$ 0.0367 & No & --- \\
+Proportional-odds logit & Baseline & 0.5786 & 0.7187 & 42 & 0.6487 $\pm$ 0.0701 & No & --- \\
+EBM & Exploratory (final-only) & --- & --- & --- & --- & No & --- \\
+\end{longtable}
+\endgroup

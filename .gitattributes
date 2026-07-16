@@ -1,1 +1,17 @@
 peyton_original/** -diff -merge
+
+# Binary artifacts must never be EOL-converted (BUNDLE-CRLF-001 / the v3 git-archive CRLF
+# incident: with core.autocrlf=true and no attributes, a fresh checkout or archive could rewrite
+# LF->CRLF inside PDFs and corrupt them; the finalize script worked around it with
+# -c core.autocrlf=false — these attributes remove the hazard at the source).
+*.pdf    -text
+*.png    -text
+*.jpg    -text
+*.jpeg   -text
+*.zip    -text
+*.xlsx   -text
+*.pkl    -text
+*.bundle -text
+*.ico    -text
+*.woff   -text
+*.woff2  -text

@@ -1,3 +1,55 @@
+# =============================================================================
+# Restricted licensed source data (NDA / data-use agreement)
+# The Alaska DMV crash extracts are licensed and must never enter version
+# control or any public package. Spreadsheet sources are ignored wholesale as a
+# fail-closed default: no spreadsheet in this project is intentionally public
+# (the approved public evidence ships as de-identified parquet/JSON via the
+# verified release package). A deliberate exception would require `git add -f`
+# plus a documented privacy review.
+# =============================================================================
+Crash Level 09-12 (1).xlsx
+Crash Level 13-17 (1).xlsx
+*raw_crash*.xlsx
+*restricted*.xlsx
+*.xlsx
+*.xls
+*.xlsm
+data/raw/
+data/restricted/
+private_data/
+licensed_source/
+
+# =============================================================================
+# Restricted reproduction records (source identifiers withheld from public
+# release pending custodian permission — manuscript item 4.3 / r4 audit F-R4-01)
+# =============================================================================
+private_reproduction_log/
+restricted_hashes/
+*.private-manifest.json
+
+# =============================================================================
+# Secrets and local credentials (never tracked; rotate immediately if one ever
+# lands in history)
+# =============================================================================
+.env
+.env.*
+*.env
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets*.json
+
+# =============================================================================
+# Local backups, release staging, and caches that could embed restricted
+# context (git bundles contain FULL local history including private branches)
+# =============================================================================
+*.bundle
+release/
+model_cache/
+.llm_cache/
+local_ai_exports/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -5,7 +57,6 @@ __pycache__/
 *.pyd
 *.sqlite3
 *.log
-.env
 
 # Virtual environments
 .venv/

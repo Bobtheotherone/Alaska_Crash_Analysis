@@ -1,0 +1,721 @@
+{
+  "description": "Structured cells for the feature-governance appendix tables (tab:retained-fields / tab:prohibited-fields / tab:exclusion-summary). Retained set = the frozen run's 49 allowed columns (all PLAUSIBLY_EARLY, author-judged; none custodian-verified). Missingness = per-development-year share of missing/sentinel values on mapped development rows. Thoroughness risk = elevated when |missing(class 0) - missing(class 2)| >= 0.05 on development rows. Prohibited = the 14 OUTCOME_DERIVED contract-ledger fields.",
+  "sources": [
+    "data/feature_availability_ledger.csv",
+    "experiment/final_results.json (allowed_feature_columns)",
+    "licensed local modeling table (canonical content hash pinned in the evidence chain) for missingness"
+  ],
+  "dev_years": [
+    2009,
+    2010,
+    2011
+  ],
+  "retained": [
+    {
+      "field": "AADT",
+      "kind": "numeric",
+      "missing": {
+        "2009": 0.33036912751677855,
+        "2010": 0.333304572907679,
+        "2011": 0.3037423103212577
+      },
+      "thoroughness": "low",
+      "rationale": "annual average daily traffic (numeric; sentinel-cleaned)"
+    },
+    {
+      "field": "AHS System",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "Alaska Highway System class"
+    },
+    {
+      "field": "At Intersection",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "intersection-related location"
+    },
+    {
+      "field": "Borough",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "coarse administrative geography"
+    },
+    {
+      "field": "Census Area",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0012583892617449664,
+        "2010": 0.006125970664365833,
+        "2011": 0.007347915242652085
+      },
+      "thoroughness": "low",
+      "rationale": "coarse administrative geography"
+    },
+    {
+      "field": "City",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.0070915926179084075
+      },
+      "thoroughness": "low",
+      "rationale": "city/place"
+    },
+    {
+      "field": "Day of Month",
+      "kind": "numeric",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "day-of-month \u2014 weak; retained, no strong mechanism"
+    },
+    {
+      "field": "Day of the Week",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "weekday/weekend pattern"
+    },
+    {
+      "field": "Direction",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.6505872483221476,
+        "2010": 0.6366695427092322,
+        "2011": 0.6293574846206426
+      },
+      "thoroughness": "elevated",
+      "rationale": "travel direction context"
+    },
+    {
+      "field": "Distance From Intersection",
+      "kind": "numeric",
+      "missing": {
+        "2009": 0.02978187919463087,
+        "2010": 0.06997411561691114,
+        "2011": 0.10304169514695831
+      },
+      "thoroughness": "low",
+      "rationale": "distance to nearest intersection (numeric)"
+    },
+    {
+      "field": "Election District",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "administrative polygon (not a point)"
+    },
+    {
+      "field": "Functional Class",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "roadway functional class"
+    },
+    {
+      "field": "Hit and Run",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "hit-and-run flag (scene fact)"
+    },
+    {
+      "field": "Lighting",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.011409395973154362,
+        "2010": 0.008973252804141501,
+        "2011": 0.008458646616541353
+      },
+      "thoroughness": "low",
+      "rationale": "lighting condition"
+    },
+    {
+      "field": "Maintenance Category",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "roadway maintenance category"
+    },
+    {
+      "field": "Maintenance Responsibility",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "maintenance responsibility"
+    },
+    {
+      "field": "Month",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "calendar month \u2014 seasonality"
+    },
+    {
+      "field": "NHS System",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "National Highway System indicator"
+    },
+    {
+      "field": "Number of Commercial Vehicles Involved",
+      "kind": "numeric",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "count of CVs involved"
+    },
+    {
+      "field": "Number of Pedestrians Involved",
+      "kind": "numeric",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "count of pedestrians involved"
+    },
+    {
+      "field": "Number of Persons Involved",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "crash size (persons)"
+    },
+    {
+      "field": "Number of Units Involved",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 8.628127696289905e-05,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "count of units (vehicles) involved"
+    },
+    {
+      "field": "Pavement",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "pavement type/condition"
+    },
+    {
+      "field": "Posted Speed",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.3221476510067114,
+        "2010": 0.29767040552200175,
+        "2011": 0.2963943950786056
+      },
+      "thoroughness": "elevated",
+      "rationale": "posted speed limit"
+    },
+    {
+      "field": "Region",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0005033557046979866,
+        "2010": 0.005780845556514236,
+        "2011": 0.007006151742993848
+      },
+      "thoroughness": "low",
+      "rationale": "DOT region (coarse geography)"
+    },
+    {
+      "field": "Road Surface",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0030201342281879194,
+        "2010": 0.0020707506471095774,
+        "2011": 0.002563226247436774
+      },
+      "thoroughness": "low",
+      "rationale": "road surface condition (snow/ice/wet\u2026)"
+    },
+    {
+      "field": "Roadway Characteristics",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.21820469798657718,
+        "2010": 0.18947368421052632,
+        "2011": 0.1858339029391661
+      },
+      "thoroughness": "elevated",
+      "rationale": "roadway geometry/character"
+    },
+    {
+      "field": "Roadway Junction",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.03129194630872483,
+        "2010": 0.026056945642795513,
+        "2011": 0.020847573479152427
+      },
+      "thoroughness": "low",
+      "rationale": "junction type"
+    },
+    {
+      "field": "Temperature",
+      "kind": "numeric",
+      "missing": {
+        "2009": 0.23187919463087248,
+        "2010": 0.2009490940465919,
+        "2011": 0.20394736842105263
+      },
+      "thoroughness": "elevated",
+      "rationale": "ambient temperature at crash time"
+    },
+    {
+      "field": "Temperature Range",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.23187919463087248,
+        "2010": 0.2009490940465919,
+        "2011": 0.20394736842105263
+      },
+      "thoroughness": "elevated",
+      "rationale": "binned temperature at crash time"
+    },
+    {
+      "field": "Time of Day",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "hour band \u2014 lighting/traffic-exposure proxy"
+    },
+    {
+      "field": "Unit 1 Action",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.04714765100671141,
+        "2010": 0.027006039689387404,
+        "2011": 0.07048872180451128
+      },
+      "thoroughness": "low",
+      "rationale": "primary unit's action/maneuver"
+    },
+    {
+      "field": "Unit 1 CV Configuration",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0008389261744966443,
+        "2010": 0.0010353753235547887,
+        "2011": 0.00017088174982911826
+      },
+      "thoroughness": "low",
+      "rationale": "CV configuration"
+    },
+    {
+      "field": "Unit 1 CV Issuing Authority",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.02172818791946309,
+        "2010": 0.016997411561691114,
+        "2011": 0.016404647983595352
+      },
+      "thoroughness": "low",
+      "rationale": "CV issuing authority"
+    },
+    {
+      "field": "Unit 1 CV Placard",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.010570469798657719,
+        "2010": 0.0075927523727351166,
+        "2011": 0.004101161995898838
+      },
+      "thoroughness": "low",
+      "rationale": "CV placard"
+    },
+    {
+      "field": "Unit 1 Commercial Vehicle (CV)",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 8.628127696289905e-05,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "is unit a commercial vehicle"
+    },
+    {
+      "field": "Unit 1 Direction of Travel",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.05629194630872483,
+        "2010": 0.04857635893011217,
+        "2011": 0.0940704032809296
+      },
+      "thoroughness": "low",
+      "rationale": "unit direction of travel"
+    },
+    {
+      "field": "Unit 1 License Plate State",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.061996644295302016,
+        "2010": 0.040638481449525456,
+        "2011": 0.08629528366370472
+      },
+      "thoroughness": "low",
+      "rationale": "plate state (local vs out-of-state)"
+    },
+    {
+      "field": "Unit 1 Model Year",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.04337248322147651,
+        "2010": 0.041501294219154446,
+        "2011": 0.06664388243335612
+      },
+      "thoroughness": "low",
+      "rationale": "vehicle model year (age proxy)"
+    },
+    {
+      "field": "Unit 1 Non-CV Configuration",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.008976510067114094,
+        "2010": 0.0064710957722174285,
+        "2011": 0.04972658920027341
+      },
+      "thoroughness": "low",
+      "rationale": "non-CV body configuration"
+    },
+    {
+      "field": "Unit 1 Occupants",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0,
+        "2010": 8.628127696289905e-05,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "number of occupants in unit"
+    },
+    {
+      "field": "Unit 1 Person 1 Age Range",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.04731543624161074,
+        "2010": 0.043830888697152716,
+        "2011": 0.052118933697881065
+      },
+      "thoroughness": "low",
+      "rationale": "driver age band"
+    },
+    {
+      "field": "Unit 1 Person 1 Gender",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.24370805369127516,
+        "2010": 0.2176013805004314,
+        "2011": 0.22727272727272727
+      },
+      "thoroughness": "elevated",
+      "rationale": "driver gender"
+    },
+    {
+      "field": "Unit 1 Person 1 Raw Age",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.04731543624161074,
+        "2010": 0.043830888697152716,
+        "2011": 0.052118933697881065
+      },
+      "thoroughness": "low",
+      "rationale": "driver age (raw)"
+    },
+    {
+      "field": "Unit 1 Person 1 Residence State",
+      "kind": "categorical",
+      "missing": {
+        "2009": 1.0,
+        "2010": 0.994909404659189,
+        "2011": 0.49606971975393027
+      },
+      "thoroughness": "elevated",
+      "rationale": "resident vs visitor (scene fact)"
+    },
+    {
+      "field": "Unit 1 Person 1 Type",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.0020973154362416107,
+        "2010": 0.0021570319240724763,
+        "2011": 0.02725563909774436
+      },
+      "thoroughness": "low",
+      "rationale": "person type (driver/\u2026)"
+    },
+    {
+      "field": "Unit 1 Traffic Control",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.054110738255033555,
+        "2010": 0.033822260569456426,
+        "2011": 0.08714969241285031
+      },
+      "thoroughness": "low",
+      "rationale": "traffic control present"
+    },
+    {
+      "field": "Weather",
+      "kind": "categorical",
+      "missing": {
+        "2009": 0.016778523489932886,
+        "2010": 0.013201035375323555,
+        "2011": 0.012303485987696514
+      },
+      "thoroughness": "low",
+      "rationale": "weather condition"
+    },
+    {
+      "field": "Week of the Year",
+      "kind": "numeric",
+      "missing": {
+        "2009": 0.0,
+        "2010": 0.0,
+        "2011": 0.0
+      },
+      "thoroughness": "low",
+      "rationale": "week-of-year \u2014 seasonality (correlated with Month)"
+    }
+  ],
+  "prohibited": [
+    {
+      "field": "Arrest",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "post-crash enforcement"
+    },
+    {
+      "field": "Number of Fatalities",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "injury/fatality count \u2014 defines K; direct leak"
+    },
+    {
+      "field": "Number of Injuries with Fatalities",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "injury count \u2014 direct leak"
+    },
+    {
+      "field": "Number of Injuries without Fatailites",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "injury count (sic) \u2014 direct leak"
+    },
+    {
+      "field": "Unit 1 Damage",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "vehicle damage extent \u2014 co-measurement of harm"
+    },
+    {
+      "field": "Unit 1 Person 1 Extricated",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "extrication \u2014 post-crash response to entrapment/injury"
+    },
+    {
+      "field": "Unit 1 Person 1 Injury",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "the person's injury code \u2014 IS the outcome"
+    },
+    {
+      "field": "Unit 1 Person 1 NFR",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "ambiguous post-report field \u2014 excluded conservatively"
+    },
+    {
+      "field": "Unit 1 Person 1 Transported",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "EMS transport \u2014 post-crash response to injury"
+    },
+    {
+      "field": "Unit 1 Person 1 Transported By",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "EMS transport mode \u2014 post-crash response"
+    },
+    {
+      "field": "Unit 1 Person 1 Transported To",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "destination facility \u2014 post-crash response"
+    },
+    {
+      "field": "Unit 1 Person 1 Violations",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "post-crash adjudication"
+    },
+    {
+      "field": "Unit 1 Towed",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "tow disposition \u2014 post-crash outcome of damage"
+    },
+    {
+      "field": "Unit 1 Undercarriage Damage",
+      "category": "Outcome-derived",
+      "stage": "recorded with or after the severity outcome (post-outcome response, count, damage, or enforcement)",
+      "rationale": "rollover/undercarriage damage extent \u2014 co-measurement of harm"
+    }
+  ],
+  "exclusion_summary": [
+    {
+      "status": "TIMING_UNCERTAIN",
+      "count": 14,
+      "disposition": "excluded from the primary restricted tier; admitted only to the broad-tier sensitivity (H4)",
+      "fields": [
+        "First Sequence Event",
+        "First Sequence Location",
+        "Unit 1 CV Haz-Mat Released",
+        "Unit 1 Person 1 Alcohol or Drug Use Suspected",
+        "Unit 1 Person 1 Circumstance",
+        "Unit 1 Person 1 Environment Circumstance",
+        "Unit 1 Person 1 Insurance Coverage",
+        "Unit 1 Person 1 Restraint",
+        "Unit 1 Person 1 Seat Location",
+        "Unit 1 Person 1 Test Given",
+        "Unit 1 Primary Contributing Circumstance",
+        "Unit 1 Primary Damage Location",
+        "Unit 1 Road Circumstance",
+        "Unit 1 Secondary Sequence of Events"
+      ]
+    },
+    {
+      "status": "OUTCOME_PROXIMAL",
+      "count": 2,
+      "disposition": "damage/response-adjacent (LEDGER-TENSION-001); broad-tier sensitivity only",
+      "fields": [
+        "Non Vehicle Damage",
+        "Unit 1 Person 1 Ejected"
+      ]
+    },
+    {
+      "status": "EXCLUDED_IDENTIFIER",
+      "count": 16,
+      "disposition": "identifier / privacy exclusion; removed at de-identification, never modeled",
+      "fields": [
+        "CDS Number",
+        "Crash Number",
+        "Date",
+        "DateTime",
+        "Detachment",
+        "Intersecting Street",
+        "Latitude",
+        "Longitude",
+        "Maintenance Station",
+        "Milepoint",
+        "Officer Agency",
+        "Officer ID",
+        "Report ID",
+        "Reporting Agency",
+        "Route",
+        "Street"
+      ]
+    },
+    {
+      "status": "EXCLUDED_CONSTANT",
+      "count": 3,
+      "disposition": "invariant in the extract or on development rows; no information",
+      "fields": [
+        "Location Type",
+        "Rural Urban",
+        "Unit 1 Make"
+      ]
+    },
+    {
+      "status": "SPLIT_ONLY",
+      "count": 1,
+      "disposition": "chronological split axis; withheld as a feature",
+      "fields": [
+        "Year"
+      ]
+    },
+    {
+      "status": "TARGET (excluded)",
+      "count": 1,
+      "disposition": "the outcome itself",
+      "fields": [
+        "Crash Severity"
+      ]
+    }
+  ]
+}

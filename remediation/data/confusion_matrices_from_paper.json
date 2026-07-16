@@ -1,0 +1,26 @@
+{
+  "description": "Confusion matrices transcribed from the result screenshots in 'Alaska Car Crash Analysis Final Report.docx' (result pages 19-22). Rows = true class (0,1,2), columns = predicted class. These are the ORIGINAL, contaminated-protocol results (random 80/20 split, no baselines, no uncertainty). They are used ONLY for honest re-analysis, never as a valid final benchmark.",
+  "provenance": {
+    "source_document": "Alaska Car Crash Analysis Final Report.docx",
+    "source_document_sha256": "c590e46d313fef71df7c1e0ded16e1aabdb8536314c1ecdc69b86618470ff7c3",
+    "embedded_images": {
+      "decision_tree": "word/media/image9.png",
+      "xgboost": "word/media/image11.png",
+      "mlrf_random_forest": "word/media/image13.png",
+      "ebm": "word/media/image15.png"
+    },
+    "producing_code_path": "peyton_original/Machine Learning Models/* (OneHotEncoder(min_frequency=0.01), test_size=0.2, random_state=42, RandomizedSearchCV) — evidenced by the 'Crash Type_infrequent_sklearn' feature label in the importance screenshots, which pandas.get_dummies (the integrated path) cannot produce.",
+    "test_set_class_counts": {"0": 7395, "1": 3152, "2": 389, "total": 10936}
+  },
+  "class_labels": {
+    "0": "none/PDO (KABCO O)",
+    "1": "minor/possible injury (KABCO B,C)",
+    "2": "serious/fatal injury (KABCO A,K)"
+  },
+  "reported": {
+    "decision_tree":       {"accuracy": 0.5797, "f1_macro": 0.4515, "confusion_matrix": [[4908, 2270, 217], [1638, 1300, 214], [119, 138, 132]]},
+    "xgboost":             {"accuracy": 0.6274, "f1_macro": 0.5142, "confusion_matrix": [[5043, 2098, 254], [1172, 1607, 373], [60, 118, 211]]},
+    "mlrf_random_forest":  {"accuracy": 0.7098, "f1_macro": 0.5064, "confusion_matrix": [[6978, 373, 44], [2340, 635, 177], [160, 80, 149]]},
+    "ebm":                 {"accuracy": 0.5785, "f1_macro": 0.4604, "confusion_matrix": [[4700, 1996, 699], [1083, 1361, 708], [52, 72, 265]]}
+  }
+}

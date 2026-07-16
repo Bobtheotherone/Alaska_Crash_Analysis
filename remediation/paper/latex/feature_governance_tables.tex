@@ -1,0 +1,130 @@
+% GENERATED FILE — do not edit by hand.
+% Source: tools/gen_feature_governance_tables.py (contract ledger + frozen
+% retained-column list + licensed local modeling-table missingness).
+% Two single-page [H] parts: a page-split longtable trips a pdfTeX
+% 'infinite glue shrinkage' warning under this preamble.
+\begin{table}[H]
+\centering
+\caption[The 49 retained restricted-tier source fields]{The 49 retained restricted-tier source fields, part 1 of 2 (all author-judged \emph{plausibly early}; none custodian-verified).}\label{tab:retained-fields}
+\footnotesize
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{0.235\textwidth}L{0.115\textwidth}R{0.055\textwidth}R{0.055\textwidth}R{0.055\textwidth}L{0.08\textwidth}L{0.295\textwidth}@{}}
+\toprule
+\textbf{Source field} & \textbf{Type} & \textbf{Miss.\ 2009} & \textbf{Miss.\ 2010} & \textbf{Miss.\ 2011} & \textbf{Thoro.\ risk} & \textbf{Contract-ledger rationale} \\
+\midrule
+AADT & numeric & 0.330 & 0.333 & 0.304 & low & annual average daily traffic (numeric; sentinel-cleaned) \\
+AHS System & categorical & 0.001 & 0.006 & 0.007 & low & Alaska Highway System class \\
+At Intersection & categorical & 0.000 & 0.000 & 0.000 & low & intersection-related location \\
+Borough & categorical & 0.001 & 0.006 & 0.007 & low & coarse administrative geography \\
+Census Area & categorical & 0.001 & 0.006 & 0.007 & low & coarse administrative geography \\
+City & categorical & 0.001 & 0.006 & 0.007 & low & city/place \\
+Day of Month & numeric & 0.000 & 0.000 & 0.000 & low & day-of-month — weak; retained, no strong mechanism \\
+Day of the Week & categorical & 0.000 & 0.000 & 0.000 & low & weekday/weekend pattern \\
+Direction & categorical & 0.651 & 0.637 & 0.629 & elevated & travel direction context \\
+Distance From Intersection & numeric & 0.030 & 0.070 & 0.103 & low & distance to nearest intersection (numeric) \\
+Election District & categorical & 0.001 & 0.006 & 0.007 & low & administrative polygon (not a point) \\
+Functional Class & categorical & 0.001 & 0.006 & 0.007 & low & roadway functional class \\
+Hit and Run & categorical & 0.000 & 0.000 & 0.000 & low & hit-and-run flag (scene fact) \\
+Lighting & categorical & 0.011 & 0.009 & 0.008 & low & lighting condition \\
+Maintenance Category & categorical & 0.001 & 0.006 & 0.007 & low & roadway maintenance category \\
+Maintenance Responsibility & categorical & 0.001 & 0.006 & 0.007 & low & maintenance responsibility \\
+Month & categorical & 0.000 & 0.000 & 0.000 & low & calendar month — seasonality \\
+NHS System & categorical & 0.001 & 0.006 & 0.007 & low & National Highway System indicator \\
+Number of Commercial Vehicles Involved & numeric & 0.000 & 0.000 & 0.000 & low & count of CVs involved \\
+Number of Pedestrians Involved & numeric & 0.000 & 0.000 & 0.000 & low & count of pedestrians involved \\
+Number of Persons Involved & categorical & 0.000 & 0.000 & 0.000 & low & crash size (persons) \\
+Number of Units Involved & categorical & 0.000 & 0.000 & 0.000 & low & count of units (vehicles) involved \\
+Pavement & categorical & 0.001 & 0.006 & 0.007 & low & pavement type/condition \\
+Posted Speed & categorical & 0.322 & 0.298 & 0.296 & elevated & posted speed limit \\
+Region & categorical & 0.001 & 0.006 & 0.007 & low & DOT region (coarse geography) \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+\begin{table}[H]
+\centering
+\ContinuedFloat
+\captionsetup{list=no}\caption{The 49 retained restricted-tier source fields, part 2 of 2 (continued).}\label{tab:retained-fields-b}
+\footnotesize
+\begingroup\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{0.235\textwidth}L{0.115\textwidth}R{0.055\textwidth}R{0.055\textwidth}R{0.055\textwidth}L{0.08\textwidth}L{0.295\textwidth}@{}}
+\toprule
+\textbf{Source field} & \textbf{Type} & \textbf{Miss.\ 2009} & \textbf{Miss.\ 2010} & \textbf{Miss.\ 2011} & \textbf{Thoro.\ risk} & \textbf{Contract-ledger rationale} \\
+\midrule
+Road Surface & categorical & 0.003 & 0.002 & 0.003 & low & road surface condition (snow/ice/wet…) \\
+Roadway Characteristics & categorical & 0.218 & 0.189 & 0.186 & elevated & roadway geometry/character \\
+Roadway Junction & categorical & 0.031 & 0.026 & 0.021 & low & junction type \\
+Temperature & numeric & 0.232 & 0.201 & 0.204 & elevated & ambient temperature at crash time \\
+Temperature Range & categorical & 0.232 & 0.201 & 0.204 & elevated & binned temperature at crash time \\
+Time of Day & categorical & 0.000 & 0.000 & 0.000 & low & hour band — lighting/traffic-exposure proxy \\
+Unit 1 Action & categorical & 0.047 & 0.027 & 0.070 & low & primary unit's action/maneuver \\
+Unit 1 CV Configuration & categorical & 0.001 & 0.001 & 0.000 & low & CV configuration \\
+Unit 1 CV Issuing Authority & categorical & 0.022 & 0.017 & 0.016 & low & CV issuing authority \\
+Unit 1 CV Placard & categorical & 0.011 & 0.008 & 0.004 & low & CV placard \\
+Unit 1 Commercial Vehicle (CV) & categorical & 0.000 & 0.000 & 0.000 & low & is unit a commercial vehicle \\
+Unit 1 Direction of Travel & categorical & 0.056 & 0.049 & 0.094 & low & unit direction of travel \\
+Unit 1 License Plate State & categorical & 0.062 & 0.041 & 0.086 & low & plate state (local vs out-of-state) \\
+Unit 1 Model Year & categorical & 0.043 & 0.042 & 0.067 & low & vehicle model year (age proxy) \\
+Unit 1 Non-CV Configuration & categorical & 0.009 & 0.006 & 0.050 & low & non-CV body configuration \\
+Unit 1 Occupants & categorical & 0.000 & 0.000 & 0.000 & low & number of occupants in unit \\
+Unit 1 Person 1 Age Range & categorical & 0.047 & 0.044 & 0.052 & low & driver age band \\
+Unit 1 Person 1 Gender & categorical & 0.244 & 0.218 & 0.227 & elevated & driver gender \\
+Unit 1 Person 1 Raw Age & categorical & 0.047 & 0.044 & 0.052 & low & driver age (raw) \\
+Unit 1 Person 1 Residence State & categorical & 1.000 & 0.995 & 0.496 & elevated & resident vs visitor (scene fact) \\
+Unit 1 Person 1 Type & categorical & 0.002 & 0.002 & 0.027 & low & person type (driver/…) \\
+Unit 1 Traffic Control & categorical & 0.054 & 0.034 & 0.087 & low & traffic control present \\
+Weather & categorical & 0.017 & 0.013 & 0.012 & low & weather condition \\
+Week of the Year & numeric & 0.000 & 0.000 & 0.000 & low & week-of-year — seasonality (correlated with Month) \\
+\bottomrule
+\end{tabular}
+\endgroup
+\tabnote{Type: numeric fields are median-imputed; categorical fields are most-frequent-imputed and one-hot encoded with an infrequent bucket. Miss.\ = share of missing or sentinel values on mapped development rows of that year. Thoro.\ risk = \emph{elevated} when development missingness differs by at least 0.05 between classes 0 and 2, so the field's presence is outcome-correlated (\artifact{experiment/target_reporting_process_audit.json}, q8). Every field is used directly as a model input after imputation and encoding; the year is only the split axis and no retained field is transformed beyond imputation, encoding, and (for linear models) standardization.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{The 14 prohibited outcome-derived source fields (excluded from every modeling tier).}
+\label{tab:prohibited-fields}
+\footnotesize
+\begin{tabular}{@{}L{0.30\textwidth}L{0.13\textwidth}L{0.50\textwidth}@{}}
+\toprule
+\textbf{Source field} & \textbf{Category} & \textbf{Relationship to the target / leakage rationale} \\
+\midrule
+Arrest & Outcome-derived & post-crash enforcement \\
+Number of Fatalities & Outcome-derived & injury/fatality count — defines K; direct leak \\
+Number of Injuries with Fatalities & Outcome-derived & injury count — direct leak \\
+Number of Injuries without Fatailites & Outcome-derived & injury count (sic) — direct leak \\
+Unit 1 Damage & Outcome-derived & vehicle damage extent — co-measurement of harm \\
+Unit 1 Person 1 Extricated & Outcome-derived & extrication — post-crash response to entrapment/injury \\
+Unit 1 Person 1 Injury & Outcome-derived & the person's injury code — IS the outcome \\
+Unit 1 Person 1 NFR & Outcome-derived & ambiguous post-report field — excluded conservatively \\
+Unit 1 Person 1 Transported & Outcome-derived & EMS transport — post-crash response to injury \\
+Unit 1 Person 1 Transported By & Outcome-derived & EMS transport mode — post-crash response \\
+Unit 1 Person 1 Transported To & Outcome-derived & destination facility — post-crash response \\
+Unit 1 Person 1 Violations & Outcome-derived & post-crash adjudication \\
+Unit 1 Towed & Outcome-derived & tow disposition — post-crash outcome of damage \\
+Unit 1 Undercarriage Damage & Outcome-derived & rollover/undercarriage damage extent — co-measurement of harm \\
+\bottomrule
+\end{tabular}
+\tabnote{Every field in this table is recorded with or after the severity outcome (post-crash response, injury/fatality counting, damage assessment, or enforcement), so admitting it would let the predictors carry the outcome itself or its direct consequences.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Disposition of the remaining source fields (neither retained nor outcome-derived).}
+\label{tab:exclusion-summary}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.22\textwidth}R{0.07\textwidth}Y@{}}
+\toprule
+\textbf{Category} & \textbf{Fields} & \textbf{Disposition} \\
+\midrule
+Timing-uncertain & 14 & excluded from the primary restricted tier; admitted only to the broad-tier sensitivity (H4) \\
+Outcome-proximal & 2 & damage/response-adjacent (LEDGER-TENSION-001); broad-tier sensitivity only \\
+Identifier & 16 & identifier / privacy exclusion; removed at de-identification, never modeled \\
+Constant/invariant & 3 & invariant in the extract or on development rows; no information \\
+Split axis (Year) & 1 & chronological split axis; withheld as a feature \\
+Target field & 1 & the outcome itself \\
+\bottomrule
+\end{tabularx}
+\tabnote{The per-field ledger \artifact{paper/FEATURE_TIMING_EVIDENCE.md} names every field in each category with its grade and rationale; the machine-readable source is \artifact{data/feature_availability_ledger.csv}.}
+\end{table}

@@ -1,0 +1,338 @@
+{
+  "analysis": "target_reporting_process_audit",
+  "status": "POST HOC (v4.1 revision addendum): retrospective analysis of the historically exposed cohort; NOT prespecified; NOT part of the frozen one-shot benchmark; no frozen artifact is modified and no model role changes.",
+  "generated_utc": "2026-07-15T19:55:01Z",
+  "git_commit": "42194a619c3a8c1a146c1202ac6afe6a919e392b",
+  "data_rows": 50543,
+  "q1_class0_provenance": {
+    "raw_severity_census": {
+      "<blank>": 32046,
+      "Non-Incapacitating": 7790,
+      "Possible": 5257,
+      "Unknown": 1847,
+      "Not Reported": 1788,
+      "Incapacitating": 1512,
+      "Fatal": 239,
+      "Null value": 64
+    },
+    "blank_rows": 32046,
+    "explicit_pdo_labels_in_raw_field": 0,
+    "finding": "ALL class-0 records originate from the blank->PDO mapping: the raw field contains no explicit no-injury/PDO value; class 0 == the 32,046 blanks."
+  },
+  "q2_count_fields_among_blanks": {
+    "Number of Fatalities": {
+      "n": 32046,
+      "explicit_zero": 32046,
+      "positive": 0,
+      "missing": 0
+    },
+    "Number of Injuries with Fatalities": {
+      "n": 32046,
+      "explicit_zero": 32046,
+      "positive": 0,
+      "missing": 0
+    },
+    "Number of Injuries without Fatailites": {
+      "n": 32046,
+      "explicit_zero": 32046,
+      "positive": 0,
+      "missing": 0
+    }
+  },
+  "q2_finding": "All three crash-level count fields are EXPLICIT ZEROS (never missing) for every blank-severity row: the simple shared-missingness explanation is disfavoured for these count fields. This does not establish official blank semantics; the fields may still be derived from the same report.",
+  "q3_person_injury_among_blanks": {
+    "census": {
+      "<missing>": 29932,
+      "Unknown": 1610,
+      "Not Reported": 357,
+      "Null value": 147
+    },
+    "missing_share": 0.934,
+    "finding": "The PERSON-level injury field IS predominantly co-missing with blank severity (unknown-token or absent); only the crash-level count fields carry explicit zeros. The blank->PDO evidence therefore rests on the count fields alone."
+  },
+  "q4_quarantined_count_signature": {
+    "Number of Fatalities": {
+      "n": 3699,
+      "explicit_zero": 3699,
+      "positive": 0,
+      "missing": 0
+    },
+    "Number of Injuries with Fatalities": {
+      "n": 3699,
+      "explicit_zero": 3699,
+      "positive": 0,
+      "missing": 0
+    },
+    "Number of Injuries without Fatailites": {
+      "n": 3699,
+      "explicit_zero": 3699,
+      "positive": 0,
+      "missing": 0
+    }
+  },
+  "q4_finding": "The quarantined Unknown/Not Reported/Null-value rows carry the SAME all-zero count signature as the blanks. Zero counts alone therefore cannot discriminate 'no injury occurred' from 'no injury data recorded'; the asymmetric treatment (blanks mapped, unknown tokens quarantined) rests on the tokens' explicit unknown semantics plus conservatism, and an authoritative codebook remains material (paper roadmap Phase 1).",
+  "q5_count_field_inconsistency": {
+    "incapacitating_rows": 1512,
+    "incap_with_positive_fatalities": 0,
+    "incap_with_positive_injuries_WITH_fatalities": 1511,
+    "rows_where_withFat_equals_withoutFat": 50301,
+    "rows_where_withFat_positive_but_zero_fatalities": 14556,
+    "finding": "'Number of Injuries with Fatalities' is positive for nearly all injury crashes that have ZERO fatalities and is column-identical to 'Number of Injuries without Fatailites' on most rows \u2014 the extract's own count-field semantics are unreliable (mislabelled or duplicated at source), reinforcing that field-level meaning requires custodian documentation rather than name-based inference."
+  },
+  "q6_blank_share_by_year": {
+    "2009": {
+      "n": 12862,
+      "blank_share": 0.6287,
+      "quarantined_share": 0.0732
+    },
+    "2010": {
+      "n": 12459,
+      "blank_share": 0.6342,
+      "quarantined_share": 0.0697
+    },
+    "2011": {
+      "n": 12682,
+      "blank_share": 0.6451,
+      "quarantined_share": 0.0771
+    },
+    "2012": {
+      "n": 12540,
+      "blank_share": 0.6281,
+      "quarantined_share": 0.0726
+    }
+  },
+  "q6_note_agency": "Agency-related columns (Officer Agency, Reporting Agency, Detachment) exist in the licensed raw extract but were removed as identifier-tier fields during de-identification, so none survives in the modeling table; geographic proxies (Region, Borough) are reported instead, with groups below n=200 pooled. CORRECTION 2026-07-15: an earlier note said the licensed extract contained no such column; that conflated the modeling table with the source extract.",
+  "q6_blank_share_by_region": {
+    "available": true,
+    "groups": {
+      "Central Region": {
+        "n": 39973,
+        "blank_share": 0.6347
+      },
+      "Northern Region": {
+        "n": 7340,
+        "blank_share": 0.6591
+      },
+      "Southeast Region": {
+        "n": 2295,
+        "blank_share": 0.593
+      },
+      "Null value": {
+        "n": 935,
+        "blank_share": 0.5112
+      }
+    }
+  },
+  "q6_blank_share_by_borough": {
+    "available": true,
+    "groups": {
+      "Anchorage Municipality": {
+        "n": 30024,
+        "blank_share": 0.6398
+      },
+      "Matanuska-Susitna Borough": {
+        "n": 5892,
+        "blank_share": 0.6096
+      },
+      "Fairbanks North Star Borough": {
+        "n": 5773,
+        "blank_share": 0.6678
+      },
+      "Kenai Peninsula Borough": {
+        "n": 3575,
+        "blank_share": 0.6358
+      },
+      "Non-Borough Area": {
+        "n": 1500,
+        "blank_share": 0.6027
+      },
+      "Juneau City and Borough": {
+        "n": 1121,
+        "blank_share": 0.5798
+      },
+      "Null value": {
+        "n": 935,
+        "blank_share": 0.5112
+      },
+      "Ketchikan Gateway Borough": {
+        "n": 538,
+        "blank_share": 0.5558
+      },
+      "Sitka City and Borough": {
+        "n": 317,
+        "blank_share": 0.7192
+      },
+      "Kodiak Island Borough": {
+        "n": 296,
+        "blank_share": 0.6622
+      },
+      "North Slope Borough": {
+        "n": 262,
+        "blank_share": 0.6031
+      },
+      "<groups below n=200, pooled>": {
+        "n": 310,
+        "blank_share": 0.6581
+      }
+    }
+  },
+  "q7_person_injury_by_class": {
+    "class_0": {
+      "n": 32046,
+      "top_values": {
+        "<missing>": 29932,
+        "Unknown": 1610,
+        "Not Reported": 357,
+        "Null value": 147
+      },
+      "missing_or_placeholder_share": 1.0
+    },
+    "class_1": {
+      "n": 13047,
+      "top_values": {
+        "<missing>": 5146,
+        "Non-Incapacitating": 4291,
+        "Possible": 2505,
+        "Unknown": 551,
+        "Not Reported": 512,
+        "Null value": 42
+      },
+      "missing_or_placeholder_share": 0.4791
+    },
+    "class_2": {
+      "n": 1751,
+      "top_values": {
+        "Incapacitating": 839,
+        "<missing>": 433,
+        "Non-Incapacitating": 193,
+        "Fatal": 138,
+        "Possible": 62,
+        "Unknown": 45
+      },
+      "missing_or_placeholder_share": 0.2964
+    }
+  },
+  "q8_retained_field_missingness_by_class_top12": [
+    {
+      "field": "Unit 1 Person 1 Gender",
+      "missing_class0": 0.2796,
+      "missing_class2": 0.0484,
+      "contrast_c0_minus_c2": 0.2312
+    },
+    {
+      "field": "Temperature",
+      "missing_class0": 0.2604,
+      "missing_class2": 0.0361,
+      "contrast_c0_minus_c2": 0.2242
+    },
+    {
+      "field": "Temperature Range",
+      "missing_class0": 0.2604,
+      "missing_class2": 0.0361,
+      "contrast_c0_minus_c2": 0.2242
+    },
+    {
+      "field": "Posted Speed",
+      "missing_class0": 0.3498,
+      "missing_class2": 0.1314,
+      "contrast_c0_minus_c2": 0.2184
+    },
+    {
+      "field": "Roadway Characteristics",
+      "missing_class0": 0.2459,
+      "missing_class2": 0.0323,
+      "contrast_c0_minus_c2": 0.2136
+    },
+    {
+      "field": "Unit 1 Person 1 Residence State",
+      "missing_class0": 0.8253,
+      "missing_class2": 0.8939,
+      "contrast_c0_minus_c2": -0.0686
+    },
+    {
+      "field": "Direction",
+      "missing_class0": 0.6414,
+      "missing_class2": 0.5819,
+      "contrast_c0_minus_c2": 0.0595
+    },
+    {
+      "field": "Unit 1 License Plate State",
+      "missing_class0": 0.0595,
+      "missing_class2": 0.1076,
+      "contrast_c0_minus_c2": -0.0481
+    },
+    {
+      "field": "Unit 1 Traffic Control",
+      "missing_class0": 0.0657,
+      "missing_class2": 0.0269,
+      "contrast_c0_minus_c2": 0.0388
+    },
+    {
+      "field": "Distance From Intersection",
+      "missing_class0": 0.0784,
+      "missing_class2": 0.0446,
+      "contrast_c0_minus_c2": 0.0338
+    },
+    {
+      "field": "Unit 1 Model Year",
+      "missing_class0": 0.0454,
+      "missing_class2": 0.0784,
+      "contrast_c0_minus_c2": -0.033
+    },
+    {
+      "field": "Unit 1 Direction of Travel",
+      "missing_class0": 0.0756,
+      "missing_class2": 0.0477,
+      "contrast_c0_minus_c2": 0.0279
+    }
+  ],
+  "q8_finding": "Missingness of several RETAINED fields is strongly associated with the recorded outcome on development rows (values are recorded more completely for injury crashes). Models can therefore partly exploit reporting completeness rather than crash characteristics; excluding explicit outcome descendants does not eliminate this channel.",
+  "q9_missingness_indicator_only_probe": {
+    "design": "chronological (development 2009-2011 fit; 2012 evaluation); features = 49 missingness indicators of the strict-tier fields ONLY (no field values); posterior-median decision rule; existing registry model families (logistic, unweighted random forest); NOT added to the model registry and NOT a candidate for any role",
+    "seed": 42,
+    "bootstrap_resamples": 2000,
+    "models": {
+      "missingness_only_logistic": {
+        "ordinal_mae": 0.35829750644883923,
+        "accuracy": 0.678847807394669,
+        "balanced_accuracy": 0.33725471269317575,
+        "severe_recall": 0.0022222222222222222,
+        "severe_precision": 0.5,
+        "predicted_class0_share": 0.9926053310404127,
+        "delta_omae_vs_majority": {
+          "difference": -0.003095442820292338,
+          "ci_low": -0.00472914875322439,
+          "ci_high": -0.0015477214101461412,
+          "excludes_zero": true,
+          "n_resamples": 2000
+        }
+      },
+      "missingness_only_random_forest": {
+        "ordinal_mae": 0.3640584694754944,
+        "accuracy": 0.6725709372312983,
+        "balanced_accuracy": 0.33843384908033164,
+        "severe_recall": 0.006666666666666667,
+        "severe_precision": 0.17647058823529413,
+        "predicted_class0_share": 0.9760963026655202,
+        "delta_omae_vs_majority": {
+          "difference": 0.002665520206362848,
+          "ci_low": -0.00017196904557181814,
+          "ci_high": 0.0055889939810833695,
+          "excludes_zero": false,
+          "n_resamples": 2000
+        }
+      }
+    },
+    "predictions_parquet": {
+      "path": "experiment/missingness_only_predictions.parquet",
+      "sha256": "a4512f067849441229111067185eede2c891e1b0a46bb665e6cbe8a8b50c9e7c",
+      "deid": "PRIV-001 surrogate ids",
+      "note": "kept out of git like other per-crash files; hash recorded here for integrity"
+    }
+  },
+  "q9_interpretation_rule": "A positive result would show that reporting-completeness patterns alone carry outcome signal; a null result does NOT rule out reporting-process associations (they may act through recorded values, not only through missingness).",
+  "q6_note_agency_correction_2026_07_15": {
+    "old_note": "The licensed extract contains NO reporting-agency or officer/agency identifier column; geographic proxies (Region, Borough) are reported instead, with groups below n=200 pooled.",
+    "numeric_payload_changed": false
+  }
+}

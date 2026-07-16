@@ -758,10 +758,13 @@ def fig06c_reliability(repo: Path, r: dict, out: Path):
     # r3 fixed per-series offset that collided in the congested low-probability
     # corner (r4 visual fix; REVISION_MEMO_R4). A KeyError here is intentional
     # fail-closed behavior: if the frozen evidence ever changed, every placement
-    # must be re-audited. The thin white halo keeps a label readable where it
-    # must cross a grid, reference, or series line.
-    from matplotlib import patheffects as _pe
-    _halo = [_pe.withStroke(linewidth=2.2, foreground="white")]
+    # must be re-audited. A softly transparent white pad behind each label keeps
+    # it readable where it must cross a grid, reference, or series line — drawn
+    # as a bbox behind REAL text (not matplotlib path_effects, which would
+    # convert the glyphs to vector paths and make the counts non-searchable in
+    # the shipped PDF).
+    _pad = dict(boxstyle="round,pad=0.14", facecolor="white", edgecolor="none",
+                alpha=0.75)
     _label_pos = {
         # raw series (open circles, dashed): (dx pt, dy pt, ha)
         8706:  (15, -4, "left"),    # right of the big first-bin circle, under the dashed rise
@@ -796,7 +799,7 @@ def fig06c_reliability(repo: Path, r: dict, out: Path):
             dx, dy, h = _label_pos[n]
             ax.annotate(f"{n:,}", (x, yv), textcoords="offset points",
                         xytext=(dx, dy), fontsize=8, color=color, ha=h,
-                        zorder=4, path_effects=_halo)
+                        zorder=4, bbox=_pad)
 
     series(raw_pts, GRAY_D, "o", "raw probabilities (recomputed from frozen evidence)",
            (0, (4, 2)))

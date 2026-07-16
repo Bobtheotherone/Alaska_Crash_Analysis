@@ -240,3 +240,49 @@ deterministic package/handoff rebuilt from the final commit):
   remains on the verified snapshot commit unless the author approves
   re-pointing before the release is drafted (recorded in
   `GITHUB_PUBLICATION_R4.md`).
+- Tag re-point (author-approved) executed: `portfolio-final-r4` → `8227e6e`
+  (all checks green); handoff rebuilt there; PR #2 merged after green checks;
+  PR #3 recorded the publication facts; draft release created with 9 assets,
+  API digests verified equal to the local files; title-encoding and
+  draft-tag-binding quirks fixed via API PATCH.
+
+### Figure 8 visual fix (2026-07-16, author-requested)
+
+- Defect (author report + high-resolution visual inspection of the r4 PDF):
+  the per-bin count annotations of Figure 8 (fig06c, severe-class reliability)
+  used one fixed offset per series, so the three large-count labels near the
+  origin ("11,148", "8,706", "1,958") collided with each other and the dashed
+  series line; "295"/"42"/"28"/"33"/"67" sat on lines or markers; "22"/"15"
+  merged; 7pt text was undersized.
+- Fix in `figure_generation/make_figures.py` (fig06c only): deterministic
+  per-point label placement keyed by the sixteen frozen bin counts (all
+  unique; a KeyError fails closed if the evidence ever changes), 8pt labels,
+  thin white halo for line crossings; one iteration moved "635" above-left
+  after the first render showed it entering the legend region. All 11 figures
+  regenerate with internal assertions passing; the other 10 figure PDFs were
+  restored from git (their only delta was the embedded creation timestamp) so
+  the diff is exactly the one changed figure.
+- Verified visually at high resolution (standalone figure) and at print size
+  (page-27 render of the rebuilt 56-page PDF): every label clear of markers,
+  lines, the diagonal, and the legend; identical plotted values. Full gate
+  suite + packaging rerun; the tag and draft-release assets are refreshed to
+  the fixed build (pre-publication, author-requested change).
+- Two additional defects were caught and fixed during this pass:
+  1. The first halo implementation (matplotlib `path_effects.withStroke`)
+     rendered the count glyphs as vector paths in the PDF backend — the
+     numeric-token gate flagged 18 vanished tokens (non-searchable text).
+     Replaced with a softly transparent white bbox pad behind real text; all
+     16 labels verified machine-extractable.
+  2. Packaging from the snapshot lineage exposed the frozen verifier's
+     ancestry check (merge-base vs governed baseline `42194a6` fails on graph
+     topology even though content is intact). Added the content-check
+     fallback: when the baseline object exists but is not an ancestor, the
+     gate diffs the baseline tree vs HEAD over the frozen paths
+     (modifications/deletions forbidden; additions allowed) — the same rule
+     the manuscript verifier applies. Gate: 34/34 on the snapshot lineage.
+- Final fixed build: PDF sha256
+  `f50b79b54dfe9ed03ef551042bb3b0c6eafb604920d0f7101a7f2284df9facc7`
+  (56 pages, 1,021,889 B); rebuild-from-source text-identical on all pages;
+  token diff vs r3 = the prior enumerated set plus exactly the de-overlap
+  signature (r3's mashed extraction token `8,7061,958` → clean `8,706` +
+  `1,958`; every governed numeric token unchanged).
